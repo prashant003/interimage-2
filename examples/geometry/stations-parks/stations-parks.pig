@@ -12,7 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.*/
 
-/*
+/**
 A Pig script that takes bus stations and parks data and computes
 the intersections between buffers of 100 meters around the bus stations and
 the parks larger than 25 squared meters.
