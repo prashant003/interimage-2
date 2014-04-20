@@ -9,13 +9,12 @@ Coming soon.
 
 ## Requirements
 * Java JDK 1.6 or greater.
-* Experience developing MapReduce applications for [Apache Hadoop](http://hadoop.apache.org/).
 
 ## Documentation
 Coming soon.
 
 ## Issues
-Find a bug or want to request a new feature? Please let us know by submitting an issue.
+If you've found a bug or want to request a new feature, please let us know by [submitting an issue] (https://github.com/ComputerVisionLab/interimage-2/issues).
 
 ## Licensing
 Copyright 2014 Computer Vision Lab
