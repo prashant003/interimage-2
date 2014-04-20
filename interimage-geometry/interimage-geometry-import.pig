@@ -6,7 +6,7 @@ DEFINE II_ConvexHull br.puc_rio.ele.lvc.interimage.geometry.udf.ConvexHull;
 DEFINE II_ConvexHull br.puc_rio.ele.lvc.interimage.geometry.udf.Difference;
 DEFINE II_ConvexHull br.puc_rio.ele.lvc.interimage.geometry.udf.Distance;
 DEFINE II_ConvexHull br.puc_rio.ele.lvc.interimage.geometry.udf.Envelope;
-DEFINE II_FieldToProps br.puc_rio.ele.lvc.interimage.geometry.udf.FieldToProps;
+DEFINE II_FieldToProps br.puc_rio.ele.lvc.interimage.common.udf.FieldToProps;
 DEFINE II_ConvexHull br.puc_rio.ele.lvc.interimage.geometry.udf.Intersection;
 DEFINE II_Length br.puc_rio.ele.lvc.interimage.geometry.udf.Length;
 DEFINE II_ConvexHull br.puc_rio.ele.lvc.interimage.geometry.udf.SymDifference;
