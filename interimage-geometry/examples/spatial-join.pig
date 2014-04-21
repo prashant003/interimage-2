@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.*/
 
 /**
-A Pig script that spatially joins two datasets and selects the geometries that intersect.
+A Pig script that spatially joins two datasets and selects the geometries that intersect each other.
 @author: Rodrigo Ferreira
 */
 
@@ -26,9 +26,9 @@ small_polygons = LOAD 's3n://interimage2/datasets/objects2.json' USING org.apach
 
 big_polygons = LOAD 's3n://interimage2/datasets/objects.json' USING org.apache.pig.piggybank.storage.JsonLoader('geometry:chararray, data:map[], properties:map[]');
 
-small_polygons_filtered = FILTER small_polygons BY II_ROI(geometry, properties#'tile');
+small_polygons_filtered = FILTER small_polygons BY II_SpatialFilter(geometry, properties#'tile');
 
-big_polygons_filtered = FILTER big_polygons BY II_ROI(geometry, properties#'tile');
+big_polygons_filtered = FILTER big_polygons BY II_SpatialFilter(geometry, properties#'tile');
 
 joined = II_SpatialJoin(small_polygons_filtered, big_polygons_filtered, 2);
 

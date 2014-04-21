@@ -31,11 +31,11 @@ import com.vividsolutions.jts.geom.Geometry;
  * 		A = load 'mydata1' as (geom1);<br>
  * 		B = load 'mydata2' as (geom2);<br>
  * 		C = cross A, B<br>
- * 		D = filter C by DWithin(geom1,geom2);<br>
+ * 		D = filter C by DWithin(geom1, geom2, 100);<br>
  * @author Rodrigo Ferreira
  *
  */
-public class DWithin extends EvalFunc<Boolean> {
+public class WithinDistance extends EvalFunc<Boolean> {
 	
 	private final GeometryParser _geometryParser = new GeometryParser();
 	

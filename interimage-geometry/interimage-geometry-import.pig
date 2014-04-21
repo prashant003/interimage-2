@@ -3,27 +3,28 @@ DEFINE II_Area br.puc_rio.ele.lvc.interimage.geometry.udf.Area;
 DEFINE II_Buffer br.puc_rio.ele.lvc.interimage.geometry.udf.Buffer;
 DEFINE II_Centroid br.puc_rio.ele.lvc.interimage.geometry.udf.Centroid;
 DEFINE II_ConvexHull br.puc_rio.ele.lvc.interimage.geometry.udf.ConvexHull;
-DEFINE II_ConvexHull br.puc_rio.ele.lvc.interimage.geometry.udf.Difference;
-DEFINE II_ConvexHull br.puc_rio.ele.lvc.interimage.geometry.udf.Distance;
-DEFINE II_ConvexHull br.puc_rio.ele.lvc.interimage.geometry.udf.Envelope;
+DEFINE II_Difference br.puc_rio.ele.lvc.interimage.geometry.udf.Difference;
+DEFINE II_Distance br.puc_rio.ele.lvc.interimage.geometry.udf.Distance;
+DEFINE II_Envelope br.puc_rio.ele.lvc.interimage.geometry.udf.Envelope;
 DEFINE II_FieldToProps br.puc_rio.ele.lvc.interimage.common.udf.FieldToProps;
-DEFINE II_ConvexHull br.puc_rio.ele.lvc.interimage.geometry.udf.Intersection;
+DEFINE II_Intersection br.puc_rio.ele.lvc.interimage.geometry.udf.Intersection;
 DEFINE II_Length br.puc_rio.ele.lvc.interimage.geometry.udf.Length;
-DEFINE II_ConvexHull br.puc_rio.ele.lvc.interimage.geometry.udf.SymDifference;
-DEFINE II_ConvexHull br.puc_rio.ele.lvc.interimage.geometry.udf.Union;
+DEFINE II_SymDifference br.puc_rio.ele.lvc.interimage.geometry.udf.SymDifference;
+DEFINE II_Xor br.puc_rio.ele.lvc.interimage.geometry.udf.SymDifference;
+DEFINE II_Union br.puc_rio.ele.lvc.interimage.geometry.udf.Union;
 
 --Filter UDFs
-DEFINE II_Centroid br.puc_rio.ele.lvc.interimage.geometry.udf.Contains;
-DEFINE II_ConvexHull br.puc_rio.ele.lvc.interimage.geometry.udf.CoveredBy;
-DEFINE II_ConvexHull br.puc_rio.ele.lvc.interimage.geometry.udf.Convers;
-DEFINE II_ConvexHull br.puc_rio.ele.lvc.interimage.geometry.udf.Crosses;
-DEFINE II_ConvexHull br.puc_rio.ele.lvc.interimage.geometry.udf.DWithin;
+DEFINE II_Contains br.puc_rio.ele.lvc.interimage.geometry.udf.Contains;
+DEFINE II_CoveredBy br.puc_rio.ele.lvc.interimage.geometry.udf.CoveredBy;
+DEFINE II_Covers br.puc_rio.ele.lvc.interimage.geometry.udf.Covers;
+DEFINE II_Crosses br.puc_rio.ele.lvc.interimage.geometry.udf.Crosses;
+DEFINE II_WithinDistance br.puc_rio.ele.lvc.interimage.geometry.udf.WithinDistance;
 DEFINE II_Intersects br.puc_rio.ele.lvc.interimage.geometry.udf.Intersects;
-DEFINE II_Intersects br.puc_rio.ele.lvc.interimage.geometry.udf.IsEmpty;
-DEFINE II_Intersects br.puc_rio.ele.lvc.interimage.geometry.udf.Overlaps;
-DEFINE II_ROI br.puc_rio.ele.lvc.interimage.geometry.udf.ROI('https://s3.amazonaws.com/interimage2/datasets/rois.wkt', 'https://s3.amazonaws.com/interimage2/datasets/tiles.json');
-DEFINE II_Intersects br.puc_rio.ele.lvc.interimage.geometry.udf.Touches;
-DEFINE II_Intersects br.puc_rio.ele.lvc.interimage.geometry.udf.Within;
+DEFINE II_IsEmpty br.puc_rio.ele.lvc.interimage.geometry.udf.IsEmpty;
+DEFINE II_Overlaps br.puc_rio.ele.lvc.interimage.geometry.udf.Overlaps;
+DEFINE II_SpatialFilter br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialFilter('https://s3.amazonaws.com/interimage2/datasets/rois.wkt', 'https://s3.amazonaws.com/interimage2/datasets/tiles.json');
+DEFINE II_Touches br.puc_rio.ele.lvc.interimage.geometry.udf.Touches;
+DEFINE II_Within br.puc_rio.ele.lvc.interimage.geometry.udf.Within;
 
 --Special UDFs
 DEFINE SpatialJoin br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialJoin('hierarchical-traversal'); --('index-nested-loop'|'hierarchical-traversal')

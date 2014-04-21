@@ -42,11 +42,11 @@ import com.vividsolutions.jts.io.WKTReader;
  * A UDF that tests whether a geometry intersects a list of ROIs.<br><br>
  * Example:<br>
  * 		A = load 'mydata1' as (geom, tile);<br>
- * 		B = filter A by ROI(geom,tile);<br>
+ * 		B = filter A by SpatialFilter(geom,tile);<br>
  * @author Rodrigo Ferreira
  *
  */
-public class ROI extends EvalFunc<Boolean> {
+public class SpatialFilter extends EvalFunc<Boolean> {
 	
 	private final GeometryParser _geometryParser = new GeometryParser();
 	private STRtree _gridIndex = null;
@@ -59,7 +59,7 @@ public class ROI extends EvalFunc<Boolean> {
 	/**
 	 * Constructor that takes the ROIs and the tiles grid URLs.
 	 * */
-	public ROI(String roiUrl, String gridUrl) {
+	public SpatialFilter(String roiUrl, String gridUrl) {
 		_roiUrl = roiUrl;
 		_gridUrl = gridUrl;
 	}
