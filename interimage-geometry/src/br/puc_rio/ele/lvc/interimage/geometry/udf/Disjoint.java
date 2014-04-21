@@ -26,16 +26,16 @@ import br.puc_rio.ele.lvc.interimage.geometry.GeometryParser;
 import com.vividsolutions.jts.geom.Geometry;
 
 /**
- * A UDF that tests whether two geometries are within a distance.<br><br>
+ * A UDF that tests whether two geometries are disjoint.<br><br>
  * Example:<br>
  * 		A = load 'mydata1' as (geom1);<br>
  * 		B = load 'mydata2' as (geom2);<br>
  * 		C = cross A, B<br>
- * 		D = filter C by WithinDistance(geom1, geom2, 100);<br>
+ * 		D = filter C by Disjoint(geom1,geom2);<br>
  * @author Rodrigo Ferreira
  *
  */
-public class WithinDistance extends EvalFunc<Boolean> {
+public class Disjoint extends EvalFunc<Boolean> {
 	
 	private final GeometryParser _geometryParser = new GeometryParser();
 	
@@ -54,10 +54,9 @@ public class WithinDistance extends EvalFunc<Boolean> {
 		try {			
 			Object objGeometry1 = input.get(0);
 			Object objGeometry2 = input.get(1);
-			Double distance = DataType.toDouble(input.get(2));
 			Geometry geometry1 = _geometryParser.parseGeometry(objGeometry1);
 			Geometry geometry2 = _geometryParser.parseGeometry(objGeometry2);
-			return geometry1.isWithinDistance(geometry2, distance);
+			return geometry1.disjoint(geometry2);
 		} catch (Exception e) {
 			throw new IOException("Caught exception processing input row ", e);
 		}

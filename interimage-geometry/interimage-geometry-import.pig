@@ -18,13 +18,15 @@ DEFINE II_Contains br.puc_rio.ele.lvc.interimage.geometry.udf.Contains;
 DEFINE II_CoveredBy br.puc_rio.ele.lvc.interimage.geometry.udf.CoveredBy;
 DEFINE II_Covers br.puc_rio.ele.lvc.interimage.geometry.udf.Covers;
 DEFINE II_Crosses br.puc_rio.ele.lvc.interimage.geometry.udf.Crosses;
-DEFINE II_WithinDistance br.puc_rio.ele.lvc.interimage.geometry.udf.WithinDistance;
+DEFINE II_Disjoint br.puc_rio.ele.lvc.interimage.geometry.udf.Disjoint;
+DEFINE II_Equals br.puc_rio.ele.lvc.interimage.geometry.udf.Equals;
 DEFINE II_Intersects br.puc_rio.ele.lvc.interimage.geometry.udf.Intersects;
 DEFINE II_IsEmpty br.puc_rio.ele.lvc.interimage.geometry.udf.IsEmpty;
 DEFINE II_Overlaps br.puc_rio.ele.lvc.interimage.geometry.udf.Overlaps;
 DEFINE II_SpatialFilter br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialFilter('https://s3.amazonaws.com/interimage2/datasets/rois.wkt', 'https://s3.amazonaws.com/interimage2/datasets/tiles.json');
 DEFINE II_Touches br.puc_rio.ele.lvc.interimage.geometry.udf.Touches;
 DEFINE II_Within br.puc_rio.ele.lvc.interimage.geometry.udf.Within;
+DEFINE II_WithinDistance br.puc_rio.ele.lvc.interimage.geometry.udf.WithinDistance;
 
 --Special UDFs
 DEFINE SpatialJoin br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialJoin('hierarchical-traversal'); --('index-nested-loop'|'hierarchical-traversal')
