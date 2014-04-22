@@ -52,6 +52,13 @@ public class SpatialGroup extends EvalFunc<DataBag> {
 	
 	private final GeometryParser _geometryParser = new GeometryParser();
 	
+	Double _distance = null;
+	
+	public SpatialGroup(String distance) {
+		if (!distance.isEmpty())
+			_distance = Double.parseDouble(distance);		
+	}
+	
 	/**This method computes a spatial grouping using the index nested loop method.*/
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void computeIndexNestedLoopGroup(DataBag bag1, DataBag bag2, DataBag output) {
@@ -63,8 +70,14 @@ public class SpatialGroup extends EvalFunc<DataBag> {
 			Iterator it = bag1.iterator();
 	        while (it.hasNext()) {
 	            Tuple t1 = (Tuple)it.next();
-	        	Geometry geometry = _geometryParser.parseGeometry(t1.get(0));
+	        	Geometry geometry = null;
 	            
+	        	if (_distance != null) {
+	        		geometry = _geometryParser.parseGeometry(t1.get(0)).buffer(_distance);
+	        	} else {
+	        		geometry = _geometryParser.parseGeometry(t1.get(0));
+	        	}
+	        	
 	        	Tuple tuple1 = TupleFactory.getInstance().newTuple(4);
 	        	
 	        	List<Tuple> list = index.query(geometry.getEnvelopeInternal());

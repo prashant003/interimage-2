@@ -30,7 +30,7 @@ DEFINE II_Within br.puc_rio.ele.lvc.interimage.geometry.udf.Within;
 DEFINE II_WithinDistance br.puc_rio.ele.lvc.interimage.geometry.udf.WithinDistance;
 
 --Special UDFs
-DEFINE SpatialGroup br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialGroup;
+DEFINE SpatialGroup br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialGroup('');
 DEFINE II_SpatialGroup (A, B, p) RETURNS F {
 	C = COGROUP $A BY properties#'tile', $B BY properties#'tile' PARALLEL $p;
 	D = FILTER C BY NOT IsEmpty($A);
