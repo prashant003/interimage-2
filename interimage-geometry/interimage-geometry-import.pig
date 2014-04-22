@@ -6,6 +6,7 @@ DEFINE II_ConvexHull br.puc_rio.ele.lvc.interimage.geometry.udf.ConvexHull;
 DEFINE II_Difference br.puc_rio.ele.lvc.interimage.geometry.udf.Difference;
 DEFINE II_Distance br.puc_rio.ele.lvc.interimage.geometry.udf.Distance;
 DEFINE II_Envelope br.puc_rio.ele.lvc.interimage.geometry.udf.Envelope;
+DEFINE II_MBR br.puc_rio.ele.lvc.interimage.geometry.udf.Envelope;
 DEFINE II_FieldToProps br.puc_rio.ele.lvc.interimage.common.udf.FieldToProps;
 DEFINE II_Intersection br.puc_rio.ele.lvc.interimage.geometry.udf.Intersection;
 DEFINE II_Length br.puc_rio.ele.lvc.interimage.geometry.udf.Length;
@@ -29,6 +30,14 @@ DEFINE II_Within br.puc_rio.ele.lvc.interimage.geometry.udf.Within;
 DEFINE II_WithinDistance br.puc_rio.ele.lvc.interimage.geometry.udf.WithinDistance;
 
 --Special UDFs
+DEFINE SpatialGroup br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialGroup;
+DEFINE II_SpatialGroup (A, B, p) RETURNS F {
+	C = COGROUP $A BY properties#'tile', $B BY properties#'tile' PARALLEL $p;
+	D = FILTER C BY NOT IsEmpty($A);
+	E = FILTER D BY NOT IsEmpty($B);
+	$F = FOREACH E GENERATE FLATTEN(SpatialGroup($A, $B)) AS ($A::geometry:chararray, $A::data:map[], $A::properties:map[], $A::group:{t:($B::geometry:chararray, $B::data:map[], $B::properties:map[])});
+};
+
 DEFINE SpatialJoin br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialJoin('hierarchical-traversal'); --('index-nested-loop'|'hierarchical-traversal')
 DEFINE II_SpatialJoin (A, B, p) RETURNS F {
 	C = COGROUP $A BY properties#'tile', $B BY properties#'tile' PARALLEL $p;

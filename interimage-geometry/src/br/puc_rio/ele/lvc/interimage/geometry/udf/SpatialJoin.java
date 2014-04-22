@@ -155,14 +155,14 @@ public class SpatialJoin extends EvalFunc<DataBag> {
 			}
 						
 		} catch (Exception e) {
-			System.err.println("Failed to compute the join; error - " + e.getMessage());
+			System.err.println("Failed to compute join; error - " + e.getMessage());
 		}
 	
 		return list;
 	}
 	
 	/**This method computes a spatial join using a hierarchical traversal method.*/
-	private void computeHierarchicalTraversalJoin(DataBag bag1, DataBag bag2, DataBag output, boolean invert) {
+	private void computeHierarchicalTraversalJoin(DataBag bag1, DataBag bag2, DataBag output) {
 	
 		try {
 			
@@ -201,24 +201,14 @@ public class SpatialJoin extends EvalFunc<DataBag> {
 						
 						Tuple t1 = (Tuple)((ItemBoundable)b1).getItem();
 						Tuple t2 = (Tuple)((ItemBoundable)b2).getItem();
-						
-						if (!invert) {
-		        			tuple.set(0,t1.get(0));
-		        			tuple.set(1,t1.get(1));
-		        			tuple.set(2,t1.get(2));
-		        			
-		        			tuple.set(3,t2.get(0));
-		        			tuple.set(4,t2.get(1));
-		        			tuple.set(5,t2.get(2));
-	        			} else {
-	        				tuple.set(0,t2.get(0));
-		        			tuple.set(1,t2.get(1));
-		        			tuple.set(2,t2.get(2));
-		        			
-		        			tuple.set(3,t1.get(0));
-		        			tuple.set(4,t1.get(1));
-		        			tuple.set(5,t1.get(2));
-	        			}
+
+	        			tuple.set(0,t1.get(0));
+	        			tuple.set(1,t1.get(1));
+	        			tuple.set(2,t1.get(2));
+	        			
+	        			tuple.set(3,t2.get(0));
+	        			tuple.set(4,t2.get(1));
+	        			tuple.set(5,t2.get(2));
 												
 						output.add(tuple);
 						
@@ -231,7 +221,7 @@ public class SpatialJoin extends EvalFunc<DataBag> {
 			}
 			
 		} catch (Exception e) {
-			System.err.println("Failed to compute the join; error - " + e.getMessage());
+			System.err.println("Failed to compute join; error - " + e.getMessage());
 		}
 		
 	}
@@ -242,45 +232,45 @@ public class SpatialJoin extends EvalFunc<DataBag> {
 		
 		try {
 			
-			SpatialIndex index = createIndex(bag1);
+			SpatialIndex index = createIndex(bag2);
 			
-			Iterator it = bag2.iterator();
+			Iterator it = bag1.iterator();
 	        while (it.hasNext()) {
-	            Tuple t2 = (Tuple)it.next();
-	        	Geometry geometry = _geometryParser.parseGeometry(t2.get(0));
+	            Tuple t1 = (Tuple)it.next();
+	        	Geometry geometry = _geometryParser.parseGeometry(t1.get(0));
 	            
 	        	List<Tuple> list = index.query(geometry.getEnvelopeInternal());
 	        	
-	        	for (Tuple t : list) {
+	        	for (Tuple t2 : list) {
 	        			
-	        			Tuple tuple = TupleFactory.getInstance().newTuple(6);	        			
+        			Tuple tuple = TupleFactory.getInstance().newTuple(6);	        			
+        			
+        			if (!invert) {
+	        			tuple.set(0,t1.get(0));
+	        			tuple.set(1,t1.get(1));
+	        			tuple.set(2,t1.get(2));
 	        			
-	        			if (!invert) {
-		        			tuple.set(0,t.get(0));
-		        			tuple.set(1,t.get(1));
-		        			tuple.set(2,t.get(2));
-		        			
-		        			tuple.set(3,t2.get(0));
-		        			tuple.set(4,t2.get(1));
-		        			tuple.set(5,t2.get(2));
-	        			} else {
-	        				tuple.set(0,t2.get(0));
-		        			tuple.set(1,t2.get(1));
-		        			tuple.set(2,t2.get(2));
-		        			
-		        			tuple.set(3,t.get(0));
-		        			tuple.set(4,t.get(1));
-		        			tuple.set(5,t.get(2));
-	        			}
+	        			tuple.set(3,t2.get(0));
+	        			tuple.set(4,t2.get(1));
+	        			tuple.set(5,t2.get(2));
+        			} else {
+        				tuple.set(0,t2.get(0));
+	        			tuple.set(1,t2.get(1));
+	        			tuple.set(2,t2.get(2));
 	        			
-	        			output.add(tuple);
+	        			tuple.set(3,t1.get(0));
+	        			tuple.set(4,t1.get(1));
+	        			tuple.set(5,t1.get(2));
+        			}
+        			
+        			output.add(tuple);
 
 	        	}
 	        	
 	        }
 	        
 		} catch (Exception e) {
-			System.err.println("Failed to compute the join; error - " + e.getMessage());
+			System.err.println("Failed to compute join; error - " + e.getMessage());
 		}
 
 	}
@@ -332,18 +322,16 @@ public class SpatialJoin extends EvalFunc<DataBag> {
 			if ((bag1.size() == 0) || (bag2.size() == 0))
 				return null;
 			
-			if (bag1.size() > bag2.size()) {
-				if (_joinType.equals("index-nested-loop")) {
-					computeIndexNestedLoopJoin(bag1, bag2, output, false);
-				} else {
-					computeHierarchicalTraversalJoin(bag1, bag2, output, false);	
-				}				
-			} else {
-				if (_joinType.equals("index-nested-loop")) {					
+			if (_joinType.equals("index-nested-loop")) {
+			
+				if (bag1.size() > bag2.size()) {
 					computeIndexNestedLoopJoin(bag2, bag1, output, true);
-				} else {					
-					computeHierarchicalTraversalJoin(bag2, bag1, output, true);
+				} else {
+					computeIndexNestedLoopJoin(bag1, bag2, output, false);
 				}
+				
+			} else {
+				computeHierarchicalTraversalJoin(bag1, bag2, output);
 			}
 			
 			return output;
