@@ -1,5 +1,26 @@
+/*Copyright 2014 Computer Vision Lab
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.*/
+
+/**
+ * A Pig script that defines the geometry package UDFs.
+ * @author Rodrigo Ferreira *
+ */
+
 --Eval UDFs
 DEFINE II_Area br.puc_rio.ele.lvc.interimage.geometry.udf.Area;
+DEFINE II_AreaOf br.puc_rio.ele.lvc.interimage.geometry.udf.AreaOf;
+DEFINE II_BorderTo br.puc_rio.ele.lvc.interimage.geometry.udf.BorderTo;
 DEFINE II_Buffer br.puc_rio.ele.lvc.interimage.geometry.udf.Buffer;
 DEFINE II_Centroid br.puc_rio.ele.lvc.interimage.geometry.udf.Centroid;
 DEFINE II_ConvexHull br.puc_rio.ele.lvc.interimage.geometry.udf.ConvexHull;
@@ -10,6 +31,9 @@ DEFINE II_MBR br.puc_rio.ele.lvc.interimage.geometry.udf.Envelope;
 DEFINE II_FieldToProps br.puc_rio.ele.lvc.interimage.common.udf.FieldToProps;
 DEFINE II_Intersection br.puc_rio.ele.lvc.interimage.geometry.udf.Intersection;
 DEFINE II_Length br.puc_rio.ele.lvc.interimage.geometry.udf.Length;
+DEFINE II_NumberOf br.puc_rio.ele.lvc.interimage.geometry.udf.NumberOf;
+DEFINE II_RelativeAreaOf br.puc_rio.ele.lvc.interimage.geometry.udf.RelativeAreaOf;
+DEFINE II_RelativeBorderTo br.puc_rio.ele.lvc.interimage.geometry.udf.RelativeBorderTo;
 DEFINE II_SymDifference br.puc_rio.ele.lvc.interimage.geometry.udf.SymDifference;
 DEFINE II_Xor br.puc_rio.ele.lvc.interimage.geometry.udf.SymDifference;
 DEFINE II_Union br.puc_rio.ele.lvc.interimage.geometry.udf.Union;
@@ -21,6 +45,7 @@ DEFINE II_Covers br.puc_rio.ele.lvc.interimage.geometry.udf.Covers;
 DEFINE II_Crosses br.puc_rio.ele.lvc.interimage.geometry.udf.Crosses;
 DEFINE II_Disjoint br.puc_rio.ele.lvc.interimage.geometry.udf.Disjoint;
 DEFINE II_Equals br.puc_rio.ele.lvc.interimage.geometry.udf.Equals;
+DEFINE II_ExistenceOf br.puc_rio.ele.lvc.interimage.geometry.udf.ExistenceOf;
 DEFINE II_Intersects br.puc_rio.ele.lvc.interimage.geometry.udf.Intersects;
 DEFINE II_IsEmpty br.puc_rio.ele.lvc.interimage.geometry.udf.IsEmpty;
 DEFINE II_Overlaps br.puc_rio.ele.lvc.interimage.geometry.udf.Overlaps;

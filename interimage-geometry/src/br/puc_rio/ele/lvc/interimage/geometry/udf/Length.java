@@ -28,8 +28,8 @@ import com.vividsolutions.jts.geom.Geometry;
 /**
  * A UDF that returns the length of a geometry.<br><br>
  * Example:<br>
- * 		A = load 'mydata' as (geometry);<br>
- * 		B = foreach A generate Length(geometry);<br>
+ * 		A = load 'mydata' as (geom);<br>
+ * 		B = foreach A generate Length(geom);<br>
  * @author Rodrigo Ferreira
  *
  */
@@ -39,7 +39,8 @@ public class Length extends EvalFunc<Double> {
 	
 	/**
      * Method invoked on every tuple during foreach evaluation.
-     * @param input tuple; first column is assumed to have the geometry
+     * @param input tuple<br>
+     * first column is assumed to have a geometry
      * @exception java.io.IOException
      * @return length of the geometry
      */

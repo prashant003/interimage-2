@@ -28,8 +28,8 @@ import com.vividsolutions.jts.geom.Geometry;
 /**
  * A UDF that returns a buffer area with the given width around a geometry.<br><br>
  * Example:<br>
- * 		A = load 'mydata' as (geometry);<br>
- * 		B = foreach A generate Buffer(geometry,100);<br>
+ * 		A = load 'mydata' as (geom);<br>
+ * 		B = foreach A generate Buffer(geom,100);<br>
  * @author Rodrigo Ferreira
  *
  */
@@ -39,7 +39,9 @@ public class Buffer extends EvalFunc<String> {
 	
 	/**
      * Method invoked on every tuple during foreach evaluation.
-     * @param input tuple; first column is assumed to have the geometry; second column is assumed to have the buffer width
+     * @param input tuple<br>
+     * first column is assumed to have a geometry<br>
+     * second column is assumed to have the buffer width
      * @exception java.io.IOException
      * @return buffered geometry
      */

@@ -28,8 +28,8 @@ import com.vividsolutions.jts.geom.Geometry;
 /**
  * A UDF that tests wether a geometry is empty.<br><br>
  * Example:<br>
- * 		A = load 'mydata' as (geometry);<br>
- * 		B = filter A by not IsEmpty(geometry);<br>
+ * 		A = load 'mydata' as (geom);<br>
+ * 		B = filter A by not IsEmpty(geom);<br>
  * @author Rodrigo Ferreira
  *
  */
@@ -38,8 +38,9 @@ public class IsEmpty extends EvalFunc<Boolean> {
 	private final GeometryParser _geometryParser = new GeometryParser();
 	
 	/**
-     * Method invoked on every tuple during foreach evaluation.
-     * @param input tuple; first column is assumed to have the geometry
+     * Method invoked on every tuple during filter evaluation.
+     * @param input tuple<br>
+     * first column is assumed to have a geometry
      * @exception java.io.IOException
      * @return boolean value
      */

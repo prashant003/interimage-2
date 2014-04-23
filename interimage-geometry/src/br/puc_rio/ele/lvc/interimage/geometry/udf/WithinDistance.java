@@ -28,10 +28,10 @@ import com.vividsolutions.jts.geom.Geometry;
 /**
  * A UDF that tests whether two geometries are within a distance.<br><br>
  * Example:<br>
- * 		A = load 'mydata1' as (geom1);<br>
- * 		B = load 'mydata2' as (geom2);<br>
- * 		C = cross A, B<br>
- * 		D = filter C by WithinDistance(geom1, geom2, 100);<br>
+ * 		A = load 'mydata1' as (geom);<br>
+ * 		B = load 'mydata2' as (geom);<br>
+ * 		C = SpatialJoin(A,B,2);<br>
+ * 		D = filter C by WithinDistance(A::geom,B::geom,100);<br>
  * @author Rodrigo Ferreira
  *
  */
@@ -41,8 +41,10 @@ public class WithinDistance extends EvalFunc<Boolean> {
 	
 	/**
      * Method invoked on every tuple during filter evaluation.
-     * @param input tuple; first column is assumed to have a geometry
-     * 						second column is assumed to have a geometry
+     * @param input tuple<br>
+     * first column is assumed to have a geometry<br>
+     * second column is assumed to have a geometry<br>
+     * third column is assumed to have the distance
      * @exception java.io.IOException
      * @return boolean value
      */

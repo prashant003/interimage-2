@@ -42,12 +42,9 @@ import com.vividsolutions.jts.geom.Envelope;
 /**
  * A UDF that spatially joins geometries.<br><br>
  * Example:<br>
- * 		A = load 'mydata1' as (geom,tile);<br>
- * 		B = load 'mydata2' as (geom,tile);<br>
- * 		C = cogroup A by tile, B by tile;<br>
- *		D = filter C by not IsEmpty(A);<br>
- *		E = filter D by not IsEmpty(B);<br>
- * 		F = foreach E generate flatten(SpatialJoin(A,B));<br>
+ * 		A = load 'mydata1' as (geom);<br>
+ * 		B = load 'mydata2' as (geom);<br>
+ * 		C = SpatialJoin(A,B,2);<br>
  * @author Rodrigo Ferreira
  * <br><br>
  * The methods provided by this class are described in this paper:
@@ -302,7 +299,9 @@ public class SpatialJoin extends EvalFunc<DataBag> {
 	
 	/**
      * Method invoked on every bag during foreach evaluation.
-     * @param input tuple; first column is assumed to have the first bag; second column is assumed to have another bag
+     * @param input tuple<br>
+     * first column is assumed to have a bag<br>
+     * second column is assumed to have a bag
      * @exception java.io.IOException
      * @return a bag with the joined tuples
      */
@@ -316,8 +315,8 @@ public class SpatialJoin extends EvalFunc<DataBag> {
 						
 			DataBag output = BagFactory.getInstance().newDefaultBag();
 			
-			DataBag bag1 = (DataBag)input.get(0);
-			DataBag bag2 = (DataBag)input.get(1);
+			DataBag bag1 = DataType.toBag(input.get(0));
+			DataBag bag2 = DataType.toBag(input.get(1));
 			
 			if ((bag1.size() == 0) || (bag2.size() == 0))
 				return null;

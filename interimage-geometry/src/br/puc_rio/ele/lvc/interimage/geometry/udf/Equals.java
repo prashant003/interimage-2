@@ -28,10 +28,10 @@ import com.vividsolutions.jts.geom.Geometry;
 /**
  * A UDF that tests whether two geometries are equal.<br><br>
  * Example:<br>
- * 		A = load 'mydata1' as (geom1);<br>
- * 		B = load 'mydata2' as (geom2);<br>
- * 		C = cross A, B<br>
- * 		D = filter C by Equals(geom1,geom2);<br>
+ * 		A = load 'mydata1' as (geom);<br>
+ * 		B = load 'mydata2' as (geom);<br>
+ * 		C = SpatialJoin(A,B,2);<br>
+ * 		D = filter C by Equals(A::geom,B::geom);<br>
  * @author Rodrigo Ferreira
  *
  */
@@ -41,8 +41,9 @@ public class Equals extends EvalFunc<Boolean> {
 	
 	/**
      * Method invoked on every tuple during filter evaluation.
-     * @param input tuple; first column is assumed to have a geometry
-     * 						second column is assumed to have a geometry
+     * @param input tuple<br>
+     * first column is assumed to have a geometry<br>
+     * second column is assumed to have a geometry
      * @exception java.io.IOException
      * @return boolean value
      */

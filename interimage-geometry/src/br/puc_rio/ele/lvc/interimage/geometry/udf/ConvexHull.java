@@ -28,8 +28,8 @@ import com.vividsolutions.jts.geom.Geometry;
 /**
  * A UDF that returns the convex hull of a geometry.<br><br>
  * Example:<br>
- * 		A = load 'mydata' as (geometry);<br>
- * 		B = foreach A generate ConvexHull(geometry);<br>
+ * 		A = load 'mydata' as (geom);<br>
+ * 		B = foreach A generate ConvexHull(geom);<br>
  * @author Rodrigo Ferreira
  *
  */
@@ -39,7 +39,8 @@ public class ConvexHull extends EvalFunc<String> {
 	
 	/**
      * Method invoked on every tuple during foreach evaluation.
-     * @param input tuple; first column is assumed to have the geometry
+     * @param input tuple<br>
+     * first column is assumed to have a geometry
      * @exception java.io.IOException
      * @return convex hull of the geometry
      */

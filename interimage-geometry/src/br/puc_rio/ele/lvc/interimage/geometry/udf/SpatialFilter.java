@@ -66,7 +66,9 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 	
 	/**
      * Method invoked on every tuple during filter evaluation.
-     * @param input tuple; first column is assumed to have a geometry; second column is assumed to have the tile id
+     * @param input tuple<br>
+     * first column is assumed to have a geometry<br>
+     * second column is assumed to have the tile id
      * @exception java.io.IOException
      * @return boolean value
      * 

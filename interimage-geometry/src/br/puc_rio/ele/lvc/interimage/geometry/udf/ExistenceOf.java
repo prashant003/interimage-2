@@ -15,49 +15,57 @@ limitations under the License.*/
 package br.puc_rio.ele.lvc.interimage.geometry.udf;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.apache.pig.EvalFunc;
+import org.apache.pig.data.DataBag;
 import org.apache.pig.data.DataType;
 import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 
-import br.puc_rio.ele.lvc.interimage.geometry.GeometryParser;
-
-import com.vividsolutions.jts.geom.Geometry;
-
 /**
- * A UDF that tests whether a geometry contains another geometry.<br><br>
+ * A UDF that tests whether objects of a specific class exist in the neighborhood of another object.<br><br>
  * Example:<br>
- * 		A = load 'mydata1' as (geom);<br>
- * 		B = load 'mydata2' as (geom);<br>
- * 		C = SpatialJoin(A,B,2);<br>
- * 		D = filter C by Contains(A::geom,B::geom);<br>
+ * 		A = load 'mydata1' as (geom,tile);<br>
+ * 		B = load 'mydata2' as (geom,tile);<br>
+ * 		C = SpatialGroup(A,B,2);<br>
+ * 		D = filter C by ExistenceOf(A::group,'classname');<br>
  * @author Rodrigo Ferreira
- *
  */
-public class Contains extends EvalFunc<Boolean> {
-	
-	private final GeometryParser _geometryParser = new GeometryParser();
-	
+public class ExistenceOf extends EvalFunc<Boolean> {
+		
 	/**
-     * Method invoked on every tuple during filter evaluation
+     * Method invoked on every bag during filter evaluation.
      * @param input tuple<br>
-     * first column is assumed to have a geometry<br>
-     * second column is assumed to have a geometry
+     * first column is assumed to have a bag<br>
+     * second column is assumed to have a class name
      * @exception java.io.IOException
-     * @return boolean value
+     * @return bolean value
      */
+	@SuppressWarnings("rawtypes")
 	@Override
 	public Boolean exec(Tuple input) throws IOException {
+				
 		if (input == null || input.size() < 2)
             return null;
-        
-		try {			
-			Object objGeometry1 = input.get(0);
-			Object objGeometry2 = input.get(1);
-			Geometry geometry1 = _geometryParser.parseGeometry(objGeometry1);
-			Geometry geometry2 = _geometryParser.parseGeometry(objGeometry2);
-			return geometry1.contains(geometry2);
+		
+		try {
+						
+			DataBag bag = DataType.toBag(input.get(0));
+			String className = DataType.toString(input.get(1));
+			
+			Iterator it = bag.iterator();
+	        while (it.hasNext()) {
+	        	Tuple t = (Tuple)it.next();
+	        	Map<String,Object> properties = DataType.toMap(t.get(2));
+	        	if (((String)properties.get("class")).equals(className)) {
+	        		return true;
+	        	}
+	        }
+			
+			return false;
+			
 		} catch (Exception e) {
 			throw new IOException("Caught exception processing input row ", e);
 		}
@@ -65,7 +73,7 @@ public class Contains extends EvalFunc<Boolean> {
 	
 	@Override
     public Schema outputSchema(Schema input) {
-        return new Schema(new Schema.FieldSchema(null, DataType.BOOLEAN));
+		return new Schema(new Schema.FieldSchema(null, DataType.BOOLEAN));		
     }
 	
 }

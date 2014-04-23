@@ -28,9 +28,10 @@ import com.vividsolutions.jts.geom.Geometry;
 /**
  * A UDF that computes the symmetrical difference (XOR) between two geometries.<br><br>
  * Example:<br>
- * 		A = load 'mydata1' as (geom1);<br>
- * 		B = load 'mydata2' as (geom2);<br>
- * 		D = foreach C generate SymDifference(geom1,geom2);<br>
+ * 		A = load 'mydata1' as (geom);<br>
+ * 		B = load 'mydata2' as (geom);<br>
+ * 		C = SpatialJoin(A,B,2);<br>
+ * 		D = foreach C generate SymDifference(A::geom,B::geom);<br>
  * @author Rodrigo Ferreira
  *
  */
@@ -39,9 +40,10 @@ public class SymDifference extends EvalFunc<String> {
 	private final GeometryParser _geometryParser = new GeometryParser();
 	
 	/**
-     * Method invoked on every tuple during filter evaluation.
-     * @param input tuple; first column is assumed to have a geometry
-     * 						second column is assumed to have a geometry
+     * Method invoked on every tuple during foreach evaluation.
+     * @param input tuple<br>
+     * first column is assumed to have a geometry<br>
+     * second column is assumed to have a geometry
      * @exception java.io.IOException
      * @return symmetrical difference geometry
      */
