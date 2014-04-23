@@ -27,8 +27,8 @@ import org.apache.pig.impl.logicalLayer.schema.Schema;
 /**
  * A UDF that tests whether objects of a specific class exist in the neighborhood of another object.<br><br>
  * Example:<br>
- * 		A = load 'mydata1' as (geom,tile);<br>
- * 		B = load 'mydata2' as (geom,tile);<br>
+ * 		A = load 'mydata1' as (geom);<br>
+ * 		B = load 'mydata2' as (geom);<br>
  * 		C = SpatialGroup(A,B,2);<br>
  * 		D = filter C by ExistenceOf(A::group,'classname');<br>
  * @author Rodrigo Ferreira

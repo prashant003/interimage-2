@@ -31,8 +31,8 @@ import br.puc_rio.ele.lvc.interimage.geometry.GeometryParser;
 /**
  * A UDF that computes the relative shared border of an object in relation to the objects of a specific class that exist in the neighborhood.<br><br>
  * Example:<br>
- * 		A = load 'mydata1' as (geom,tile);<br>
- * 		B = load 'mydata2' as (geom,tile);<br>
+ * 		A = load 'mydata1' as (geom);<br>
+ * 		B = load 'mydata2' as (geom);<br>
  * 		C = SpatialGroup(A,B,2);<br>
  * 		D = filter C by RelativeBorderTo(A::geom,A::group,'classname');<br>
  * @author Rodrigo Ferreira
