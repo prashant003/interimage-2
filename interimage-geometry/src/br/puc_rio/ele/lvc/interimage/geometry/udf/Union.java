@@ -17,6 +17,7 @@ package br.puc_rio.ele.lvc.interimage.geometry.udf;
 import java.io.IOException;
 
 import org.apache.pig.EvalFunc;
+import org.apache.pig.data.DataByteArray;
 import org.apache.pig.data.DataType;
 import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
@@ -24,6 +25,7 @@ import org.apache.pig.impl.logicalLayer.schema.Schema;
 import br.puc_rio.ele.lvc.interimage.geometry.GeometryParser;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.WKBWriter;
 
 /**
  * A UDF that computes the union of two geometries.<br><br>
@@ -35,7 +37,7 @@ import com.vividsolutions.jts.geom.Geometry;
  * @author Rodrigo Ferreira
  *
  */
-public class Union extends EvalFunc<String> {
+public class Union extends EvalFunc<DataByteArray> {
 	
 	private final GeometryParser _geometryParser = new GeometryParser();
 	
@@ -48,7 +50,7 @@ public class Union extends EvalFunc<String> {
      * @return union geometry
      */
 	@Override
-	public String exec(Tuple input) throws IOException {
+	public DataByteArray exec(Tuple input) throws IOException {
 		if (input == null || input.size() < 2)
             return null;
         
@@ -57,7 +59,7 @@ public class Union extends EvalFunc<String> {
 			Object objGeometry2 = input.get(1);
 			Geometry geometry1 = _geometryParser.parseGeometry(objGeometry1);
 			Geometry geometry2 = _geometryParser.parseGeometry(objGeometry2);
-			return geometry1.union(geometry2).toText();
+			return new DataByteArray(new WKBWriter().write(geometry1.union(geometry2)));
 		} catch (Exception e) {
 			throw new IOException("Caught exception processing input row ", e);
 		}
@@ -65,7 +67,7 @@ public class Union extends EvalFunc<String> {
 	
 	@Override
     public Schema outputSchema(Schema input) {
-        return new Schema(new Schema.FieldSchema(null, DataType.CHARARRAY));
+        return new Schema(new Schema.FieldSchema(null, DataType.BYTEARRAY));
     }
 	
 }

@@ -50,7 +50,7 @@ public class BorderTo extends EvalFunc<Double> {
      * @exception java.io.IOException
      * @return shared border length
      */
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public Double exec(Tuple input) throws IOException {
 				
@@ -60,8 +60,8 @@ public class BorderTo extends EvalFunc<Double> {
 		try {
 						
 			Object objGeometry = input.get(0);
-			DataBag bag = DataType.toBag(input.get(1));
-			String className = DataType.toString(input.get(2));
+			DataBag bag = (DataBag)input.get(1);
+			String className = (String)input.get(2);
 			
 			Geometry geometry = _geometryParser.parseGeometry(objGeometry);
 			
@@ -70,7 +70,7 @@ public class BorderTo extends EvalFunc<Double> {
 			Iterator it = bag.iterator();
 	        while (it.hasNext()) {
 	        	Tuple t = (Tuple)it.next();
-	        	Map<String,Object> properties = DataType.toMap(t.get(2));
+	        	Map<String,Object> properties = (Map<String,Object>)t.get(2);
 	        	        			        	
 	        	if (((String)properties.get("class")).equals(className)) {
 	        		Geometry geom = _geometryParser.parseGeometry(t.get(0));	        		

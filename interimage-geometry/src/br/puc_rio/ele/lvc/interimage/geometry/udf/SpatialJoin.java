@@ -315,8 +315,8 @@ public class SpatialJoin extends EvalFunc<DataBag> {
 						
 			DataBag output = BagFactory.getInstance().newDefaultBag();
 			
-			DataBag bag1 = DataType.toBag(input.get(0));
-			DataBag bag2 = DataType.toBag(input.get(1));
+			DataBag bag1 = (DataBag)input.get(0);
+			DataBag bag2 = (DataBag)input.get(1);
 			
 			if ((bag1.size() == 0) || (bag2.size() == 0))
 				return null;
@@ -346,11 +346,11 @@ public class SpatialJoin extends EvalFunc<DataBag> {
 		try {
 
 			List<Schema.FieldSchema> list = new ArrayList<Schema.FieldSchema>();
-			list.add(new Schema.FieldSchema(null, DataType.CHARARRAY));
+			list.add(new Schema.FieldSchema(null, DataType.BYTEARRAY));
 			list.add(new Schema.FieldSchema(null, DataType.MAP));
 			list.add(new Schema.FieldSchema(null, DataType.MAP));
 			
-			list.add(new Schema.FieldSchema(null, DataType.CHARARRAY));
+			list.add(new Schema.FieldSchema(null, DataType.BYTEARRAY));
 			list.add(new Schema.FieldSchema(null, DataType.MAP));
 			list.add(new Schema.FieldSchema(null, DataType.MAP));
 			

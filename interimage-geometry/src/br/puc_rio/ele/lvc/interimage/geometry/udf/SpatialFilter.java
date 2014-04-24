@@ -149,7 +149,7 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 		try {
 
 			Object objGeometry = input.get(0);
-			Integer tileId = DataType.toInteger(input.get(1));
+			Integer tileId = (Integer)input.get(1);
 			
 	    	if ((!_roiUrl.isEmpty()) && (!_gridUrl.isEmpty())) {
 		        if (_gridIds.contains(tileId)) {		        	

@@ -17,6 +17,9 @@ A Pig script that spatially joins two datasets and selects the geometries that i
 @author: Rodrigo Ferreira
 */
 
+SET pig.tmpfilecompression true
+SET pig.tmpfilecompression.codec lzo
+
 REGISTER s3n://interimage2/libs/jts-1.8.jar;
 REGISTER s3n://interimage2/libs/interimage-geometry-0.1.jar;
 

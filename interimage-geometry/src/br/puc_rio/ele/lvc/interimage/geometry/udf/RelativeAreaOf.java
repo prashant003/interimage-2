@@ -49,7 +49,7 @@ public class RelativeAreaOf extends EvalFunc<Double> {
      * @exception java.io.IOException
      * @return objects relative area
      */
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public Double exec(Tuple input) throws IOException {
 				
@@ -58,8 +58,8 @@ public class RelativeAreaOf extends EvalFunc<Double> {
 		
 		try {
 						
-			DataBag bag = DataType.toBag(input.get(0));
-			String className = DataType.toString(input.get(1));
+			DataBag bag = (DataBag)input.get(0);
+			String className = (String)input.get(1);
 			
 			double totalArea = 0.0;
 			double area = 0.0;
@@ -67,16 +67,10 @@ public class RelativeAreaOf extends EvalFunc<Double> {
 			Iterator it = bag.iterator();
 	        while (it.hasNext()) {
 	        	Tuple t = (Tuple)it.next();
-	        	Map<String,Object> properties = DataType.toMap(t.get(2));
+	        	Map<String,Object> properties = (Map<String,Object>)t.get(2);
 	        	
-	        	double a = 0.0;
-	        	
-	        	if (properties.get("area") != null) {
-	        		a = (Double)properties.get("area");
-	        	} else {
-	        		Geometry geometry = _geometryParser.parseGeometry(t.get(0));
-	        		a = geometry.getArea();
-	        	}
+        		Geometry geometry = _geometryParser.parseGeometry(t.get(0));
+        		double a = geometry.getArea();
 	        	
         		if (((String)properties.get("class")).equals(className)) {		        		
         			area += a;

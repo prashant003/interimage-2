@@ -43,7 +43,7 @@ public class ExistenceOf extends EvalFunc<Boolean> {
      * @exception java.io.IOException
      * @return bolean value
      */
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public Boolean exec(Tuple input) throws IOException {
 				
@@ -52,13 +52,13 @@ public class ExistenceOf extends EvalFunc<Boolean> {
 		
 		try {
 						
-			DataBag bag = DataType.toBag(input.get(0));
-			String className = DataType.toString(input.get(1));
+			DataBag bag = (DataBag)input.get(0);
+			String className = (String)input.get(1);
 			
 			Iterator it = bag.iterator();
 	        while (it.hasNext()) {
 	        	Tuple t = (Tuple)it.next();
-	        	Map<String,Object> properties = DataType.toMap(t.get(2));
+	        	Map<String,Object> properties = (Map<String,Object>)t.get(2);
 	        	if (((String)properties.get("class")).equals(className)) {
 	        		return true;
 	        	}

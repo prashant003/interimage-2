@@ -17,6 +17,7 @@ package br.puc_rio.ele.lvc.interimage.geometry.udf;
 import java.io.IOException;
 
 import org.apache.pig.EvalFunc;
+import org.apache.pig.data.DataByteArray;
 import org.apache.pig.data.DataType;
 import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
@@ -24,6 +25,7 @@ import org.apache.pig.impl.logicalLayer.schema.Schema;
 import br.puc_rio.ele.lvc.interimage.geometry.GeometryParser;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.WKBWriter;
 
 /**
  * A UDF that returns the envelope (MBR) of a geometry.<br><br>
@@ -33,7 +35,7 @@ import com.vividsolutions.jts.geom.Geometry;
  * @author Rodrigo Ferreira
  *
  */
-public class Envelope extends EvalFunc<String> {
+public class Envelope extends EvalFunc<DataByteArray> {
 	
 	private final GeometryParser _geometryParser = new GeometryParser();
 	
@@ -45,14 +47,14 @@ public class Envelope extends EvalFunc<String> {
      * @return envelope (MBR) of the geometry
      */
 	@Override
-	public String exec(Tuple input) throws IOException {
+	public DataByteArray exec(Tuple input) throws IOException {
 		if (input == null || input.size() == 0)
             return null;
         
 		try {			
 			Object objGeometry = input.get(0);
 			Geometry geometry = _geometryParser.parseGeometry(objGeometry);
-			return geometry.getEnvelope().toText();
+			return new DataByteArray(new WKBWriter().write(geometry.getEnvelope()));
 		} catch (Exception e) {
 			throw new IOException("Caught exception processing input row ", e);
 		}
@@ -60,7 +62,7 @@ public class Envelope extends EvalFunc<String> {
 	
 	@Override
     public Schema outputSchema(Schema input) {
-        return new Schema(new Schema.FieldSchema(null, DataType.CHARARRAY));
+        return new Schema(new Schema.FieldSchema(null, DataType.BYTEARRAY));
     }
 	
 }

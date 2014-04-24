@@ -43,7 +43,7 @@ public class NumberOf extends EvalFunc<Integer> {
      * @exception java.io.IOException
      * @return objects count
      */
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public Integer exec(Tuple input) throws IOException {
 				
@@ -52,15 +52,15 @@ public class NumberOf extends EvalFunc<Integer> {
 		
 		try {
 						
-			DataBag bag = DataType.toBag(input.get(0));
-			String className = DataType.toString(input.get(1));
+			DataBag bag = (DataBag)input.get(0);
+			String className = (String)input.get(1);
 			
 			int count = 0;
 			
 			Iterator it = bag.iterator();
 	        while (it.hasNext()) {
 	        	Tuple t = (Tuple)it.next();
-	        	Map<String,Object> properties = DataType.toMap(t.get(2));
+	        	Map<String,Object> properties = (Map<String,Object>)t.get(2);
 	        	if (((String)properties.get("class")).equals(className)) {
 	        		count++;
 	        	}

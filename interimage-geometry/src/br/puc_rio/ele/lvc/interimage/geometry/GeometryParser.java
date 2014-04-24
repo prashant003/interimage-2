@@ -14,20 +14,22 @@ limitations under the License.*/
 
 package br.puc_rio.ele.lvc.interimage.geometry;
 
-import java.lang.Exception;
-
-import org.apache.pig.data.DataType;
+import org.apache.pig.data.DataByteArray;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.ByteArrayInStream;
+import com.vividsolutions.jts.io.WKBReader;
 import com.vividsolutions.jts.io.WKTReader;
 
 /**
- * Retrieves a geometry from a pig attribute. It detects the type of the column
- * and the data stored in that column and automatically detects its format
+ * Retrieves a geometry from a pig attribute. It automatically detects its format
  * and tries to get the geometry from it. It understands WKT (text) and WKB (binary) formats.<br><br>
  * 
  * In particular, here are the checks done in order:<br>
- * TODO Describe input checking logic
+ * 1 - DataByteArray (WKB)<br>
+ * 2 - String (WKT)<br>
+ * 3 - Hexadecimal String (WKB)<br>
+ * 
  * @author Rodrigo Ferreira
  *
  */
@@ -40,16 +42,43 @@ public class GeometryParser {
      */
 	public Geometry parseGeometry(Object objGeometry) {
 		
-		try {
-			//Assuming WKT format
-			//TODO For the binary format (WKB), an if should be created
-			String strGeometry = DataType.toString(objGeometry);
-			Geometry geometry = new WKTReader().read(strGeometry);
-			return geometry;
-		} catch (Exception e) {
-			System.err.println("Failed to process input; error - " + e.getMessage());
-			return null;
+		Geometry geometry = null;
+		Object obj = objGeometry;
+		
+		if (obj instanceof DataByteArray) {
+					
+			try {
+				//parsing as a well known binary (WKB)
+				byte[] arrGeometry = ((DataByteArray)obj).get();
+				geometry = new WKBReader().read(new ByteArrayInStream(arrGeometry));
+			} catch (Exception e) {
+				//parsing as an encoded well known text (WKT)
+		        obj = new String(((DataByteArray) obj).get());
+			}
+			
 		}
+		
+		if (obj instanceof String) {
+			
+			try {
+				//parsing as a well known text (WKT)
+				String strGeometry = (String)obj;
+				geometry = new WKTReader().read(strGeometry);
+			} catch (Exception e1) {
+				try {
+					//parsing as a hexadecimal string					
+					byte[] arrGeometry = WKBReader.hexToBytes((String)obj);
+					geometry = new WKBReader().read(new ByteArrayInStream(arrGeometry));
+				} catch (Exception e2) {
+					System.err.println("Failed to parse geometry; error - " + e2.getMessage());
+					//cannot parse it. Returning null
+				}
+			}
+			
+		}
+		
+		return geometry;
+		
 	}
 	
 }

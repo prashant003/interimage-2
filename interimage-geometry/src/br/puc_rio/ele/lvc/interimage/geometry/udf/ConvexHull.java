@@ -17,6 +17,7 @@ package br.puc_rio.ele.lvc.interimage.geometry.udf;
 import java.io.IOException;
 
 import org.apache.pig.EvalFunc;
+import org.apache.pig.data.DataByteArray;
 import org.apache.pig.data.DataType;
 import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
@@ -24,6 +25,7 @@ import org.apache.pig.impl.logicalLayer.schema.Schema;
 import br.puc_rio.ele.lvc.interimage.geometry.GeometryParser;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.WKBWriter;
 
 /**
  * A UDF that returns the convex hull of a geometry.<br><br>
@@ -33,7 +35,7 @@ import com.vividsolutions.jts.geom.Geometry;
  * @author Rodrigo Ferreira
  *
  */
-public class ConvexHull extends EvalFunc<String> {
+public class ConvexHull extends EvalFunc<DataByteArray> {
 	
 	private final GeometryParser _geometryParser = new GeometryParser();
 	
@@ -45,14 +47,14 @@ public class ConvexHull extends EvalFunc<String> {
      * @return convex hull of the geometry
      */
 	@Override
-	public String exec(Tuple input) throws IOException {
+	public DataByteArray exec(Tuple input) throws IOException {
 		if (input == null || input.size() == 0)
             return null;
         
 		try {			
 			Object objGeometry = input.get(0);
 			Geometry geometry = _geometryParser.parseGeometry(objGeometry);
-			return geometry.convexHull().toText();
+			return new DataByteArray(new WKBWriter().write(geometry.convexHull()));
 		} catch (Exception e) {
 			throw new IOException("Caught exception processing input row ", e);
 		}
@@ -60,7 +62,7 @@ public class ConvexHull extends EvalFunc<String> {
 	
 	@Override
     public Schema outputSchema(Schema input) {
-        return new Schema(new Schema.FieldSchema(null, DataType.CHARARRAY));
+        return new Schema(new Schema.FieldSchema(null, DataType.BYTEARRAY));
     }
 	
 }
