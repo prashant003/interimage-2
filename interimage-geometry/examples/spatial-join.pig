@@ -25,9 +25,9 @@ REGISTER s3n://interimage2/libs/interimage-geometry-0.1.jar;
 
 IMPORT 's3n://interimage2/scripts/interimage-geometry-import.pig';
 
-small_polygons = LOAD 's3n://interimage2/datasets/objects2.json' USING org.apache.pig.piggybank.storage.JsonLoader('geometry:chararray, data:map[], properties:map[]');
+small_polygons = LOAD 's3n://interimage2/datasets/objects2.json' USING org.apache.pig.piggybank.storage.JsonLoader('geometry:bytearray, data:map[], properties:map[]');
 
-big_polygons = LOAD 's3n://interimage2/datasets/objects.json' USING org.apache.pig.piggybank.storage.JsonLoader('geometry:chararray, data:map[], properties:map[]');
+big_polygons = LOAD 's3n://interimage2/datasets/objects.json' USING org.apache.pig.piggybank.storage.JsonLoader('geometry:bytearray, data:map[], properties:map[]');
 
 small_polygons_filtered = FILTER small_polygons BY II_SpatialFilter(geometry, properties#'tile');
 

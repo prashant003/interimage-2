@@ -60,7 +60,7 @@ DEFINE II_SpatialGroup (A, B, p) RETURNS F {
 	C = COGROUP $A BY properties#'tile', $B BY properties#'tile' PARALLEL $p;
 	D = FILTER C BY NOT IsEmpty($A);
 	E = FILTER D BY NOT IsEmpty($B);
-	$F = FOREACH E GENERATE FLATTEN(SpatialGroup($A, $B)) AS ($A::geometry:chararray, $A::data:map[], $A::properties:map[], $A::group:{t:($B::geometry:chararray, $B::data:map[], $B::properties:map[])});
+	$F = FOREACH E GENERATE FLATTEN(SpatialGroup($A, $B)) AS ($A::geometry:bytearray, $A::data:map[], $A::properties:map[], $A::group:{t:($B::geometry:bytearray, $B::data:map[], $B::properties:map[])});
 };
 
 DEFINE SpatialJoin br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialJoin('hierarchical-traversal'); --('index-nested-loop'|'hierarchical-traversal')
@@ -68,5 +68,5 @@ DEFINE II_SpatialJoin (A, B, p) RETURNS F {
 	C = COGROUP $A BY properties#'tile', $B BY properties#'tile' PARALLEL $p;
 	D = FILTER C BY NOT IsEmpty($A);
 	E = FILTER D BY NOT IsEmpty($B);
-	$F = FOREACH E GENERATE FLATTEN(SpatialJoin($A, $B)) AS ($A::geometry:chararray, $A::data:map[], $A::properties:map[], $B::geometry:chararray, $B::data:map[], $B::properties:map[]);
+	$F = FOREACH E GENERATE FLATTEN(SpatialJoin($A, $B)) AS ($A::geometry:bytearray, $A::data:map[], $A::properties:map[], $B::geometry:bytearray, $B::data:map[], $B::properties:map[]);
 };

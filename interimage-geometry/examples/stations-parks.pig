@@ -27,11 +27,11 @@ REGISTER s3n://interimage2/libs/interimage-geometry-0.1.jar;
 
 IMPORT 's3n://interimage2/scripts/interimage-geometry-import.pig';
 
-stations = LOAD 's3n://interimage2/datasets/stations.json' USING org.apache.pig.piggybank.storage.JsonLoader('geometry:chararray, properties:map[]');
+stations = LOAD 's3n://interimage2/datasets/stations.json' USING org.apache.pig.piggybank.storage.JsonLoader('geometry:bytearray, properties:map[]');
 
 stations_buffered = FOREACH stations GENERATE *, II_Buffer(geometry,100) AS buffered;
 
-parks = LOAD 's3n://interimage2/datasets/parks.json' USING org.apache.pig.piggybank.storage.JsonLoader('geometry:chararray, properties:map[]');
+parks = LOAD 's3n://interimage2/datasets/parks.json' USING org.apache.pig.piggybank.storage.JsonLoader('geometry:bytearray, properties:map[]');
 
 parks_filtered = FILTER parks BY II_Area(geometry) > 25;
 
