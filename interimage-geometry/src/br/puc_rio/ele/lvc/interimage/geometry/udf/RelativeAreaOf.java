@@ -20,6 +20,7 @@ import java.util.Map;
 
 import org.apache.pig.EvalFunc;
 import org.apache.pig.data.DataBag;
+import org.apache.pig.data.DataByteArray;
 import org.apache.pig.data.DataType;
 import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
@@ -72,7 +73,9 @@ public class RelativeAreaOf extends EvalFunc<Double> {
         		Geometry geometry = _geometryParser.parseGeometry(t.get(0));
         		double a = geometry.getArea();
 	        	
-        		if (((String)properties.get("class")).equals(className)) {		        		
+        		DataByteArray data = (DataByteArray)properties.get("class");
+        		
+        		if ((new String(data.get())).equals(className)) {		        		
         			area += a;
 	        	}
         		
