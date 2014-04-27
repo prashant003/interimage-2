@@ -55,7 +55,7 @@ public class Buffer extends EvalFunc<DataByteArray> {
 		try {			
 			Object objGeometry = input.get(0);
 			Geometry geometry = _geometryParser.parseGeometry(objGeometry);
-			Double distance = (Double)input.get(1);			
+			Double distance = DataType.toDouble(input.get(1));			
 			return new DataByteArray(new WKBWriter().write(geometry.buffer(distance)));
 		} catch (Exception e) {
 			throw new IOException("Caught exception processing input row ", e);

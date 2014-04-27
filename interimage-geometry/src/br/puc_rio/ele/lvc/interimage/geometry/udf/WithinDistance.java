@@ -56,7 +56,7 @@ public class WithinDistance extends EvalFunc<Boolean> {
 		try {			
 			Object objGeometry1 = input.get(0);
 			Object objGeometry2 = input.get(1);
-			Double distance = (Double)input.get(2);
+			Double distance = DataType.toDouble(input.get(2));
 			Geometry geometry1 = _geometryParser.parseGeometry(objGeometry1);
 			Geometry geometry2 = _geometryParser.parseGeometry(objGeometry2);
 			return geometry1.isWithinDistance(geometry2, distance);

@@ -61,8 +61,8 @@ public class RelativeBorderTo extends EvalFunc<Double> {
 		try {
 						
 			Object objGeometry = input.get(0);
-			DataBag bag = (DataBag)input.get(1);
-			String className = (String)input.get(2);
+			DataBag bag = DataType.toBag(input.get(1));
+			String className = DataType.toString(input.get(2));
 			
 			Geometry geometry = _geometryParser.parseGeometry(objGeometry);
 						

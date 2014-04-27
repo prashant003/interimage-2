@@ -53,8 +53,8 @@ public class NumberOf extends EvalFunc<Integer> {
 		
 		try {
 						
-			DataBag bag = (DataBag)input.get(0);
-			String className = (String)input.get(1);
+			DataBag bag = DataType.toBag(input.get(0));
+			String className = DataType.toString(input.get(1));
 			
 			int count = 0;
 			

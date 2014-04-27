@@ -59,8 +59,11 @@ public class RelativeAreaOf extends EvalFunc<Double> {
 		
 		try {
 						
-			DataBag bag = (DataBag)input.get(0);
-			String className = (String)input.get(1);
+			DataBag bag = DataType.toBag(input.get(0));
+			String className = DataType.toString(input.get(1));
+			
+			if (bag.size() == 0)
+				return null;
 			
 			double totalArea = 0.0;
 			double area = 0.0;

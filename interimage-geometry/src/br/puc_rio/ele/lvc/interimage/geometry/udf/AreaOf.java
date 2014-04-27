@@ -59,8 +59,8 @@ public class AreaOf extends EvalFunc<Double> {
 		
 		try {
 						
-			DataBag bag = (DataBag)input.get(0);
-			String className = (String)input.get(1);
+			DataBag bag = DataType.toBag(input.get(0));
+			String className = DataType.toString(input.get(1));
 			
 			double area = 0.0;
 			

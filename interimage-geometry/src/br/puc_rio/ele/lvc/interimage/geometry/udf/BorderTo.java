@@ -35,7 +35,7 @@ import br.puc_rio.ele.lvc.interimage.geometry.GeometryParser;
  * 		A = load 'mydata1' as (geom);<br>
  * 		B = load 'mydata2' as (geom);<br>
  * 		C = SpatialGroup(A,B,2);<br>
- * 		D = foreach C generate AreaOf(A::geom,A::group,'classname');<br>
+ * 		D = foreach C generate BorderTo(A::geom,A::group,'classname');<br>
  * @author Rodrigo Ferreira
  */
 public class BorderTo extends EvalFunc<Double> {
@@ -61,8 +61,8 @@ public class BorderTo extends EvalFunc<Double> {
 		try {
 						
 			Object objGeometry = input.get(0);
-			DataBag bag = (DataBag)input.get(1);
-			String className = (String)input.get(2);
+			DataBag bag = DataType.toBag(input.get(1));
+			String className = DataType.toString(input.get(2));
 			
 			Geometry geometry = _geometryParser.parseGeometry(objGeometry);
 			

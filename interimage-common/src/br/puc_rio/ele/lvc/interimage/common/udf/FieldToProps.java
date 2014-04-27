@@ -38,7 +38,6 @@ public class FieldToProps extends EvalFunc<Map<String,Object>> {
      * @exception java.io.IOException
      * @return map with the given field
      */
-	@SuppressWarnings("unchecked")
 	@Override
 	public Map<String,Object> exec(Tuple input) throws IOException {
 		if (input == null || input.size() < 3)
@@ -46,8 +45,8 @@ public class FieldToProps extends EvalFunc<Map<String,Object>> {
         
 		try {
 			Object objField = input.get(0);
-			String name = (String)input.get(1);
-			Map<String,Object> objProperties = (Map<String,Object>)input.get(2);
+			String name = DataType.toString(input.get(1));
+			Map<String,Object> objProperties = DataType.toMap(input.get(2));
 			objProperties.put(name,objField);
 			return objProperties;
 		} catch (Exception e) {

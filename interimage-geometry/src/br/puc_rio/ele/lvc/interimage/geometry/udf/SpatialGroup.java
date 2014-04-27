@@ -51,6 +51,7 @@ public class SpatialGroup extends EvalFunc<DataBag> {
 	
 	Double _distance = null;
 	
+	/**Constructor that takes the distance used to group the objects.*/
 	public SpatialGroup(String distance) {
 		if (!distance.isEmpty())
 			_distance = Double.parseDouble(distance);		
@@ -151,8 +152,8 @@ public class SpatialGroup extends EvalFunc<DataBag> {
 						
 			DataBag output = BagFactory.getInstance().newDefaultBag();
 			
-			DataBag bag1 = (DataBag)input.get(0);
-			DataBag bag2 = (DataBag)input.get(1);
+			DataBag bag1 = DataType.toBag(input.get(0));
+			DataBag bag2 = DataType.toBag(input.get(1));
 			
 			if ((bag1.size() == 0) || (bag2.size() == 0))
 				return null;

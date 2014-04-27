@@ -14,9 +14,12 @@ limitations under the License.*/
 
 package br.puc_rio.ele.lvc.interimage.geometry.udf;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -26,10 +29,6 @@ import org.apache.pig.EvalFunc;
 import org.apache.pig.data.DataType;
 import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonToken;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import br.puc_rio.ele.lvc.interimage.geometry.GeometryParser;
 import br.puc_rio.ele.lvc.interimage.geometry.Tile;
@@ -56,9 +55,7 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 	String _roiUrl = null;
 	String _gridUrl = null;
 	
-	/**
-	 * Constructor that takes the ROIs and the tiles grid URLs.
-	 * */
+	/**Constructor that takes the ROIs and the tiles grid URLs.*/
 	public SpatialFilter(String roiUrl, String gridUrl) {
 		_roiUrl = roiUrl;
 		_gridUrl = gridUrl;
@@ -94,27 +91,18 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 	        		URL url  = new URL(_gridUrl);	        		
 	                URLConnection urlConn = url.openConnection();
 	                urlConn.connect();
-	                InputStreamReader inStream = new InputStreamReader(urlConn.getInputStream());
-			        BufferedReader buff = new BufferedReader(inStream);
-				    	                
-	    	        ObjectMapper mapper = new ObjectMapper();
-	    			List<Tile> tiles = new ArrayList<Tile>();	    			
+			        InputStream buff = new BufferedInputStream(urlConn.getInputStream());				    	    	        
+			        ObjectInputStream in = new ObjectInputStream(buff);
 	    			
-	    	        JsonFactory f = new JsonFactory();
-		  			JsonParser jp = f.createJsonParser(buff);
-		  			
-		  			jp.nextToken();
-		  			
-		  			while (jp.nextToken() == JsonToken.START_OBJECT) {
-		  				Tile tile = mapper.readValue(jp, Tile.class);
-		  				tiles.add(tile);		  			
-		  			}
-	    	        
-    				for (int i=0; i<tiles.size(); i++) {
-    					Geometry geometry = new WKTReader().read(tiles.get(i).getGeometry());
-    					_gridIndex.insert(geometry.getEnvelopeInternal(),tiles.get(i).getId());
-    				}
-	    	        
+	    		    List<Tile> tiles = (List<Tile>)in.readObject();
+	    		    
+	    		    in.close();
+				    
+				    for (Tile t : tiles) {
+				    	Geometry geometry = new WKTReader().read(t.getGeometry());
+    					_gridIndex.insert(geometry.getEnvelopeInternal(),t.getId());
+				    }
+			        			        
 	        	}
 	        } catch (Exception e) {
 				throw new IOException("Caught exception reading grid file ", e);
@@ -149,7 +137,7 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 		try {
 
 			Object objGeometry = input.get(0);
-			Integer tileId = (Integer)input.get(1);
+			Integer tileId = DataType.toInteger(input.get(1));
 			
 	    	if ((!_roiUrl.isEmpty()) && (!_gridUrl.isEmpty())) {
 		        if (_gridIds.contains(tileId)) {		        	

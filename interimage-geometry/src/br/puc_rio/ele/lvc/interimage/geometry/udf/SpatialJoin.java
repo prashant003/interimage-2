@@ -57,6 +57,7 @@ public class SpatialJoin extends EvalFunc<DataBag> {
 	private final GeometryParser _geometryParser = new GeometryParser();
 	String _joinType = null;
 	
+	/**Constructor that takes the join method. It can be 'index-nested-loop' or 'hierarchical-traversal'.*/
 	public SpatialJoin(String joinType) {
 		_joinType = joinType;
 	}
@@ -315,8 +316,8 @@ public class SpatialJoin extends EvalFunc<DataBag> {
 						
 			DataBag output = BagFactory.getInstance().newDefaultBag();
 			
-			DataBag bag1 = (DataBag)input.get(0);
-			DataBag bag2 = (DataBag)input.get(1);
+			DataBag bag1 = DataType.toBag(input.get(0));
+			DataBag bag2 = DataType.toBag(input.get(1));
 			
 			if ((bag1.size() == 0) || (bag2.size() == 0))
 				return null;

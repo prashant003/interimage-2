@@ -12,27 +12,29 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.*/
 
-package br.puc_rio.ele.lvc.interimage.geometry;
+package br.puc_rio.ele.lvc.interimage.datamining;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 
 /**
- * A class that holds the information about a tile.
+ * A class that holds the information about a fuzzy set.
  * @author Rodrigo Ferreira
  *
  */
 @SuppressWarnings("serial")
-public class Tile implements Serializable {
+public class FuzzySet implements Serializable {
 
-	private int _id;
-	private String _geometry;
+	private String _name;
+	private List<Map<String,Double>> _points;
 	
-	public void setId(int id) { _id = id; }
+	public void setName(String name) { _name = name; }
 	
-	public int getId() { return _id; }
+	public String getName() { return _name; }
 	
-	public void setGeometry(String geometry) { _geometry = geometry; }
+	public void setPoints(List<Map<String,Double>> points) { _points = points; }
 	
-	public String getGeometry() { return _geometry; }
+	public List<Map<String,Double>> getPoints() { return _points; }
 		
 }
