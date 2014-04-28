@@ -69,7 +69,7 @@ public class SpatialFilter extends EvalFunc<Boolean> {
      * @exception java.io.IOException
      * @return boolean value
      * 
-     * TODO: Use distributed cache; check if an index for the ROIs is necessary
+     * TODO: Use distributed cache; check if an index for the ROIs is necessary; check if clip is necessary
      */
 	@SuppressWarnings("unchecked")
 	@Override
