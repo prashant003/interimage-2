@@ -330,6 +330,8 @@ public class SpatialJoin extends EvalFunc<DataBag> {
 					computeIndexNestedLoopJoin(bag1, bag2, output, false);
 				}
 				
+			} else if (_joinType.equals("hierarchical-traversal")) {
+				computeHierarchicalTraversalJoin(bag1, bag2, output);
 			} else {
 				computeHierarchicalTraversalJoin(bag1, bag2, output);
 			}

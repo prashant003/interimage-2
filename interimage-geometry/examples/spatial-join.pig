@@ -29,9 +29,9 @@ small_polygons = LOAD 's3n://interimage2/datasets/objects2.json' USING org.apach
 
 big_polygons = LOAD 's3n://interimage2/datasets/objects.json' USING org.apache.pig.piggybank.storage.JsonLoader('geometry:bytearray, data:map[], properties:map[]');
 
-small_polygons_filtered = FILTER small_polygons BY II_SpatialFilter(geometry, properties#'tile');
+small_polygons_filtered = FILTER small_polygons BY II_SpatialFilter(geometry, properties#'tile','intersection');
 
-big_polygons_filtered = FILTER big_polygons BY II_SpatialFilter(geometry, properties#'tile');
+big_polygons_filtered = FILTER big_polygons BY II_SpatialFilter(geometry, properties#'tile','intersection');
 
 joined = II_SpatialJoin(small_polygons_filtered, big_polygons_filtered, 2);
 

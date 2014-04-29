@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.pig.EvalFunc;
+import org.apache.pig.data.DataByteArray;
 import org.apache.pig.data.DataType;
 import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
@@ -34,18 +35,24 @@ import br.puc_rio.ele.lvc.interimage.geometry.GeometryParser;
 import br.puc_rio.ele.lvc.interimage.geometry.Tile;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.index.strtree.STRtree;
+import com.vividsolutions.jts.io.WKBWriter;
 import com.vividsolutions.jts.io.WKTReader;
 
 /**
- * A UDF that filters geometries in relation to a list of ROIs.<br><br>
+ * A UDF that clips geometries in relation to a list of ROIs.<br>
+ * For efficiency reasons, it should always be used after SpatialFilter. If not, for the geometries that do not intersect the ROIs an empty geometry will be returned.
+ * <br><br>
  * Example:<br>
  * 		A = load 'mydata1' as (geom, tile);<br>
- * 		B = filter A by SpatialFilter(geom,tile,'intersection');<br>
+ * 		B = filter A by SpatialFilter(geom,tile,'intersection');
+ * 		C = foreach B generate SpatialClip(geom,tile) as geom;<br>
  * @author Rodrigo Ferreira
  *
  */
-public class SpatialFilter extends EvalFunc<Boolean> {
+public class SpatialClip extends EvalFunc<DataByteArray> {
 	
 	private final GeometryParser _geometryParser = new GeometryParser();
 	private STRtree _gridIndex = null;
@@ -54,13 +61,11 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 	
 	String _roiUrl = null;
 	String _gridUrl = null;
-	String _filterType = null;
 	
 	/**Constructor that takes the ROIs and the tiles grid URLs.*/
-	public SpatialFilter(String roiUrl, String gridUrl, String filterType) {
+	public SpatialClip(String roiUrl, String gridUrl) {
 		_roiUrl = roiUrl;
 		_gridUrl = gridUrl;
-		_filterType = filterType;
 	}
 	
 	/**
@@ -69,13 +74,13 @@ public class SpatialFilter extends EvalFunc<Boolean> {
      * first column is assumed to have a geometry<br>
      * second column is assumed to have the tile id
      * @exception java.io.IOException
-     * @return boolean value
+     * @return clipped geometry, or empty geometry in the case of no intersection
      * 
      * TODO: Use distributed cache; check if an index for the ROIs is necessary
      */
 	@SuppressWarnings("unchecked")
 	@Override
-	public Boolean exec(Tuple input) throws IOException {
+	public DataByteArray exec(Tuple input) throws IOException {
 		if (input == null || input.size() < 2)
             return null;
         
@@ -140,7 +145,7 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 
 			Object objGeometry = input.get(0);
 			Integer tileId = DataType.toInteger(input.get(1));
-			
+						
 	    	if ((!_roiUrl.isEmpty()) && (!_gridUrl.isEmpty())) {
 		        if (_gridIds.contains(tileId)) {
 		        	Geometry geometry = _geometryParser.parseGeometry(objGeometry);
@@ -148,26 +153,17 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 	        		List<Geometry> list = _roiIndex.query(geometry.getEnvelopeInternal());
 	        	
 		        	for (Geometry geom : list) {
-		        		
-		        		boolean bool = false;
-		        		
-		        		if (_filterType.equals("intersection")) {
-		        			bool = geom.intersects(geometry);
-		        		} else if (_filterType.equals("containment")) {
-		        			bool = geom.contains(geometry);
-		        		} else {
-		        			bool = geom.intersects(geometry);
+
+		        		if (geom.intersects(geometry)) {
+		        			return new DataByteArray(new WKBWriter().write(geom.intersection(geometry)));		        			
 		        		}
-		        		
-		        		if (bool)
-		        			return true;
 		        		
 		        	}
 		        				        	
 		        }
-		        return false;
+		        return new DataByteArray(new WKBWriter().write(new Point(null, new GeometryFactory())));
 	    	} else {
-	    		return true;
+	    		return new DataByteArray(new WKBWriter().write(_geometryParser.parseGeometry(objGeometry)));
 	    	}
 			
 		} catch (Exception e) {
@@ -177,7 +173,7 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 	
 	@Override
     public Schema outputSchema(Schema input) {
-        return new Schema(new Schema.FieldSchema(null, DataType.BOOLEAN));
+        return new Schema(new Schema.FieldSchema(null, DataType.BYTEARRAY));
     }
 	
 }
