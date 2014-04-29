@@ -89,7 +89,7 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 	        try {
 	        	
 	        	if (!_gridUrl.isEmpty()) {
-	    	        
+	        		
 	        		URL url  = new URL(_gridUrl);	        		
 	                URLConnection urlConn = url.openConnection();
 	                urlConn.connect();
@@ -100,7 +100,7 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 	    		    
 	    		    in.close();
 				    
-				    for (Tile t : tiles) {
+				    for (Tile t : tiles) {				    	
 				    	Geometry geometry = new WKTReader().read(t.getGeometry());
     					_gridIndex.insert(geometry.getEnvelopeInternal(),t.getId());
 				    }
@@ -115,7 +115,7 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 	        try {
 	        	
 	        	if (!_roiUrl.isEmpty()) {
-	        			        		
+	        		
 	        		URL url  = new URL(_roiUrl);	        		
 	                URLConnection urlConn = url.openConnection();
 	                urlConn.connect();
@@ -144,7 +144,7 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 	    	if ((!_roiUrl.isEmpty()) && (!_gridUrl.isEmpty())) {
 		        if (_gridIds.contains(tileId)) {
 		        	Geometry geometry = _geometryParser.parseGeometry(objGeometry);
-	
+		        	
 	        		List<Geometry> list = _roiIndex.query(geometry.getEnvelopeInternal());
 	        	
 		        	for (Geometry geom : list) {

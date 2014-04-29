@@ -35,6 +35,8 @@ DEFINE II_RelativeAreaOf br.puc_rio.ele.lvc.interimage.geometry.udf.RelativeArea
 DEFINE II_RelativeBorderTo br.puc_rio.ele.lvc.interimage.geometry.udf.RelativeBorderTo;
 DEFINE II_SymDifference br.puc_rio.ele.lvc.interimage.geometry.udf.SymDifference;
 DEFINE II_Xor br.puc_rio.ele.lvc.interimage.geometry.udf.SymDifference;
+DEFINE II_ToText br.puc_rio.ele.lvc.interimage.geometry.udf.ToText;
+DEFINE II_ToHex br.puc_rio.ele.lvc.interimage.geometry.udf.ToHex;
 DEFINE II_Union br.puc_rio.ele.lvc.interimage.geometry.udf.Union;
 
 --Filter UDFs
@@ -47,9 +49,10 @@ DEFINE II_Equals br.puc_rio.ele.lvc.interimage.geometry.udf.Equals;
 DEFINE II_ExistenceOf br.puc_rio.ele.lvc.interimage.geometry.udf.ExistenceOf;
 DEFINE II_Intersects br.puc_rio.ele.lvc.interimage.geometry.udf.Intersects;
 DEFINE II_IsEmpty br.puc_rio.ele.lvc.interimage.geometry.udf.IsEmpty;
+DEFINE II_IsValid br.puc_rio.ele.lvc.interimage.geometry.udf.IsValid;
 DEFINE II_Overlaps br.puc_rio.ele.lvc.interimage.geometry.udf.Overlaps;
 DEFINE II_SpatialClip br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialClip('https://s3.amazonaws.com/interimage2/datasets/quadras.wkt', 'https://s3.amazonaws.com/interimage2/datasets/tiles.ser');
-DEFINE II_SpatialFilter br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialFilter('https://s3.amazonaws.com/interimage2/datasets/quadras.wkt', 'https://s3.amazonaws.com/interimage2/datasets/tiles.ser', 'intersection'); -- ('intersection'|'containment')
+DEFINE II_SpatialFilter br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialFilter('https://s3.amazonaws.com/interimage2/datasets/quadras.wkt', 'https://s3.amazonaws.com/interimage2/datasets/tiles.ser', 'intersection'); --('intersection'|'containment')
 DEFINE II_Touches br.puc_rio.ele.lvc.interimage.geometry.udf.Touches;
 DEFINE II_Within br.puc_rio.ele.lvc.interimage.geometry.udf.Within;
 DEFINE II_WithinDistance br.puc_rio.ele.lvc.interimage.geometry.udf.WithinDistance;

@@ -36,7 +36,7 @@ import br.puc_rio.ele.lvc.interimage.geometry.Tile;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.index.strtree.STRtree;
 import com.vividsolutions.jts.io.WKBWriter;
 import com.vividsolutions.jts.io.WKTReader;
@@ -161,7 +161,7 @@ public class SpatialClip extends EvalFunc<DataByteArray> {
 		        	}
 		        				        	
 		        }
-		        return new DataByteArray(new WKBWriter().write(new Point(null, new GeometryFactory())));
+		        return new DataByteArray(new WKBWriter().write(new Polygon(null, null, new GeometryFactory())));
 	    	} else {
 	    		return new DataByteArray(new WKBWriter().write(_geometryParser.parseGeometry(objGeometry)));
 	    	}
