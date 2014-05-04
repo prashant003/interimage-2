@@ -43,7 +43,12 @@ import com.vividsolutions.jts.io.WKTReader;
 
 /**
  * A UDF that clips geometries in relation to a list of ROIs.<br>
- * For efficiency reasons, it should always be used after SpatialFilter. If not, for the geometries that do not intersect the ROIs an empty geometry will be returned.
+ * For efficiency reasons, it should always be used after SpatialFilter.<br><br>
+ * 
+ * Some observations:<br>
+ * 1 - For the geometries that do not intersect any ROI an empty geometry will be returned
+ * 2 - The geometries that intersect more than one ROI will be clipped according to the ROI with which they have the largest intersection
+ * 3 - Makes no sense to call this UDF after SpatialFilter when it is used with the 'containment' filter type
  * <br><br>
  * Example:<br>
  * 		A = load 'mydata1' as (geom, tile);<br>
@@ -152,12 +157,23 @@ public class SpatialClip extends EvalFunc<DataByteArray> {
 	
 	        		List<Geometry> list = _roiIndex.query(geometry.getEnvelopeInternal());
 	        	
+	        		Geometry largestIntersection = null;
+	        		double largestArea = 0.0;
+	        		
 		        	for (Geometry geom : list) {
 
 		        		if (geom.intersects(geometry)) {
-		        			return new DataByteArray(new WKBWriter().write(geom.intersection(geometry)));		        			
+		        			Geometry g = geom.intersection(geometry);
+		        			if (g.getArea() > largestArea) {
+		        				largestArea = g.getArea();
+		        				largestIntersection = g;
+		        			}
 		        		}
 		        		
+		        	}
+		        	
+		        	if (largestIntersection != null) {
+		        		return new DataByteArray(new WKBWriter().write(largestIntersection));
 		        	}
 		        				        	
 		        }
