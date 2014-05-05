@@ -67,7 +67,7 @@ public class Classify extends EvalFunc<Map<String,Object>> {
 			} else {
 				
 				objProperties.put("class", "None");
-				objProperties.put("membership", "0.0");
+				objProperties.put("membership", 0.0);
 				
 			}
 			
