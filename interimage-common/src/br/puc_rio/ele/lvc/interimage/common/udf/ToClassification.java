@@ -15,6 +15,7 @@ limitations under the License.*/
 package br.puc_rio.ele.lvc.interimage.common.udf;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.pig.EvalFunc;
@@ -23,32 +24,48 @@ import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 
 /**
- * A UDF that updates the properties map with the given field.<br><br>
+ * A UDF that updates the classification map with the given class and membership.<br><br>
  * Example:<br>
- * 		A = load 'mydata' as (field, props);<br>
- * 		B = foreach A generate FieldToProps(field, 'name', props) as props;<br>
+ * 		A = load 'mydata' as (props);<br>
+ * 		B = foreach A generate ToClassification('class', membership, props) as props;<br>
  * @author Rodrigo Ferreira
  *
  */
-public class FieldToProps extends EvalFunc<Map<String,Object>> {
+public class ToClassification extends EvalFunc<Map<String,Object>> {
 	
 	/**
      * Method invoked on every tuple during foreach evaluation.
-     * @param input tuple; first column is assumed to have the geometry
+     * @param input tuple; first column is assumed to have the class name<br>
+     * second column is assumed to have membership value<br>
+     * third column is assumed to have the properties map
      * @exception java.io.IOException
-     * @return map with the given field
+     * @return map with the given classification
      */
+	@SuppressWarnings("unchecked")
 	@Override
 	public Map<String,Object> exec(Tuple input) throws IOException {
 		if (input == null || input.size() < 3)
             return null;
         
 		try {
-			Object objField = input.get(0);
-			String name = DataType.toString(input.get(1));
+			String className = DataType.toString(input.get(0));
+			Double membership = DataType.toDouble(input.get(1));			
 			Map<String,Object> objProperties = DataType.toMap(input.get(2));
-			objProperties.put(name,objField);
+			
+			Map<String,Double> classification = null;
+			
+			if (objProperties.containsKey("classification")) {
+				classification = (Map<String,Double>)objProperties.get("classification");
+				classification.put(className,membership);
+			} else {
+				classification = new HashMap<String,Double>();
+				classification.put(className,membership);
+			}
+			
+			objProperties.put("classification", classification);
+			
 			return objProperties;
+			
 		} catch (Exception e) {
 			throw new IOException("Caught exception processing input row ", e);
 		}

@@ -33,8 +33,8 @@ public class Min extends EvalFunc<Double> {
 	
 	/**
      * Method invoked on every tuple during foreach evaluation.
-     * @param input tuple; first column is assumed to a number<br>
-     * second column is assumed to a number
+     * @param input tuple; first column is assumed to have a number<br>
+     * second column is assumed to have a number
      * @exception java.io.IOException
      * @return minimum value
      */

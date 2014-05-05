@@ -27,10 +27,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
+import org.apache.pig.data.DataByteArray;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
-
 import org.geotools.dbffile.DbfFieldDef;
 import org.geotools.dbffile.DbfFile;
 import org.geotools.dbffile.DbfFileWriter;
@@ -54,11 +54,11 @@ import com.vividsolutions.jump.io.IllegalParametersException;
 public class ShapefileConverter {
 
 	/**
-	 * Converts from Shapefile to Json format.<br>
+	 * Converts from Shapefile to JSON format.<br>
 	 * @param input shapefile path<br>
-	 * output json file path
+	 * output JSON file path
 	 */	
-	public static void shapefileToJson(String shapefile, String output, List<String> names, boolean keep) {
+	public static void shapefileToJSON(String shapefile, String output, List<String> names, boolean keep) {
 		
 		try {
 			
@@ -294,12 +294,12 @@ public class ShapefileConverter {
 	}
 	
 	/**
-	 * Converts from Json to Shapefile.<br>
-	 * @param input json file path<br>
+	 * Converts from JSON to Shapefile.<br>
+	 * @param input JSON file path<br>
 	 * output shapefile path
 	 */	
 	@SuppressWarnings({ "rawtypes", "unchecked", "unused" })
-	public static void jsonToShapefile(String input, String shpFileName) {
+	public static void JSONToShapefile(String input, String shpFileName) {
 	
 		try {
 			

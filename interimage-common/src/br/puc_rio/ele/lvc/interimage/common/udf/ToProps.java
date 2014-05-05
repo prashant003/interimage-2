@@ -15,6 +15,7 @@ limitations under the License.*/
 package br.puc_rio.ele.lvc.interimage.common.udf;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.apache.pig.EvalFunc;
 import org.apache.pig.data.DataType;
@@ -22,31 +23,37 @@ import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 
 /**
- * A UDF that computes the greater of two numbers.<br><br>
+ * A UDF that updates the properties map with the given field.<br><br>
  * Example:<br>
- * 		A = load 'mydata' as (attrib1, attrib2);<br>
- * 		B = foreach A generate Max(attrib1, attrib2);<br>
+ * 		A = load 'mydata' as (field, props);<br>
+ * 		B = foreach A generate ToProps(field, 'name', props) as props;<br>
  * @author Rodrigo Ferreira
  *
  */
-public class Max extends EvalFunc<Double> {
+public class ToProps extends EvalFunc<Map<String,Object>> {
 	
 	/**
      * Method invoked on every tuple during foreach evaluation.
-     * @param input tuple; first column is assumed to have a number<br>
-     * second column is assumed to have a number
+     * @param input tuple; first column is assumed to have the value<br>
+     * second column is assumed to have the field name<br>
+     * third column is assumed to have the properties map
      * @exception java.io.IOException
-     * @return minimum value
+     * @return map with the given field
      */
 	@Override
-	public Double exec(Tuple input) throws IOException {
-		if (input == null || input.size() < 2)
+	public Map<String,Object> exec(Tuple input) throws IOException {
+		if (input == null || input.size() < 3)
             return null;
         
 		try {
-			Double first = DataType.toDouble(input.get(0));
-			Double second = DataType.toDouble(input.get(1));
-			return Math.max(first,second);
+			Object objField = input.get(0);
+			String name = DataType.toString(input.get(1));
+			Map<String,Object> objProperties = DataType.toMap(input.get(2));
+			
+			objProperties.put(name,objField);
+			
+			return objProperties;
+			
 		} catch (Exception e) {
 			throw new IOException("Caught exception processing input row ", e);
 		}
@@ -54,7 +61,7 @@ public class Max extends EvalFunc<Double> {
 	
 	@Override
     public Schema outputSchema(Schema input) {
-        return new Schema(new Schema.FieldSchema(null, DataType.DOUBLE));
+        return new Schema(new Schema.FieldSchema(null, DataType.MAP));
     }
 	
 }
