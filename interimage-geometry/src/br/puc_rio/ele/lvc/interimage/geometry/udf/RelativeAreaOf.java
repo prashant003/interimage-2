@@ -30,12 +30,14 @@ import br.puc_rio.ele.lvc.interimage.geometry.GeometryParser;
 import com.vividsolutions.jts.geom.Geometry;
 
 /**
- * A UDF that computes the relative area of objects of a specific class that exist in the neighborhood of another object.<br><br>
+ * A UDF that computes the relative area of objects of a specific class that exist in the neighborhood of another object.<br>
+ * The neighborhood is defined by the distance parameter and the distances are calculated as the minimum distance between the objects.<br>
+ * The distance should be an empty string to consider only connected neighbors.<br><br>
  * Example:<br>
  * 		A = load 'mydata1' as (geom);<br>
  * 		B = load 'mydata2' as (geom);<br>
  * 		C = SpatialGroup(A,B,2);<br>
- * 		D = filter C by RelativeAreaOf(A::group,'classname');<br>
+ * 		D = filter C by RelativeAreaOf(A::geom, A::group,'','classname');<br>
  * @author Rodrigo Ferreira
  */
 public class RelativeAreaOf extends EvalFunc<Double> {
@@ -45,8 +47,10 @@ public class RelativeAreaOf extends EvalFunc<Double> {
 	/**
      * Method invoked on every bag during foreach evaluation.
      * @param input tuple<br>
-     * first column is assumed to have a bag<br>
-     * second column is assumed to have a class name
+     * first column is assumed to have a geometry<br>
+     * second column is assumed to have a bag<br>
+     * third column is assumed to have a distance; empty string for connected neighbors<br>
+     * fourth column is assumed to have a class name
      * @exception java.io.IOException
      * @return objects relative area
      */
@@ -54,13 +58,15 @@ public class RelativeAreaOf extends EvalFunc<Double> {
 	@Override
 	public Double exec(Tuple input) throws IOException {
 				
-		if (input == null || input.size() < 2)
+		if (input == null || input.size() < 4)
             return null;
 		
 		try {
 						
-			DataBag bag = DataType.toBag(input.get(0));
-			String className = DataType.toString(input.get(1));
+			Geometry geometry = _geometryParser.parseGeometry(input.get(0));
+			DataBag bag = DataType.toBag(input.get(1));
+			String distanceStr = DataType.toString(input.get(2));
+			String className = DataType.toString(input.get(3));
 			
 			if (bag.size() == 0)
 				return null;
@@ -71,18 +77,33 @@ public class RelativeAreaOf extends EvalFunc<Double> {
 			Iterator it = bag.iterator();
 	        while (it.hasNext()) {
 	        	Tuple t = (Tuple)it.next();
-	        	Map<String,Object> properties = (Map<String,Object>)t.get(2);
 	        	
-        		Geometry geometry = _geometryParser.parseGeometry(t.get(0));
-        		double a = geometry.getArea();
+	        	Geometry geom = _geometryParser.parseGeometry(t.get(0));
 	        	
-        		DataByteArray data = (DataByteArray)properties.get("class");
-        		
-        		if ((new String(data.get())).equals(className)) {		        		
-        			area += a;
+	        	boolean bool = false;
+	        	
+				if (distanceStr.isEmpty()) {	//connected neighbors
+	        		if (geometry.intersects(geom)) {
+	        			bool = true;
+	        		}
+	        	} else {	//within distance neighbors
+	        		Double distance = Double.parseDouble(distanceStr);	        		
+	        		if (geometry.isWithinDistance(geom, distance)) {
+	        			bool = true;
+	        		}
 	        	}
-        		
-	        	totalArea += a;
+	        	
+				if (bool) {
+	        		double a = geom.getArea();
+		        	
+	        		Map<String,Object> properties = (Map<String,Object>)t.get(2);
+	        		DataByteArray data = (DataByteArray)properties.get("class");        		
+	        		if ((new String(data.get())).equals(className)) {		        		
+	        			area += a;
+		        	}
+	        		
+		        	totalArea += a;
+				}
 	        	
 	        }
 			

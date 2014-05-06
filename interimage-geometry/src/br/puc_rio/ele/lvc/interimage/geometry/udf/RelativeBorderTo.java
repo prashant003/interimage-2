@@ -71,14 +71,19 @@ public class RelativeBorderTo extends EvalFunc<Double> {
 			Iterator it = bag.iterator();
 	        while (it.hasNext()) {
 	        	Tuple t = (Tuple)it.next();
-	        	Map<String,Object> properties = (Map<String,Object>)t.get(2);
-	        	        			      
-	        	DataByteArray data = (DataByteArray)properties.get("class");
 	        	
-	        	if ((new String(data.get())).equals(className)) {
-	        		Geometry geom = _geometryParser.parseGeometry(t.get(0));	        		
-	        		Geometry intersection = geometry.intersection(geom);
-	        		border += intersection.getLength();
+	        	Geometry geom = _geometryParser.parseGeometry(t.get(0));
+	        	
+	        	if (geometry.intersects(geom)) {
+	        	
+		        	Map<String,Object> properties = (Map<String,Object>)t.get(2);	        	        			      
+		        	DataByteArray data = (DataByteArray)properties.get("class");
+		        	
+		        	if ((new String(data.get())).equals(className)) {	        			        		
+		        		Geometry intersection = geometry.intersection(geom);
+		        		border += intersection.getLength();
+		        	}
+		        	
 	        	}
 
 	        }
