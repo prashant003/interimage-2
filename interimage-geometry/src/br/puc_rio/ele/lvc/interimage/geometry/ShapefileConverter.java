@@ -34,7 +34,6 @@ import org.geotools.dbffile.DbfFieldDef;
 import org.geotools.dbffile.DbfFile;
 import org.geotools.dbffile.DbfFileWriter;
 import org.geotools.shapefile.ShapeHandler;
-import org.geotools.shapefile.ShapeTypeNotSupportedException;
 import org.geotools.shapefile.Shapefile;
 import org.geotools.shapefile.ShapefileHeader;
 
@@ -43,7 +42,6 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jump.io.EndianDataInputStream;
 import com.vividsolutions.jump.io.EndianDataOutputStream;
-import com.vividsolutions.jump.io.IllegalParametersException;
 
 /**
  * Converts between Shapefile format and InterIMAGE formats.<br>
@@ -63,7 +61,19 @@ public class ShapefileConverter {
 			
 			/* Processing input parameters */
 			if (shapefile == null) {
-	            throw new IllegalParametersException("No shapefile specified");
+	            throw new Exception("No Shapefile specified");
+	        } else {
+	            if (shapefile.isEmpty()) {
+	            	throw new Exception("No Shapefile specified");
+	            }
+	        }
+			
+			if (output == null) {
+	            throw new Exception("No JSON specified");
+	        } else {
+	            if (output.isEmpty()) {
+	            	throw new Exception("No JSON specified");
+	            }
 	        }
 			
 	        int idx = shapefile.lastIndexOf(File.separatorChar);
@@ -73,7 +83,7 @@ public class ShapefileConverter {
 	        idx = fileName.lastIndexOf(".");
 
 	        if (idx == -1) {
-	            throw new IllegalParametersException("Filename must end in '.shp'");
+	            throw new Exception("Filename must end in '.shp'");
 	        }
 	        
 	        String fileNameWithoutExtention = fileName.substring(0, idx); // ie. "hills.shp" -> "hills"
@@ -99,7 +109,7 @@ public class ShapefileConverter {
 	        if (handler == null) {
 	        	in.close();
 	        	out.close();
-	        	throw new ShapeTypeNotSupportedException("Unsuported shape type: " + type);
+	        	throw new Exception("Unsuported shape type: " + type);
 	        }
 	        
 	        /* Preparing to read dbf file */
@@ -143,12 +153,18 @@ public class ShapefileConverter {
 	                	boolean bool;
 	                	String name = mydbf.getFieldName(y);
 	                	
-	                	if (names.size() > 0) {	                	
-		                	if (keep) {
-		                		bool = names.contains(name);
+	                	if (names != null) {
+	                	
+		                	if (names.size() > 0) {	                	
+			                	if (keep) {
+			                		bool = names.contains(name);
+			                	} else {
+			                		bool = !names.contains(name);
+			                	}
 		                	} else {
-		                		bool = !names.contains(name);
+		                		bool = true;
 		                	}
+		                	
 	                	} else {
 	                		bool = true;
 	                	}
@@ -303,10 +319,22 @@ public class ShapefileConverter {
 		try {
 			
 			/*Processing input parameters*/
-			if (shpFileName == null) {
-	            throw new IllegalParametersException("No output filename specified");
+			if (input == null) {
+	            throw new Exception("No JSON file specified");
+	        } else {
+	        	if (input.isEmpty()) {
+	        		throw new Exception("No JSON file specified");
+	        	}
 	        }
 	
+			if (shpFileName == null) {
+	            throw new Exception("No Shapefile specified");
+	        } else {
+	        	if (shpFileName.isEmpty()) {
+	        		throw new Exception("No Shapefile specified");
+	        	}
+	        }			
+			
 			String path;
 			String fileName;
 			
@@ -328,7 +356,7 @@ public class ShapefileConverter {
 	        loc = fileName.lastIndexOf(".");
 	
 	        if (loc == -1) {
-	            throw new IllegalParametersException("Filename must end in '.shp'");
+	            throw new Exception("Filename must end in '.shp'");
 	        }
 	
 	        String fileNameWithoutExtention = fileName.substring(0, loc); // ie. "hills.shp" -> "hills."
@@ -487,7 +515,7 @@ public class ShapefileConverter {
 	        
 	        int pos = 50;
 	        
-	        int count = 0;
+	        int count = 1;
 	        
 	        String line;
 	        while ((line = buff.readLine()) != null) {
@@ -527,7 +555,7 @@ public class ShapefileConverter {
 	                    indexPos = indexPos+indexLen+4;
 	        			
 	                    /*Writing to shapefile*/
-	                    shapeFile.writeIntBE(count+1);
+	                    shapeFile.writeIntBE(count++);
 	                    shapeFile.writeIntBE(handler.getLength(geometry));
 	                    // file.setLittleEndianMode(true);
 	                    pos=pos+4; // length of header in WORDS
@@ -596,9 +624,21 @@ public class ShapefileConverter {
 			
 			/* Processing input parameters */
 			if (shapefile == null) {
-	            throw new IllegalParametersException("No shapefile specified");
+	            throw new Exception("No Shapefile specified");
+	        } else {
+	        	if (shapefile.isEmpty()) {
+	        		throw new Exception("No Shapefile specified");
+	        	}
 	        }
-						
+			
+			if (output == null) {
+	            throw new Exception("No WKT file specified");
+	        } else {
+	        	if (output.isEmpty()) {
+	        		throw new Exception("No WKT file specified");
+	        	}
+	        }
+			
 			/* Stream for output file */
 			OutputStream out = new FileOutputStream(output);
 			
@@ -619,7 +659,7 @@ public class ShapefileConverter {
 	        if (handler == null) {
 	        	in.close();
 	        	out.close();
-	        	throw new ShapeTypeNotSupportedException("Unsuported shape type: " + type);
+	        	throw new Exception("Unsuported shape type: " + type);
 	        }
 	                    
             /* Conversion */
@@ -654,8 +694,195 @@ public class ShapefileConverter {
 	 * @param input WKT file path<br>
 	 * output shapefile path
 	 */	
-	public static void WKTToShapefile(String input, String shapefile) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static void WKTToShapefile(String input, String shpFileName) {
 		
+		try {
+		
+			/*Processing input parameters*/
+			if (input == null) {
+	            throw new Exception("No WKT file specified");
+	        } else {
+	        	if (input.isEmpty()) {
+	        		throw new Exception("No WKT file specified");
+	        	}
+	        }
+	
+			if (shpFileName == null) {
+	            throw new Exception("No Shapefile specified");
+	        } else {
+	        	if (shpFileName.isEmpty()) {
+	        		throw new Exception("No Shapefile specified");
+	        	}
+	        }
+			
+			String path;
+			String fileName;
+			
+	        int loc = shpFileName.lastIndexOf(File.separatorChar);
+	        
+	        if (loc == -1) {
+	            // loc = 0; // no path - ie. "hills.shp"
+	            // path = "";
+	            // fname = shpfileName;
+	            //probably using the wrong path separator character.
+	            throw new Exception("Couldn't find the path separator character '" +
+	                File.separatorChar +
+	                "' in your shape file name. This you're probably using the unix (or dos) one.");
+	        } else {
+	            path = shpFileName.substring(0, loc + 1); // ie. "/data1/hills.shp" -> "/data1/"
+	            fileName = shpFileName.substring(loc + 1); // ie. "/data1/hills.shp" -> "hills.shp"
+	        }
+	        
+	        loc = fileName.lastIndexOf(".");
+	
+	        if (loc == -1) {
+	            throw new Exception("Filename must end in '.shp'");
+	        }
+	
+	        String fileNameWithoutExtention = fileName.substring(0, loc); // ie. "hills.shp" -> "hills."
+	        String dbfFileName = path + fileNameWithoutExtention + ".dbf";
+	        
+	        int numRecords = 0;
+	        Envelope bounds = null;
+	        int fileLength = 0;	        
+	        
+	        double[] boundsArr = new double[4];
+	        
+	        /*Read all the geometries in WKT file and compute some info for the headers*/
+	        
+	        InputStream in1 = new FileInputStream(input);
+	        InputStreamReader inStream1 = new InputStreamReader(in1);
+	        BufferedReader buff1 = new BufferedReader(inStream1);
+	        
+	        GeometryParser geometryParser = new GeometryParser();
+	        
+	        ShapeHandler handler = null;
+	        
+	        List<DbfFieldDef> fieldDefs = new ArrayList<DbfFieldDef>();
+	        
+			String line1;
+	        while ((line1 = buff1.readLine()) != null) {
+	        	
+	        	Geometry geometry = geometryParser.parseGeometry(line1);
+    			
+    			Envelope envelope = geometry.getEnvelopeInternal();
+    			
+    			if (envelope.getMinX() < boundsArr[0])
+    				boundsArr[0] = envelope.getMinX();
+    			
+    			if (envelope.getMinY() < boundsArr[1])
+    				boundsArr[1] = envelope.getMinY();
+    			
+    			if (envelope.getMaxX() > boundsArr[2])
+    				boundsArr[2] = envelope.getMaxX();
+    			
+    			if (envelope.getMaxY() > boundsArr[3])
+    				boundsArr[3] = envelope.getMaxY();
+    			
+    			if (handler == null) {
+	            	handler = Shapefile.getShapeHandler(geometry,2);
+	            }
+    			
+    			fileLength=fileLength + handler.getLength(geometry);
+ 	            fileLength+=4;//for each header
+	            
+ 	            numRecords++;
+ 	            
+	        }
+	        	        
+	        buff1.close();
+	        
+	        /*Preparing simple DBF header*/ 	            
+	        fieldDefs.add(new DbfFieldDef("id", 'N', 16, 0));
+	        
+	        bounds = new Envelope(boundsArr[0], boundsArr[2], boundsArr[1], boundsArr[3]);
+	        
+	        /*Preparing to write dbf file*/
+	        DbfFileWriter dbf;
+	        dbf = new DbfFileWriter(dbfFileName);
+	        
+	        DbfFieldDef[] fields = new DbfFieldDef[fieldDefs.size()];
+	        
+	        int countf = 0;
+	        for (DbfFieldDef f : fieldDefs) {
+	        	fields[countf] = f;
+	        	countf++;
+	        }
+	        
+	        /*Writing dbf file header*/
+	        dbf.writeHeader(fields, numRecords);
+        
+	        /*Preparing to write shapefile*/
+	        OutputStream out2 = new FileOutputStream(shpFileName);
+			EndianDataOutputStream shapeFile = new EndianDataOutputStream(out2);
+						
+			/*Writing shapefile header*/
+			writeShapefileHeader(shapeFile, fileLength, bounds);
+	        
+	        /*Preparing to write index file*/
+	        String shxFileName = path + fileNameWithoutExtention + ".shx";
+	        BufferedOutputStream out3 = new BufferedOutputStream(new FileOutputStream(shxFileName));
+	        EndianDataOutputStream indexfile = new EndianDataOutputStream(out3);
+
+	        /*Writing index file header*/
+	        int indexLength = 0;
+	        indexLength = 50+(4*numRecords);
+	        writeShapefileIndexHeader(indexfile, indexLength, bounds);
+	        
+	        /*Reads WKT file again, but now writing the shapefile, index file and dbf file*/
+	        InputStream in = new FileInputStream(input);
+	        InputStreamReader inStream = new InputStreamReader(in);
+	        BufferedReader buff = new BufferedReader(inStream);
+	        	        
+	        int indexPos = 50;
+	        int indexLen = 0;
+	        
+	        int pos = 50;
+	        
+	        int count = 1;
+	        
+	        String line;
+	        while ((line = buff.readLine()) != null) {
+	        	
+	        	Vector DBFrow = new Vector();
+	        	
+	        	Geometry geometry = geometryParser.parseGeometry(line);
+    			
+    			if (handler == null) {
+	            	handler = Shapefile.getShapeHandler(geometry,2);
+	            }
+    			
+    			/*Writing to index file*/
+    			indexLen = handler.getLength(geometry);	        	        
+    			indexfile.writeIntBE(indexPos);
+    			indexfile.writeIntBE(indexLen);
+                indexPos = indexPos+indexLen+4;
+    			
+                /*Writing to shapefile*/
+                shapeFile.writeIntBE(count);
+                shapeFile.writeIntBE(handler.getLength(geometry));
+                // file.setLittleEndianMode(true);
+                pos=pos+4; // length of header in WORDS
+                handler.write(geometry,shapeFile);
+                pos+=handler.getLength(geometry); // length of shape in WORDS
+	        	
+                Integer intValue = count++;
+        	    DBFrow.add(intValue);
+                
+        	    dbf.writeRecord(DBFrow);
+        	            	    
+	        }
+	        
+	        shapeFile.close();
+	        indexfile.close();
+	        dbf.close();
+	        buff.close();
+	        
+		} catch (Exception e) {
+			System.err.println("Failed to create shapefile; error - " + e.getMessage());
+		}
+	        
 	}
 	
 }
