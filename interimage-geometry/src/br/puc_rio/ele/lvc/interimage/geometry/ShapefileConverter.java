@@ -37,9 +37,12 @@ import org.geotools.shapefile.ShapeHandler;
 import org.geotools.shapefile.Shapefile;
 import org.geotools.shapefile.ShapefileHeader;
 
+import br.puc_rio.ele.lvc.interimage.common.UUID;
+
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.io.WKBWriter;
 import com.vividsolutions.jump.io.EndianDataInputStream;
 import com.vividsolutions.jump.io.EndianDataOutputStream;
 
@@ -55,7 +58,8 @@ public class ShapefileConverter {
 	 * @param input shapefile path<br>
 	 * output JSON file path
 	 */	
-	public static void shapefileToJSON(String shapefile, String output, List<String> names, boolean keep) {
+	@SuppressWarnings("unused")
+	public static void shapefileToJSON(String shapefile, String json, List<String> names, boolean keep) {
 		
 		try {
 			
@@ -68,10 +72,10 @@ public class ShapefileConverter {
 	            }
 	        }
 			
-			if (output == null) {
+			if (json == null) {
 	            throw new Exception("No JSON specified");
 	        } else {
-	            if (output.isEmpty()) {
+	            if (json.isEmpty()) {
 	            	throw new Exception("No JSON specified");
 	            }
 	        }
@@ -90,7 +94,7 @@ public class ShapefileConverter {
 	        String dbfFileName = path + fileNameWithoutExtention + ".dbf";
 			
 			/* Stream for output file */
-			OutputStream out = new FileOutputStream(output);
+			OutputStream out = new FileOutputStream(json);
 			
 			/* Preparing to read shapefile */
 			InputStream in = new FileInputStream(shapefile);
@@ -141,6 +145,7 @@ public class ShapefileConverter {
 	                contentLength=file.readIntBE();                
 	                geom = handler.read(file,factory,contentLength);
 	
+	                //TODO: Should work with wkb
 	                String str = "{\"geometry\":";	                
 	                str += "\"" + geom.toText() + "\"";
 	                str += ",\"data\":{\"0\":\"\"}";
@@ -197,11 +202,13 @@ public class ShapefileConverter {
 	                	str += "\"None\"";
 	                }
 	                
-	                if (!attributeNames.contains("id")) {
-	                	str += ",\"id\":";
-	                	str += recordNumber;
-	                }
-	                
+	                /*Computes object id as a hash of the geometry*/
+	    		    
+	    		    String id = new UUID("SHA-1").digest(new WKBWriter().write(geom));	        
+	    		    	                
+	                str += ",\"IIUUID\":";
+	               	str += id;
+	                	                
 	                str += "}}\n";
 	                
 	                out.write(str.getBytes());
@@ -314,15 +321,15 @@ public class ShapefileConverter {
 	 * output shapefile path
 	 */	
 	@SuppressWarnings({ "rawtypes", "unchecked", "unused" })
-	public static void JSONToShapefile(String input, String shpFileName) {
+	public static void JSONToShapefile(String json, String shpFileName, List<String> names, boolean keep) {
 	
 		try {
 			
 			/*Processing input parameters*/
-			if (input == null) {
+			if (json == null) {
 	            throw new Exception("No JSON file specified");
 	        } else {
-	        	if (input.isEmpty()) {
+	        	if (json.isEmpty()) {
 	        		throw new Exception("No JSON file specified");
 	        	}
 	        }
@@ -370,7 +377,7 @@ public class ShapefileConverter {
 	        
 	        /*Read all the records in the json file and compute some info for the headers*/
 	        
-	        InputStream in1 = new FileInputStream(input);
+	        InputStream in1 = new FileInputStream(json);
 	        InputStreamReader inStream1 = new InputStreamReader(in1);
 	        BufferedReader buff1 = new BufferedReader(inStream1);
 	        
@@ -405,6 +412,7 @@ public class ShapefileConverter {
 	        		if ("geometry".equals(fieldname)) {
 	        			jParser.nextToken();
 	        			
+	        			//TODO: Should work with wkb
 	        			geometry = geometryParser.parseGeometry(jParser.getText());
 	        			
 	        			Envelope envelope = geometry.getEnvelopeInternal();
@@ -439,24 +447,47 @@ public class ShapefileConverter {
 
 	        				String columnName = jParser.getText();
 	        				
-	        				jParser.nextToken();
-	        				
-	        				String value = jParser.getText().trim();
-	        				
-	        				try {
-		                		//Tests if it's an integer
-		                	    Integer intValue = Integer.parseInt(value);
-		                	    fieldDefs.add(new DbfFieldDef(columnName, 'N', 16, 0));
-		                	} catch (NumberFormatException nfe) {
-		                	    //Not an integer. Tests if it's a double
-		                		try {
-		                			Double doubleValue = Double.parseDouble(value);
-		                			fieldDefs.add(new DbfFieldDef(columnName, 'N', 33, 16));
-		                		} catch (NumberFormatException nfe2) {
-		                			//Not a double. Assuming it's a string
-		                			fieldDefs.add(new DbfFieldDef(columnName, 'C', 255, 0));		                				
-		                		}
+	        				boolean bool;
+		                	
+		                	if (names != null) {
+		                	
+			                	if (names.size() > 0) {	                	
+				                	if (keep) {
+				                		bool = names.contains(columnName);
+				                	} else {
+				                		bool = !names.contains(columnName);
+				                	}
+			                	} else {
+			                		bool = true;
+			                	}
+			                	
+		                	} else {
+		                		bool = true;
 		                	}
+	        				
+	        				jParser.nextToken();
+	        					        				
+	        				if (bool) {
+	        					
+	        					String value = jParser.getText().trim();
+	        				
+		        				try {
+			                		//Tests if it's an integer
+			                	    Integer intValue = Integer.parseInt(value);
+			                	    fieldDefs.add(new DbfFieldDef(columnName, 'N', 16, 0));
+			                	} catch (NumberFormatException nfe) {
+			                	    //Not an integer. Tests if it's a double
+			                		try {
+			                			Double doubleValue = Double.parseDouble(value);
+			                			fieldDefs.add(new DbfFieldDef(columnName, 'N', 33, 16));
+			                		} catch (NumberFormatException nfe2) {
+			                			//Not a double. Assuming it's a string
+			                			fieldDefs.add(new DbfFieldDef(columnName, 'C', 255, 0));		                				
+			                		}
+			                	}
+		        				
+	        				}
+	        				
 	        				
 	        			}
 	        			
@@ -506,7 +537,7 @@ public class ShapefileConverter {
 	        writeShapefileIndexHeader(indexfile, indexLength, bounds);
 	        
 	        /*Reads json file again, but now writing the shapefile, index file and dbf file*/
-	        InputStream in = new FileInputStream(input);
+	        InputStream in = new FileInputStream(json);
 	        InputStreamReader inStream = new InputStreamReader(in);
 	        BufferedReader buff = new BufferedReader(inStream);
 	        	        
@@ -542,6 +573,7 @@ public class ShapefileConverter {
 	        		if ("geometry".equals(fieldname)) {
 	        			jParser.nextToken();
 	        			
+	        			//TODO: Should work with wkb
 	        			geometry = geometryParser.parseGeometry(jParser.getText());
 	        			
 	        			if (handler == null) {
@@ -570,25 +602,48 @@ public class ShapefileConverter {
 	        			
 	        			while (jParser.nextToken() != JsonToken.END_OBJECT) {
 
-	        				jParser.nextToken();
+	        				String columnName = jParser.getText();
 	        				
-	        				String value = jParser.getText().trim();
-	        				
-	        				try {
-		                		//Tests if it's an integer
-		                	    Integer intValue = Integer.parseInt(value);
-		                	    DBFrow.add(intValue);
-		                	} catch (NumberFormatException nfe) {
-		                	    //Not an integer. Tests if it's a double
-		                		try {
-		                			Double doubleValue = Double.parseDouble(value);
-		                			DBFrow.add(doubleValue);
-		                		} catch (NumberFormatException nfe2) {
-		                			//Not a double. Assuming it's a string
-		                			DBFrow.add(value);	
-		                		}
+	        				boolean bool;
+		                	
+		                	if (names != null) {
+		                	
+			                	if (names.size() > 0) {	                	
+				                	if (keep) {
+				                		bool = names.contains(columnName);
+				                	} else {
+				                		bool = !names.contains(columnName);
+				                	}
+			                	} else {
+			                		bool = true;
+			                	}
+			                	
+		                	} else {
+		                		bool = true;
 		                	}
 	        				
+	        				jParser.nextToken();
+	        				
+	        				if (bool) {
+	        				
+		        				String value = jParser.getText().trim();
+		        				
+		        				try {
+			                		//Tests if it's an integer
+			                	    Integer intValue = Integer.parseInt(value);
+			                	    DBFrow.add(intValue);
+			                	} catch (NumberFormatException nfe) {
+			                	    //Not an integer. Tests if it's a double
+			                		try {
+			                			Double doubleValue = Double.parseDouble(value);
+			                			DBFrow.add(doubleValue);
+			                		} catch (NumberFormatException nfe2) {
+			                			//Not a double. Assuming it's a string
+			                			DBFrow.add(value);	
+			                		}
+			                	}
+		        				
+	        				}
 	        				
 	        			}
 	        			
@@ -618,7 +673,7 @@ public class ShapefileConverter {
 	 * output WKT file path
 	 */	
 	@SuppressWarnings("unused")
-	public static void shapefileToWKT(String shapefile, String output) {
+	public static void shapefileToWKT(String shapefile, String wkt) {
 		
 		try {
 			
@@ -631,16 +686,16 @@ public class ShapefileConverter {
 	        	}
 	        }
 			
-			if (output == null) {
+			if (wkt == null) {
 	            throw new Exception("No WKT file specified");
 	        } else {
-	        	if (output.isEmpty()) {
+	        	if (wkt.isEmpty()) {
 	        		throw new Exception("No WKT file specified");
 	        	}
 	        }
 			
 			/* Stream for output file */
-			OutputStream out = new FileOutputStream(output);
+			OutputStream out = new FileOutputStream(wkt);
 			
 			/* Preparing to read shapefile */
 			InputStream in = new FileInputStream(shapefile);
@@ -695,15 +750,15 @@ public class ShapefileConverter {
 	 * output shapefile path
 	 */	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static void WKTToShapefile(String input, String shpFileName) {
+	public static void WKTToShapefile(String wkt, String shpFileName) {
 		
 		try {
 		
 			/*Processing input parameters*/
-			if (input == null) {
+			if (wkt == null) {
 	            throw new Exception("No WKT file specified");
 	        } else {
-	        	if (input.isEmpty()) {
+	        	if (wkt.isEmpty()) {
 	        		throw new Exception("No WKT file specified");
 	        	}
 	        }
@@ -751,7 +806,7 @@ public class ShapefileConverter {
 	        
 	        /*Read all the geometries in WKT file and compute some info for the headers*/
 	        
-	        InputStream in1 = new FileInputStream(input);
+	        InputStream in1 = new FileInputStream(wkt);
 	        InputStreamReader inStream1 = new InputStreamReader(in1);
 	        BufferedReader buff1 = new BufferedReader(inStream1);
 	        
@@ -831,7 +886,7 @@ public class ShapefileConverter {
 	        writeShapefileIndexHeader(indexfile, indexLength, bounds);
 	        
 	        /*Reads WKT file again, but now writing the shapefile, index file and dbf file*/
-	        InputStream in = new FileInputStream(input);
+	        InputStream in = new FileInputStream(wkt);
 	        InputStreamReader inStream = new InputStreamReader(in);
 	        BufferedReader buff = new BufferedReader(inStream);
 	        	        
