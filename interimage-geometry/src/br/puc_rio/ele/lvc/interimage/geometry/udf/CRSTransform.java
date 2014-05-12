@@ -33,7 +33,7 @@ import com.vividsolutions.jts.io.WKBWriter;
 
 /**
  * A UDF that re-projects a geometry according to the given coordinate systems.<br>
- * So far, the supported coordinate systems are: EPSG:4326 (WGS 84), EPSG:32601-EPSG:32660 (WGS 84 / UTM Zones N), EPSG:32701-EPSG:32760 (WGS 84 / UTM Zones S) and EPSG:3395 (World Mercator).<br><br>
+ * So far, the supported coordinate systems are: EPSG:4326 (WGS 84), EPSG:32601-EPSG:32660 (WGS 84 / UTM Zones N), EPSG:32701-EPSG:32760 (WGS 84 / UTM Zones S) and EPSG:3857 (Web Mercator).<br><br>
  * Example:<br>
  * 		A = load 'mydata' as (geom);<br>
  * 		B = foreach A generate CRSTransform(geom,'EPSG:32723','EPSG:4326');<br>
@@ -169,6 +169,42 @@ public class CRSTransform extends EvalFunc<DataByteArray> {
 		            });
 					
 					geometry.setSRID(epsgToCode);					
+					geometry.geometryChanged();
+					
+				}
+				
+			} else if (epsgFromCode == 3857) {	//from Web Mercator
+			
+				if (((epsgToCode >= 32601) && (epsgToCode <= 32660)) || ((epsgToCode >= 32701) && (epsgToCode <= 32760))) {	//to UTM
+				
+					final UTMLatLongConverter converter = new UTMLatLongConverter();
+					converter.setDatum("WGS84");
+					
+					final WebMercatorLatLongConverter converter2 = new WebMercatorLatLongConverter();
+					converter2.setDatum("WGS84");
+					
+					geometry.apply(new CoordinateFilter() {
+		                public void filter(Coordinate coord) {
+		                	converter2.WebMercatorToLatLong(coord);
+		                	converter.LatLongToUTM(coord);		                	
+		                }
+		            });
+					
+					geometry.setSRID(epsgToCode);					
+					geometry.geometryChanged();
+					
+				} else if (epsgToCode == 4326) {	//to Longlat
+					
+					final WebMercatorLatLongConverter converter = new WebMercatorLatLongConverter();
+					converter.setDatum("WGS84");
+					
+					geometry.apply(new CoordinateFilter() {
+		                public void filter(Coordinate coord) {
+		                	converter.WebMercatorToLatLong(coord);
+		                }
+		            });
+					
+					geometry.setSRID(epsgToCode);
 					geometry.geometryChanged();
 					
 				}

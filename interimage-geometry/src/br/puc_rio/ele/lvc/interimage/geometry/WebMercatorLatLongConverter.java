@@ -49,10 +49,25 @@ public class WebMercatorLatLongConverter {
 		double lng = lngd * RAD;
 				
 		double x = _equatorialRadius * lng;
-		double y = _equatorialRadius / 2.0 * Math.log( (Math.sin(phi)+1) / (1.0-Math.sin(phi)) );
+		double y = (_equatorialRadius/2.0) * Math.log( (Math.sin(phi)+1.0) / (1.0-Math.sin(phi) ));
 		
 		coordinate.x = x;
 		coordinate.y = y;
+		
+	}
+	
+	public void WebMercatorToLatLong(Coordinate coordinate) {
+		double y = coordinate.y;
+		double x = coordinate.x;
+		
+		double lng = x / _equatorialRadius;
+		double lngd = lng / RAD;
+		
+		double phi = Math.asin((1.0 / (-(Math.pow(Math.E, ((2.0*y) / _equatorialRadius)) + 1.0) /2.0)) + 1.0); 
+		double lat = phi / RAD;
+		
+		coordinate.x = lngd;
+		coordinate.y = lat;
 		
 	}
 	
