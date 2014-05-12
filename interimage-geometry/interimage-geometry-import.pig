@@ -57,6 +57,12 @@ DEFINE II_Touches br.puc_rio.ele.lvc.interimage.geometry.udf.Touches;
 DEFINE II_Within br.puc_rio.ele.lvc.interimage.geometry.udf.Within;
 DEFINE II_WithinDistance br.puc_rio.ele.lvc.interimage.geometry.udf.WithinDistance;
 
+DEFINE II_CRSTransform br.puc_rio.ele.lvc.interimage.geometry.udf.CRSTransform;
+DEFINE II_KMLPlacemark br.puc_rio.ele.lvc.interimage.geometry.udf.kml.KMLPlacemark;
+DEFINE II_OSMNode br.puc_rio.ele.lvc.interimage.geometry.udf.osm.OSMNode;
+DEFINE II_OSMWay br.puc_rio.ele.lvc.interimage.geometry.udf.osm.OSMWay;
+DEFINE II_WKTGeometry br.puc_rio.ele.lvc.interimage.geometry.udf.wkt.WKTGeometry;
+
 --Special UDFs
 DEFINE SpatialGroup br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialGroup('');
 DEFINE II_SpatialGroup (A, B, p) RETURNS F {
