@@ -20,7 +20,7 @@ import java.util.Map;
 import com.vividsolutions.jts.geom.Coordinate;
 
 /**
- * Converts between LatLong and Mercator coordinate systems.<br>
+ * Converts between LatLong and Web Mercator coordinate systems.<br>
  * @author Rodrigo Ferreira
  */
 public class WebMercatorLatLongConverter {
