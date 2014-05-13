@@ -14,7 +14,7 @@ limitations under the License.*/
 
 /**
  * A Pig script that defines the data mining package UDFs.
- * @author Rodrigo Ferreira *
+ * @author Rodrigo Ferreira
  */
 
 --Eval UDFs

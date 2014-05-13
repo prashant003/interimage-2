@@ -14,7 +14,7 @@ limitations under the License.*/
 
 /**
  * A Pig script that defines the common package UDFs.
- * @author Rodrigo Ferreira *
+ * @author Rodrigo Ferreira
  */
 
 --Eval UDFs
