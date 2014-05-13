@@ -52,6 +52,8 @@ public class CRSTransform extends EvalFunc<DataByteArray> {
      * third column is assumed to have the to coordinate system<br>
      * @exception java.io.IOException
      * @return re-projected geometry
+     * 
+     * TODO: deal with data?
      */
 	@Override
 	public DataByteArray exec(Tuple input) throws IOException {

@@ -24,19 +24,22 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.pig.EvalFunc;
+import org.apache.pig.data.BagFactory;
+import org.apache.pig.data.DataBag;
 import org.apache.pig.data.DataByteArray;
 import org.apache.pig.data.DataType;
 import org.apache.pig.data.Tuple;
+import org.apache.pig.data.TupleFactory;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 
+import br.puc_rio.ele.lvc.interimage.common.UUID;
 import br.puc_rio.ele.lvc.interimage.geometry.GeometryParser;
 import br.puc_rio.ele.lvc.interimage.geometry.Tile;
 
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.index.strtree.STRtree;
 import com.vividsolutions.jts.io.WKBWriter;
 import com.vividsolutions.jts.io.WKTReader;
@@ -46,18 +49,18 @@ import com.vividsolutions.jts.io.WKTReader;
  * For efficiency reasons, it should always be used after SpatialFilter.<br><br>
  * 
  * Some observations:<br>
- * 1 - For the geometries that do not intersect any ROI an empty geometry will be returned
- * 2 - The geometries that intersect more than one ROI will be clipped according to the ROI with which they have the largest intersection
+ * 1 - For the geometries that do not intersect any ROI a null bag will be returned
+ * 2 - The geometries that intersect more than one ROI will produce the respective number of tuples
  * 3 - Makes no sense to call this UDF after SpatialFilter when it is used with the 'containment' filter type
  * <br><br>
  * Example:<br>
  * 		A = load 'mydata1' as (geom, tile);<br>
  * 		B = filter A by SpatialFilter(geom,tile,'intersection');
- * 		C = foreach B generate SpatialClip(geom,tile) as geom;<br>
+ * 		C = foreach B generate flatten(SpatialClip(B));<br>
  * @author Rodrigo Ferreira
  *
  */
-public class SpatialClip extends EvalFunc<DataByteArray> {
+public class SpatialClip extends EvalFunc<DataBag> {
 	
 	private final GeometryParser _geometryParser = new GeometryParser();
 	private STRtree _gridIndex = null;
@@ -76,17 +79,16 @@ public class SpatialClip extends EvalFunc<DataByteArray> {
 	/**
      * Method invoked on every tuple during filter evaluation.
      * @param input tuple<br>
-     * first column is assumed to have a geometry<br>
-     * second column is assumed to have the tile id
+     * first column is assumed to have a tuple
      * @exception java.io.IOException
-     * @return clipped geometry, or empty geometry in the case of no intersection
+     * @return a bag with tuples with the clipped geometries, or a null bag in case of no intersection
      * 
-     * TODO: Use distributed cache; check if an index for the ROIs is necessary
+     * TODO: Use distributed cache; check if an index for the ROIs is necessary; deal with data
      */
 	@SuppressWarnings("unchecked")
 	@Override
-	public DataByteArray exec(Tuple input) throws IOException {
-		if (input == null || input.size() < 2)
+	public DataBag exec(Tuple input) throws IOException {
+		if (input == null || input.size() == 0)
             return null;
         
 		//executes initialization
@@ -148,40 +150,50 @@ public class SpatialClip extends EvalFunc<DataByteArray> {
 		
 		try {
 
-			Object objGeometry = input.get(0);
-			Integer tileId = DataType.toInteger(input.get(1));
+			Tuple tuple = DataType.toTuple(input.get(0));
+			
+			Object objGeometry = tuple.get(0);
+			Map<String,String> data = (Map<String,String>)tuple.get(1);
+			Map<String,Object> properties = DataType.toMap(tuple.get(2));
+			
+			Integer tileId = (Integer)properties.get("tile");
 						
+			DataBag bag = BagFactory.getInstance().newDefaultBag();
+			
 	    	if ((!_roiUrl.isEmpty()) && (!_gridUrl.isEmpty())) {
 		        if (_gridIds.contains(tileId)) {
 		        	Geometry geometry = _geometryParser.parseGeometry(objGeometry);
 	
 	        		List<Geometry> list = _roiIndex.query(geometry.getEnvelopeInternal());
-	        	
-	        		Geometry largestIntersection = null;
-	        		double largestArea = 0.0;
-	        		
+	  	        		
 		        	for (Geometry geom : list) {
 
 		        		if (geom.intersects(geometry)) {
 		        			Geometry g = geom.intersection(geometry);
-		        			if (g.getArea() > largestArea) {
-		        				largestArea = g.getArea();
-		        				largestIntersection = g;
-		        			}
+		        			
+		        			byte[] bytes = new WKBWriter().write(g);
+		        			
+		        			Tuple t = TupleFactory.getInstance().newTuple(3);
+		        			t.set(0,new DataByteArray(bytes));
+		        			t.set(1,data);
+		        			t.set(2,properties);
+		        			bag.add(t);
+		        			
+		        			String id = new UUID("SHA-1").digest(bytes);	        
+		        		    properties.put("IIUUID",id);
+		        			
 		        		}
 		        		
 		        	}
-		        	
-		        	if (largestIntersection != null) {
-		        		return new DataByteArray(new WKBWriter().write(largestIntersection));
-		        	}
-		        				        	
+		        			        				        	
 		        }
-		        return new DataByteArray(new WKBWriter().write(new Polygon(null, null, new GeometryFactory())));
+		        
 	    	} else {
-	    		return new DataByteArray(new WKBWriter().write(_geometryParser.parseGeometry(objGeometry)));
+	    		bag.add(tuple);	    		
 	    	}
 			
+	    	return bag;
+	    	
 		} catch (Exception e) {
 			throw new IOException("Caught exception processing input row ", e);
 		}
@@ -189,7 +201,28 @@ public class SpatialClip extends EvalFunc<DataByteArray> {
 	
 	@Override
     public Schema outputSchema(Schema input) {
-        return new Schema(new Schema.FieldSchema(null, DataType.BYTEARRAY));
+        
+		try {
+
+			List<Schema.FieldSchema> list = new ArrayList<Schema.FieldSchema>();
+			list.add(new Schema.FieldSchema(null, DataType.BYTEARRAY));
+			list.add(new Schema.FieldSchema(null, DataType.MAP));
+			list.add(new Schema.FieldSchema(null, DataType.MAP));
+			
+			Schema tupleSchema = new Schema(list);
+			
+			Schema.FieldSchema ts = new Schema.FieldSchema(null, tupleSchema, DataType.TUPLE);
+			
+			Schema bagSchema = new Schema(ts);
+			
+			Schema.FieldSchema bs = new Schema.FieldSchema(null, bagSchema, DataType.BAG);
+			
+			return new Schema(bs);
+
+		} catch (Exception e) {
+			return null;
+		}
+		
     }
 	
 }
