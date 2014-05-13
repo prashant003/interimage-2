@@ -8,7 +8,7 @@ from threading import Timer
 from mortar.api.v2 import API
 from mortar.api.v2 import jobs
 
-email = 'darioaugusto@gmail.com'
+email = 'example@gmail.com'
 api_key = 'EZdoTSiCVBnaCIYEDmtN6nBqrGYaiuH+mct5JAlf'
 
 project_name = 'mortar_example'
