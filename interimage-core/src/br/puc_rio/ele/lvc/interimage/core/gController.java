@@ -49,17 +49,26 @@ public class gController extends DefaultDirectedGraph<gNode, gEdge> {
 		
 		for (gNode node : nodes )
 		{
+			if (node.isRunning())
+			{
+				numberOfRunningNodes=numberOfRunningNodes+1;
+				continue;
+			}
+
+			if (node.isExecuted())
+			{
+				updateLinkedNodes(node);	
+				continue;
+			}
+			
 			evaluateNodeInputs(node);
 			
 			if (node.isAvailable())
 			{
 				//call node run method
+				node.run();
 			}
-			if (node.isRunning())
-			{
-				numberOfRunningNodes=numberOfRunningNodes+1;
-			}
-			
+
 		}
 		return numberOfRunningNodes;
 	}
