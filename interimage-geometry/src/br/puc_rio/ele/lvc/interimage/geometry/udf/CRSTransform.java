@@ -88,26 +88,6 @@ public class CRSTransform extends EvalFunc<DataByteArray> {
 					geometry.setSRID(epsgToCode);					
 					geometry.geometryChanged();
 					
-				} else if (epsgToCode == 3395) {	//To World Mercator
-					
-					/*final UTMLatLongConverter converter = new UTMLatLongConverter();
-					converter.setDatum("WGS84");
-					
-					final WorldMercatorLatLongConverter converter2 = new WorldMercatorLatLongConverter();
-					converter2.setDatum("WGS84");
-					
-					geometry.apply(new CoordinateFilter() {
-		                public void filter(Coordinate coord) {
-		                	converter.UTMToLatLong(coord, utmZone, southern);
-		                	converter2.LatLongToWorldMercator(coord);
-		                }
-		            });
-					
-					geometry.setSRID(epsgToCode);					
-					geometry.geometryChanged();*/
-					
-					throw new Exception("EPSG code " + epsgToCode + " not supported");
-					
 				} else if (epsgToCode == 3857) {	//To Web Mercator
 					
 					final UTMLatLongConverter converter = new UTMLatLongConverter();
@@ -142,22 +122,6 @@ public class CRSTransform extends EvalFunc<DataByteArray> {
 					
 					geometry.setSRID(epsgToCode);					
 					geometry.geometryChanged();
-					
-				} else if (epsgToCode == 3395) {	//to World Mercator
-					
-					throw new Exception("EPSG code " + epsgToCode + " not supported");
-					
-					/*final WorldMercatorLatLongConverter converter = new WorldMercatorLatLongConverter();
-					converter.setDatum("WGS84");
-					
-					geometry.apply(new CoordinateFilter() {
-		                public void filter(Coordinate coord) {
-		                	converter.LatLongToWorldMercator(coord);
-		                }
-		            });
-					
-					geometry.setSRID(epsgToCode);					
-					geometry.geometryChanged();*/
 					
 				} else if (epsgToCode == 3857) {	//to Web Mercator
 					

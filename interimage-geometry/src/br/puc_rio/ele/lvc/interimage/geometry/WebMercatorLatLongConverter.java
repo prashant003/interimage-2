@@ -33,11 +33,23 @@ public class WebMercatorLatLongConverter {
 	
 	public WebMercatorLatLongConverter() {		
 		/* Initialize datums */
-		_datumTable.put("WGS84", new double[] {6378137.0, 298.2572236});		
+		_datumTable.put("WGS84", new double[] {6378137.0, 298.257223563});		
 	}
 	
 	public void setDatum(String datum) {
 		_equatorialRadius = _datumTable.get(datum)[0];		
+	}
+	
+	public double[] getDatum(String datum) {
+		return _datumTable.get(datum);		
+	}
+	
+	public boolean hasDatum(String datum) {
+		return _datumTable.containsKey(datum);		
+	}
+	
+	public double getEquatorialRadius() {
+		return _equatorialRadius;
 	}
 	
 	public void LatLongToWebMercator(Coordinate coordinate) {
