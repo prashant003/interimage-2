@@ -1,0 +1,91 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>br.puc_rio.ele.lvc</groupId>
+  <artifactId>interimage-datamining</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>InterIMAGE Data Mining</name>
+  <url>http://www.lvc.ele.puc-rio.br/projects/interimage-2/</url>  
+  <description>The InterIMAGE Data Mining package is an API with data mining functionalities for the InterIMAGE platform.</description>
+  <dependencies>
+  
+  	<dependency>
+  		<groupId>org.apache.pig</groupId>
+  		<artifactId>pig</artifactId>
+  		<version>0.9.2</version>
+  	</dependency>
+	
+  	<dependency>
+  		<groupId>org.apache.hadoop</groupId>
+  		<artifactId>hadoop-core</artifactId>
+  		<version>1.2.1</version>
+  	</dependency>
+	
+	<dependency>
+		<groupId>nz.ac.waikato.cms.weka</groupId>
+		<artifactId>weka-dev</artifactId>
+		<version>3.7.11</version>
+	</dependency>
+	
+	<dependency>
+		<groupId>junit</groupId>
+		<artifactId>junit</artifactId>
+		<version>4.11</version>
+		<scope>test</scope>
+	</dependency>
+		
+  </dependencies>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  
+   <developers>
+    <developer>
+      <name>Rodrigo Ferreira</name>
+      <email>webcsm@gmail.com</email>
+      <organization>Computer Vision Lab</organization>
+      <organizationUrl>http://www.lvc.ele.puc-rio.br</organizationUrl>
+	  <roles>
+		<role>architect</role>
+        <role>developer</role>
+      </roles>
+    </developer>
+	<developer>
+      <name>Victor Quirita</name>
+      <email>vaaymaq@gmail.com</email>
+      <organization>Computer Vision Lab</organization>
+      <organizationUrl>http://www.lvc.ele.puc-rio.br</organizationUrl>
+	  <roles>
+		<role>architect</role>
+        <role>developer</role>
+      </roles>
+    </developer>
+  </developers>
+  
+  <scm>
+	<url>scm:https://github.com/ComputerVisionLab/interimage-2</url>
+  	<connection>scm:git:https://github.com/ComputerVisionLab/interimage-2.git</connection>
+  </scm>
+  
+  <licenses>
+	<license>
+		<name>The Apache Software License, Version 2.0</name>
+		<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+	</license>
+  </licenses>
+  
+</project>
