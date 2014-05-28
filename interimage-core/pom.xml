@@ -20,26 +20,22 @@
 		<version>0.1</version>
 	</dependency>
 	
+	<dependency>
+  		<groupId>br.puc_rio.ele.lvc</groupId>
+  		<artifactId>interimage-data</artifactId>
+  		<version>0.0.1-SNAPSHOT</version>
+  		<scope>provided</scope>
+  	</dependency>
+	
+	<dependency>
+  		<groupId>br.puc_rio.ele.lvc</groupId>
+  		<artifactId>interimage-geometry</artifactId>
+  		<version>0.0.1-SNAPSHOT</version>
+  		<scope>provided</scope>
+  	</dependency>
+	
   </dependencies>
-  
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-gpg-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>sign-artifacts</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>sign</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
-  
+    
    <developers>
     <developer>
       <name>Dário Oliveira</name>

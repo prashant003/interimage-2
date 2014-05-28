@@ -1,4 +1,4 @@
-package br.puc_rio.ele.lvc.interimage.core;
+package br.puc_rio.ele.lvc.interimage.core.operatorgraph;
 
 public abstract class gNode {
 

@@ -42,8 +42,8 @@ public class TestUTMLatLongConverter extends TestCase {
 		converter.setDatum("WGS84");
 		Coordinate coord = new Coordinate(556810.733051, 4934376.512002);
 		converter.UTMToLatLong(coord, 15, false);
-		assertEquals(-92.284639707529, coord.x, 1E-10);
-		assertEquals(44.560484263791, coord.y, 1E-10);
+		assertEquals(-92.284639707529, coord.x, 1E-9);
+		assertEquals(44.560484263791, coord.y, 1E-9);
 	}
 
 }

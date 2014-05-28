@@ -1,4 +1,4 @@
-package br.puc_rio.ele.lvc.interimage.core;
+package br.puc_rio.ele.lvc.interimage.core.operatorgraph;
 
 import com.mortardata.api.v2.JobRequest;
 import com.mortardata.api.v2.Jobs;

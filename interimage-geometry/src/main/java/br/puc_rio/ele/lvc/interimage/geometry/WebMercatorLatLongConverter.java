@@ -25,6 +25,11 @@ import com.vividsolutions.jts.geom.Coordinate;
  */
 public class WebMercatorLatLongConverter {
 	
+	private double _geoWest = -20026376.39;
+	private double _geoNorth = 20048966.10;
+	private double _geoEast = 20026376.39;
+	private double _geoSouth = -20048966.10;
+		
 	private double _equatorialRadius;
 	
 	private final double RAD = Math.PI / 180.0;
@@ -81,6 +86,22 @@ public class WebMercatorLatLongConverter {
 		coordinate.x = lngd;
 		coordinate.y = lat;
 		
+	}
+	
+	public double getGeoWest() {
+		return _geoWest;
+	}
+	
+	public double getGeoNorth() {
+		return _geoNorth;
+	}
+	
+	public double getGeoEast() {
+		return _geoEast;
+	}
+	
+	public double getGeoSouth() {
+		return _geoSouth;
 	}
 	
 }
