@@ -9,6 +9,11 @@ public class gEdge extends DefaultEdge {
 	private static final long serialVersionUID = 3311759278952307446L;
 	private boolean activated=true;
 
+
+	public gEdge() {
+	    super();
+	  }
+	
 	public boolean isActivated() {
 		return activated;
 	}

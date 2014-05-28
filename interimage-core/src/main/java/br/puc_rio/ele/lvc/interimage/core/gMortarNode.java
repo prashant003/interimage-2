@@ -1,4 +1,5 @@
 package br.puc_rio.ele.lvc.interimage.core;
+import java.io.IOException;
 
 import com.mortardata.api.v2.JobRequest;
 import com.mortardata.api.v2.Jobs;
@@ -45,6 +46,7 @@ public class gMortarNode extends gNode {
 	
 	protected int execute()
 	{
+		System.out.println(codeVersion);
 		JobRequest jobRequest = new JobRequest(projectName, pigScriptPath, codeVersion, clusterSize);
 		String jobId;
 		JobStatus finalJobStatus=JobStatus.UNKNOWN;
@@ -55,7 +57,7 @@ public class gMortarNode extends gNode {
 					return 1;
 			else
 					return 0;
-		} catch (Exception e) {
+		} catch (IOException | InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

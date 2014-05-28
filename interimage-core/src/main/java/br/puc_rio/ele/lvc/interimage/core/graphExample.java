@@ -12,11 +12,11 @@ public class graphExample {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 
-		File pathToEmbeddedMortarProject = new File("/home/me/path/to/embedded/mortar/project");
+		File pathToEmbeddedMortarProject = new File("/path/to/embedded/project");
 
 		// github account associated with my Mortar account (to sync to backing github repo)
-		String githubUsername = "myGithubUsername";
-		String githubPassword = "myGithubPassword";
+		String githubUsername = "user";
+		String githubPassword = "pass";
 		String gitHash = "";
 		// deploy embedded mortar project to Mortar (on branch master)
 		EmbeddedMortarProject project = new EmbeddedMortarProject(pathToEmbeddedMortarProject);
@@ -28,24 +28,24 @@ public class graphExample {
 			e.printStackTrace();
 		}
 
-		String project_name = "mortar_example";
+		String project_name = "interimage_2";
 		int cluster_size = 2;
 
 		//mortar user data
-		String email = "darioaugusto@gmail.com";
-		String apiKey = "EZdoTSiCVBnaCIYEDmtN6nBqrGYaiuH+mct5JAlf";
+		String email = "usrname@email.com";
+		String apiKey = "dsadjji+mct5JAlf";
 		
 		Jobs jobs = new Jobs(new API(email, apiKey));
-			
-		gController g = new gController(null);
+  
+		gController g = new gController(gEdge.class);
 		
-		gMortarNode n1 = g.addMortarOperator("teste1");
+		gMortarNode n1 = g.addMortarOperator("s3n://interimage-tests/scripts/script1.pig");
 		n1.setJobs_(jobs);
 		n1.setClusterSize(cluster_size);
 		n1.setProjectName(project_name);
 		n1.setCodeVersion(gitHash);
 		
-		gMortarNode n2 = g.addMortarOperator("teste2");
+		gMortarNode n2 = g.addMortarOperator("s3n://interimage-tests/scripts/script1.pig");
 		n2.setJobs_(jobs);
 		n2.setClusterSize(cluster_size);
 		n2.setProjectName(project_name);

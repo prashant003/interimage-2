@@ -17,6 +17,11 @@ public class gController extends DefaultDirectedGraph<gNode, gEdge> {
 		// TODO Auto-generated constructor stub
 	}
 
+	public gController(Class<? extends gEdge> edgeClass)
+	{
+		this(new ClassBasedEdgeFactory<gNode, gEdge>(edgeClass));
+	}
+	
 	//update inputs from successor nodes with output from node
 	public void updateLinkedNodes(gNode node){
 		Set<gEdge> relatedEdges = this.outgoingEdgesOf(node);
