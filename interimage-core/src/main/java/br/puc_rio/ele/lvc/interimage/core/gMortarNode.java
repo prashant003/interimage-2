@@ -47,7 +47,7 @@ public class gMortarNode extends gNode {
 	protected int execute()
 	{
 		System.out.println(codeVersion);
-		JobRequest jobRequest = new JobRequest(projectName, pigScriptPath, codeVersion, clusterSize);
+		JobRequest jobRequest = new JobRequest(projectName, pigScriptPath, "master", clusterSize);
 		String jobId;
 		JobStatus finalJobStatus=JobStatus.UNKNOWN;
 		try {
