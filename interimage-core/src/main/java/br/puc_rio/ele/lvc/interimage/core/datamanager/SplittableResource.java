@@ -12,40 +12,27 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.*/
 
-package br.puc_rio.ele.lvc.interimage.geometry;
+package br.puc_rio.ele.lvc.interimage.core.datamanager;
 
-/**
- * A class that holds the information about a shape resource. 
- * @author Rodrigo Ferreira
- */
-public class Shape {
-
-	private String _key;
-	private String _url;
-	private String _epsg;
+public class SplittableResource implements Resource {
 	
-	public void setKey(String key) {
-		_key = key;
+	public static final short IMAGE = 1;
+	public static final short SHAPE = 2;
+	
+	private Object _object;
+	private short _type;	
+	
+	public SplittableResource(Object obj, short type) {
+		_object = obj;
+		_type = type;
 	}
 	
-	public String getKey() {
-		return _key;
+	public short getType() {
+		return _type;
 	}
 	
-	public void setURL(String url) {
-		_url = url;
-	}
-	
-	public String getURL() {
-		return _url;
-	}
-	
-	public void setEPSG(String epsg) {
-		_epsg = epsg;
-	}
-	
-	public String getEPSG() {
-		return _epsg;
+	public Object getObject() {
+		return _object;
 	}
 	
 }

@@ -73,11 +73,11 @@ public class ShapefileConverter {
 			
 			if (json == null) {
 	            throw new Exception("No JSON specified");
-	        } else {
+	        } /*else {
 	            if (json.isEmpty()) {
 	            	throw new Exception("No JSON specified");
 	            }
-	        }
+	        }*/
 			
 	        int idx = shapefile.lastIndexOf(File.separatorChar);
 	        String path = shapefile.substring(0, idx + 1); // ie. "/data1/hills.shp" -> "/data1/"
@@ -92,6 +92,10 @@ public class ShapefileConverter {
 	        String fileNameWithoutExtention = fileName.substring(0, idx); // ie. "hills.shp" -> "hills"
 	        String dbfFileName = path + fileNameWithoutExtention + ".dbf";
 			
+	        if (json.isEmpty()) {
+	        	json = path + fileNameWithoutExtention + ".json";
+	        }
+	        
 			/* Stream for output file */
 			OutputStream out = new FileOutputStream(json);
 			

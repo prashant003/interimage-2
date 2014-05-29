@@ -71,4 +71,8 @@ public class ImageList {
 		return _images.size();
 	}
 	
+	public Map<String,Image> getImages() {
+		return _images;
+	}
+	
 }

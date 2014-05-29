@@ -14,6 +14,8 @@ limitations under the License.*/
 
 package br.puc_rio.ele.lvc.interimage.core.project;
 
+import br.puc_rio.ele.lvc.interimage.core.datamanager.DataManager;
+import br.puc_rio.ele.lvc.interimage.core.datamanager.SplittableResource;
 import br.puc_rio.ele.lvc.interimage.core.semanticnetwork.SemanticNetwork;
 import br.puc_rio.ele.lvc.interimage.data.Image;
 import br.puc_rio.ele.lvc.interimage.data.ImageList;
@@ -25,6 +27,7 @@ import br.puc_rio.ele.lvc.interimage.geometry.WebMercatorLatLongConverter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -48,18 +51,15 @@ public class Project {
 	private SemanticNetwork _semanticNet;
 	private ImageList _imageList;
 	private ShapeList _shapeList;
-	private double _minResolution;
-	double _geoTileSize;
-	int _numTilesX;
-	int _numTilesY;
-	//String _fuzzySets = null;
-	//String _decisionTree = null;
+	private DataManager _dataManager;
+	//private String _fuzzySets = null;
+	//private String _decisionTree = null;
 	
 	public Project() {
 		_semanticNet = new SemanticNetwork();
 		_imageList = new ImageList();
 		_shapeList = new ShapeList();
-		_minResolution = Double.MAX_VALUE;
+		_dataManager = new DataManager();
 	}
 	
 	public String getProject() {
@@ -123,6 +123,8 @@ public class Project {
 			    /*Reading Image List*/
 			    if (images.getLength() > 0) {
 			    				    	
+			    	double minResolution = Double.MAX_VALUE;
+			    	
 			    	for (int k = 0; k < images.getLength(); k++) {
 				    	
 			    		Node imageNode = images.item(k);
@@ -139,6 +141,8 @@ public class Project {
 					    	img.setURL(image.getAttribute("file"));
 						    					    	
 					    	String epsgFrom = image.getAttribute("epsg");
+					    	
+					    	img.setEPSG(epsgFrom);
 					    	
 					    	int epsgFromCode = Integer.parseInt(epsgFrom.split(":")[1]);
 					    						    								
@@ -184,8 +188,8 @@ public class Project {
 					    		
 					    	double res = Math.abs((img.getGeoEast()-img.getGeoWest())/img.getCols());
 					    	
-					    	if (res < _minResolution) {
-					    		_minResolution = res; 
+					    	if (res < minResolution) {
+					    		minResolution = res; 
 					    	}
 					    						    	
 					    	_imageList.add(key, img);
@@ -194,16 +198,12 @@ public class Project {
 			    	
 			    	}
 			    	
-			    	WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
-					webMercator.setDatum("WGS84");
+			    	_dataManager.setMinResolution(minResolution);
 			    	
-			    	//TODO: Make it a parameter
-			    	_geoTileSize = 256 * _minResolution;
-			    	
-			    	_numTilesX = (int)Math.ceil((webMercator.getGeoEast()-webMercator.getGeoWest()) / _geoTileSize);
-			    	
-			    	_numTilesY = (int)Math.ceil((webMercator.getGeoNorth()-webMercator.getGeoSouth()) / _geoTileSize);
-			    	
+			    	for (Map.Entry<String, Image> entry : _imageList.getImages().entrySet()) {
+			    		_dataManager.setupResource(new SplittableResource(entry.getValue(),SplittableResource.IMAGE));
+			    	}
+			    				    	
 			    } else {
 			    	throw new Exception("No image tag defined");
 			    }
@@ -220,6 +220,10 @@ public class Project {
 				    	shp.setKey(key);
 				    	shp.setURL(shape.getAttribute("file"));
 				    	
+				    	String epsgFrom = shape.getAttribute("epsg");
+				    	
+				    	shp.setEPSG(epsgFrom);
+				    	
 				    	_shapeList.add(key, shp);
 			    	}
 			    	
@@ -234,22 +238,6 @@ public class Project {
 			e.printStackTrace();
 		}
 		
-	}
-		
-	public double getMinResolution() {
-		return _minResolution;
-	}
-	
-	public double getGeoTileSize() {
-		return _geoTileSize;
-	}
-	
-	public int getNumTilesX() {
-		return _numTilesX;
-	}
-	
-	public int getNumTilesY() {
-		return _numTilesY;
 	}
 	
 }

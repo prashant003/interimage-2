@@ -12,40 +12,24 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.*/
 
-package br.puc_rio.ele.lvc.interimage.geometry;
+package br.puc_rio.ele.lvc.interimage.core.datamanager;
 
-/**
- * A class that holds the information about a shape resource. 
- * @author Rodrigo Ferreira
- */
-public class Shape {
+@SuppressWarnings("unused")
+public class AWSSource implements Source {
 
-	private String _key;
-	private String _url;
-	private String _epsg;
+	private String _accessKey;	
+	private String _secretKey;
+	private String _bucket;
 	
-	public void setKey(String key) {
-		_key = key;
+	public AWSSource(String accessKey, String secretKey, String bucket) {
+		_accessKey = accessKey;
+		_secretKey = secretKey;
+		_bucket = bucket;
 	}
 	
-	public String getKey() {
-		return _key;
-	}
+	@Override
+	public void put(String from, String to) {
 	
-	public void setURL(String url) {
-		_url = url;
-	}
-	
-	public String getURL() {
-		return _url;
-	}
-	
-	public void setEPSG(String epsg) {
-		_epsg = epsg;
-	}
-	
-	public String getEPSG() {
-		return _epsg;
 	}
 	
 }

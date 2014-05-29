@@ -26,6 +26,7 @@ public class Image {
 	private double _geoWest, _geoNorth, _geoEast, _geoSouth;
 	private int _cols, _rows;
 	private int _bands;
+	private String _epsg;
 	
 	public void setKey(String key) {
 		_key = key;
@@ -105,6 +106,14 @@ public class Image {
 	
 	public int getBands() {
 		return _bands;
+	}
+	
+	public void setEPSG(String epsg) {
+		_epsg = epsg;
+	}
+	
+	public String getEPSG() {
+		return _epsg;
 	}
 	
 }
