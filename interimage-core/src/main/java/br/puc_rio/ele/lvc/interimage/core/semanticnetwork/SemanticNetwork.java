@@ -31,6 +31,7 @@ import org.w3c.dom.NodeList;
 public class SemanticNetwork {
 
 	private Node _root;
+	private String _url;
 	
 	public void setRootNode(Node node) {
 		_root = node;
@@ -60,7 +61,7 @@ public class SemanticNetwork {
 			    	Element n = (Element)semNode;	
 			    		    	
 			    	Node sNode = new Node();
-			    	sNode.setParentNode(node);
+			    	sNode.setParent(node);
 			    	sNode.setClassName(n.getAttribute("class"));
 			    				    	 
 			    	node.addChildNode(sNode);
@@ -88,6 +89,8 @@ public class SemanticNetwork {
 	        	}
 	        }
 			
+			_url = url;
+			
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 			
@@ -99,7 +102,7 @@ public class SemanticNetwork {
 		    rootElement.normalize();
 
 	    	_root = new Node();
-	    	_root.setParentNode(null);
+	    	_root.setParent(null);
 	    	_root.setClassName(rootElement.getAttribute("class"));
 	    	processNode(_root, rootElement.getChildNodes());		    	
 		    		    
@@ -120,6 +123,10 @@ public class SemanticNetwork {
 	
 	public int size() {		
 		return countNodes(_root) + 1;		
+	}
+	
+	public String getURL() {
+		return _url;
 	}
 	
 }

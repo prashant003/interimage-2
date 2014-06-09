@@ -23,6 +23,7 @@ public class Shape {
 	private String _key;
 	private String _url;
 	private String _epsg;
+	private boolean _splittable;
 	
 	public void setKey(String key) {
 		_key = key;
@@ -48,4 +49,12 @@ public class Shape {
 		return _epsg;
 	}
 	
+	public void isSplittable(boolean splittable) {
+		_splittable = splittable;
+	}
+	
+	public boolean isSplittable() {
+		return _splittable;
+	}
+		
 }

@@ -24,15 +24,15 @@ import java.io.Serializable;
 @SuppressWarnings("serial")
 public class Tile implements Serializable {
 
-	private int _id;
+	private long _id;
 	private String _geometry;
+		
+	public void setId(long id) { _id = id; }
 	
-	public void setId(int id) { _id = id; }
-	
-	public int getId() { return _id; }
+	public long getId() { return _id; }
 	
 	public void setGeometry(String geometry) { _geometry = geometry; }
 	
 	public String getGeometry() { return _geometry; }
-		
+	
 }

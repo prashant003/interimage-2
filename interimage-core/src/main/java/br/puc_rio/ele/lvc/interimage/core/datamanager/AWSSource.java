@@ -14,6 +14,20 @@ limitations under the License.*/
 
 package br.puc_rio.ele.lvc.interimage.core.datamanager;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+
+/**
+ * A Source class that communicates with Amazon S3. 
+ * @author Rodrigo Ferreira
+ */
 @SuppressWarnings("unused")
 public class AWSSource implements Source {
 
@@ -27,9 +41,22 @@ public class AWSSource implements Source {
 		_bucket = bucket;
 	}
 	
-	@Override
 	public void put(String from, String to) {
-	
+
+		try {
+		
+			/*AWSCredentials credentials = new BasicAWSCredentials(_accessKey, _secretKey);
+			AmazonS3 conn = new AmazonS3Client(credentials);
+			conn.setEndpoint("https://s3.amazonaws.com");
+					
+			FileInputStream stream = new FileInputStream(from);
+						
+			conn.putObject(_bucket, to, stream, new ObjectMetadata());*/
+			
+		} catch (Exception e) {
+			System.err.println("Source put failed: " + e.getMessage());			
+		}
+		
 	}
 	
 }

@@ -14,19 +14,25 @@ limitations under the License.*/
 
 package br.puc_rio.ele.lvc.interimage.core.project;
 
+import br.puc_rio.ele.lvc.interimage.common.URL;
 import br.puc_rio.ele.lvc.interimage.core.datamanager.DataManager;
+import br.puc_rio.ele.lvc.interimage.core.datamanager.DefaultResource;
 import br.puc_rio.ele.lvc.interimage.core.datamanager.SplittableResource;
 import br.puc_rio.ele.lvc.interimage.core.semanticnetwork.SemanticNetwork;
 import br.puc_rio.ele.lvc.interimage.data.Image;
 import br.puc_rio.ele.lvc.interimage.data.ImageList;
+import br.puc_rio.ele.lvc.interimage.datamining.FuzzySet;
+import br.puc_rio.ele.lvc.interimage.datamining.FuzzySetList;
 import br.puc_rio.ele.lvc.interimage.geometry.Shape;
 import br.puc_rio.ele.lvc.interimage.geometry.ShapeList;
+import br.puc_rio.ele.lvc.interimage.geometry.TileManager;
 import br.puc_rio.ele.lvc.interimage.geometry.UTMLatLongConverter;
 import br.puc_rio.ele.lvc.interimage.geometry.WebMercatorLatLongConverter;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -52,7 +58,11 @@ public class Project {
 	private ImageList _imageList;
 	private ShapeList _shapeList;
 	private DataManager _dataManager;
-	//private String _fuzzySets = null;
+	private double _minResolution;
+	//TODO: Make it a parameter
+	private int _tilePixelSize = 256;
+	private TileManager _tileManager;
+	private FuzzySetList _fuzzySetList;
 	//private String _decisionTree = null;
 	
 	public Project() {
@@ -60,6 +70,8 @@ public class Project {
 		_imageList = new ImageList();
 		_shapeList = new ShapeList();
 		_dataManager = new DataManager();
+		_fuzzySetList = new FuzzySetList();
+		_minResolution = Double.MAX_VALUE;
 	}
 	
 	public String getProject() {
@@ -108,6 +120,7 @@ public class Project {
 		    	NodeList semNets = rootElement.getElementsByTagName("geosemnet");
 			    NodeList images = rootElement.getElementsByTagName("image");
 			    NodeList shapes = rootElement.getElementsByTagName("shape");
+			    NodeList fuzzySets = rootElement.getElementsByTagName("fuzzysets");
 		    	
 			    /*Reading Semantic Network*/
 			    if (semNets.getLength() > 0) {
@@ -116,6 +129,8 @@ public class Project {
 			    	
 			    	_semanticNet.readOldFile(semNet.getAttribute("dir") + File.separatorChar + semNet.getAttribute("file"));
 			    	
+			    	//TODO: send semantic network to AWS
+			    	
 			    } else {
 			    	throw new Exception("No geosemnet tag defined");
 			    }
@@ -123,8 +138,6 @@ public class Project {
 			    /*Reading Image List*/
 			    if (images.getLength() > 0) {
 			    				    	
-			    	double minResolution = Double.MAX_VALUE;
-			    	
 			    	for (int k = 0; k < images.getLength(); k++) {
 				    	
 			    		Node imageNode = images.item(k);
@@ -143,6 +156,8 @@ public class Project {
 					    	String epsgFrom = image.getAttribute("epsg");
 					    	
 					    	img.setEPSG(epsgFrom);
+					    	
+					    	//TODO: Check if this conversion can be done somewhere else
 					    	
 					    	int epsgFromCode = Integer.parseInt(epsgFrom.split(":")[1]);
 					    						    								
@@ -181,15 +196,15 @@ public class Project {
 					    	img.setGeoNorth(coord2.y);
 					    	img.setGeoEast(coord2.x);
 					    	img.setGeoSouth(coord1.y);
-					    	
+					    						    	
 					    	img.setCols(Integer.parseInt(image.getAttribute("cols")));
 					    	img.setRows(Integer.parseInt(image.getAttribute("rows")));
 					    	img.setBands(Integer.parseInt(image.getAttribute("bands")));
 					    		
 					    	double res = Math.abs((img.getGeoEast()-img.getGeoWest())/img.getCols());
-					    	
-					    	if (res < minResolution) {
-					    		minResolution = res; 
+					    						    	
+					    	if (res < _minResolution) {
+					    		_minResolution = res; 
 					    	}
 					    						    	
 					    	_imageList.add(key, img);
@@ -197,11 +212,13 @@ public class Project {
 			    		}
 			    	
 			    	}
+			    				    	
+			    	_tileManager = new TileManager(_tilePixelSize * _minResolution);
 			    	
-			    	_dataManager.setMinResolution(minResolution);
+			    	_dataManager.updateGeoBBox(new double[] {_imageList.getGeoWest(), _imageList.getGeoSouth(), _imageList.getGeoEast(), _imageList.getGeoNorth()}); 
 			    	
 			    	for (Map.Entry<String, Image> entry : _imageList.getImages().entrySet()) {
-			    		_dataManager.setupResource(new SplittableResource(entry.getValue(),SplittableResource.IMAGE));
+			    		_dataManager.setupResource(new SplittableResource(entry.getValue(),SplittableResource.IMAGE), _tileManager, null);
 			    	}
 			    				    	
 			    } else {
@@ -220,13 +237,40 @@ public class Project {
 				    	shp.setKey(key);
 				    	shp.setURL(shape.getAttribute("file"));
 				    	
-				    	String epsgFrom = shape.getAttribute("epsg");
-				    	
+				    	String epsgFrom = shape.getAttribute("epsg");				    	
 				    	shp.setEPSG(epsgFrom);
 				    	
+				    	Boolean splittable = new Boolean(shape.getAttribute("splittable"));				    	
+				    	shp.isSplittable(splittable);
+				    	
 				    	_shapeList.add(key, shp);
+				    	
+				    	if (splittable) {
+				    		_dataManager.setupResource(new SplittableResource(shp,SplittableResource.SHAPE), _tileManager, null);
+				    	} else {
+				    		_dataManager.setupResource(new DefaultResource(shp,DefaultResource.SHAPE), null, null);
+				    	}
 			    	}
+			    				    	
+			    } else {
+			    	throw new Exception("No shape tag defined");
+			    }
 			    	
+			    /*Creating Tiles*/
+			    _tileManager.setTiles(_dataManager.getGeoBBox());
+			    _dataManager.setupResource(new DefaultResource(_tileManager.getTiles(), DefaultResource.TILE), null, URL.getPath(_project));
+			    			    
+			    /*Reading FuzzySets*/
+			    if (fuzzySets.getLength() > 0) {
+			    	
+			    	Element fuzzySet = (Element)fuzzySets.item(0);
+			    	
+			    	_fuzzySetList.readOldFile(fuzzySet.getAttribute("file"));
+
+				    _dataManager.setupResource(new DefaultResource(new ArrayList<FuzzySet>(_fuzzySetList.getFuzzySets().values()), DefaultResource.FUZZY_SET), null, URL.getPath(_project));
+			    	
+			    } else {
+			    	throw new Exception("No fuzzysets tag defined");
 			    }
 			    			    
 		    } else {

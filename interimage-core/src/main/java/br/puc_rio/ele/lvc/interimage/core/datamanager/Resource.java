@@ -14,6 +14,10 @@ limitations under the License.*/
 
 package br.puc_rio.ele.lvc.interimage.core.datamanager;
 
+/**
+ * An interface for resources. 
+ * @author Rodrigo Ferreira
+ */
 public interface Resource {
 	
 }

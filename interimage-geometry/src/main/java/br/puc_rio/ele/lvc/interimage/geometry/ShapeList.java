@@ -37,4 +37,8 @@ public class ShapeList {
 		return _shapes.size();
 	}
 	
+	public Map<String,Shape> getShapes() {
+		return _shapes;
+	}
+	
 }

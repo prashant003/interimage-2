@@ -14,6 +14,10 @@ limitations under the License.*/
 
 package br.puc_rio.ele.lvc.interimage.core.datamanager;
 
+/**
+ * A class that defines a splittable resource. 
+ * @author Rodrigo Ferreira
+ */
 public class SplittableResource implements Resource {
 	
 	public static final short IMAGE = 1;

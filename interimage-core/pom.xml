@@ -7,7 +7,13 @@
   <url>http://www.lvc.ele.puc-rio.br/projects/interimage-2/</url>
   <description>The InterIMAGE Core package is an API with the core functionalities for the InterIMAGE platform.</description>
   <dependencies>
-  
+	
+	<dependency>
+		<groupId>com.amazonaws</groupId>
+		<artifactId>aws-java-sdk</artifactId>
+		<version>1.7.12</version>
+	</dependency>
+		
   	<dependency>
   		<groupId>org.jgrapht</groupId>
   		<artifactId>jgrapht-core</artifactId>
@@ -19,7 +25,7 @@
 		<artifactId>mortar-api-java</artifactId>
 		<version>0.1</version>
 	</dependency>
-	
+		
 	<dependency>
   		<groupId>br.puc_rio.ele.lvc</groupId>
   		<artifactId>interimage-data</artifactId>
@@ -40,7 +46,14 @@
   		<version>0.0.1-SNAPSHOT</version>
   		<scope>provided</scope>
   	</dependency>
-	
+			
+	<dependency>
+  		<groupId>br.puc_rio.ele.lvc</groupId>
+  		<artifactId>interimage-datamining</artifactId>
+  		<version>0.0.1-SNAPSHOT</version>
+  		<scope>provided</scope>
+  	</dependency>
+			
   </dependencies>
     
    <developers>
@@ -54,6 +67,18 @@
         <role>developer</role>
       </roles>
     </developer>
+	
+	<developer>
+      <name>Rodrigo Ferreira</name>
+      <email>webcsm@gmail.com</email>
+      <organization>Computer Vision Lab</organization>
+      <organizationUrl>http://www.lvc.ele.puc-rio.br</organizationUrl>
+	  <roles>
+		<role>architect</role>
+        <role>developer</role>
+      </roles>
+    </developer>
+	
   </developers>
   
   <scm>

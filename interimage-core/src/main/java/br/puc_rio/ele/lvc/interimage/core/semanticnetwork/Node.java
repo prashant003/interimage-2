@@ -43,11 +43,11 @@ public class Node {
 		_children.add(child);
 	}
 	
-	public void setParentNode(Node parent) {
+	public void setParent(Node parent) {
 		_parent = parent;
 	}
 	
-	public Node getParentNode() {
+	public Node getParent() {
 		return _parent;
 	}
 	
