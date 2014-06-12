@@ -14,13 +14,16 @@ public class Example {
 		
 		Project project = new Project();
 		
+		//C:\\Users\\Rodrigo\\Documents\\interimage\\interpretation_projects\\aquila\\aquila.gap
+		//C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\exercise13.gap
+		
 		project.readOldFile("C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\exercise13.gap");
 		
 		//EPSG:32723
 		
-		ShapefileConverter.JSONToShapefile("C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\result.json","C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\result2.shp", null, true, "EPSG:3857");
+		//ShapefileConverter.JSONToShapefile("C:\\Users\\Rodrigo\\Documents\\interimage\\interpretation_projects\\aquila\\result.json","C:\\Users\\Rodrigo\\Documents\\interimage\\interpretation_projects\\aquila\\result2.shp", null, true, "EPSG:3857");
 		
-		ShapefileConverter.WKTToShapefile("C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\tiles.wkt", "C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\tiles.shp", "EPSG:3857");
+		//ShapefileConverter.WKTToShapefile("C:\\Users\\Rodrigo\\Documents\\interimage\\interpretation_projects\\aquila\\tiles.wkt", "C:\\Users\\Rodrigo\\Documents\\interimage\\interpretation_projects\\aquila\\tiles.shp", "EPSG:3857");
 		
 		//System.out.println(project.getProject());
 		//System.out.println(project.getImageList().size());

@@ -29,6 +29,7 @@ public class TileManager {
 	private int _numTilesY;
 	private double[] _worldBBox;
 	private List<Tile> _tiles;
+	private int _levels;
 	
 	public TileManager(double size) {
 		setSize(size);
@@ -43,23 +44,76 @@ public class TileManager {
 		
 		_numTilesX = (int)Math.ceil((webMercator.getGeoEast()-webMercator.getGeoWest()) / _tileSize);
 		_numTilesY = (int)Math.ceil((webMercator.getGeoNorth()-webMercator.getGeoSouth()) / _tileSize);
-				
+		
+		/*Computing a squared tile coordinate system*/
+		if (_numTilesX >= _numTilesY) {
+			_numTilesY = _numTilesX;
+		} else
+			_numTilesX = _numTilesY;
+		
+		/*Number of levels: ceil(log2(num_tiles_x))*/
+		_levels = (int)Math.ceil(Math.log(_numTilesX) / Math.log(2));
+		
 		_worldBBox = new double[] {webMercator.getGeoWest(), webMercator.getGeoSouth(), webMercator.getGeoEast(), webMercator.getGeoNorth()}; 
 		
 	}
 	
-	public List<Long> getTiles(double[] bbox) {
+	/*public List<Long> getTiles(double[] bbox) {
         
         int tileMinX = (int)Math.floor((bbox[0]-_worldBBox[0]) / _tileSize);
         int tileMinY = (int)Math.floor((bbox[1]-_worldBBox[1]) / _tileSize);
         int tileMaxX = (int)Math.floor((bbox[2]-_worldBBox[0]) / _tileSize);
         int tileMaxY = (int)Math.floor((bbox[3]-_worldBBox[1]) / _tileSize);
-        
+                
         ArrayList<Long> list = new ArrayList<Long>();
         
         for (int j=tileMinY; j<=tileMaxY; j++) {
         	for (int i=tileMinX; i<=tileMaxX; i++) {
-        		list.add(new Long(j*_numTilesX+i+1));
+        		list.add(((long)j)*_numTilesX+i+1);
+        	}
+        }
+        
+        return list;
+        
+	}*/
+	
+	public String encodeCoordinates(int i, int j, int level) {
+		
+		if (level>=_levels)
+			return "";
+		
+		int modx = i % 2;
+		int mody = j % 2;
+				
+		String code = new String();
+		
+		if ((modx==0) && (mody==0)) {
+			code = encodeCoordinates((int)Math.floor(((double)i)/2), (int)Math.floor(((double)j)/2), level+1) + "a";
+		} else if ((modx==0) && (mody==1)) {
+			code = encodeCoordinates((int)Math.floor(((double)i)/2), (int)Math.floor(((double)j)/2), level+1) + "b";
+		} else if ((modx==1) && (mody==0)) {
+			code = encodeCoordinates((int)Math.floor(((double)i)/2), (int)Math.floor(((double)j)/2), level+1) + "c";
+		} else if ((modx==1) && (mody==1)) {
+			code = encodeCoordinates((int)Math.floor(((double)i)/2), (int)Math.floor(((double)j)/2), level+1) + "d";
+		}
+				
+		return code;
+		
+	}
+	
+	public List<String> getTiles(double[] bbox) {
+        
+        int tileMinX = (int)Math.floor((bbox[0]-_worldBBox[0]) / _tileSize);
+        int tileMinY = (int)Math.floor((bbox[1]-_worldBBox[1]) / _tileSize);
+        int tileMaxX = (int)Math.floor((bbox[2]-_worldBBox[0]) / _tileSize);
+        int tileMaxY = (int)Math.floor((bbox[3]-_worldBBox[1]) / _tileSize);
+                
+        ArrayList<String> list = new ArrayList<String>();
+        
+        for (int j=tileMinY; j<=tileMaxY; j++) {
+        	for (int i=tileMinX; i<=tileMaxX; i++) {        		
+        		String code = encodeCoordinates(i,j,0);
+        		list.add(code);
         	}
         }
         
@@ -92,11 +146,16 @@ public class TileManager {
 	public void setTiles(double[] geoBBox) {
 				
 		int[] tileCoords = getTileCoordinates(geoBBox);
-		
+				
 		for (int j=tileCoords[1]; j<=tileCoords[3]; j++) {
 			for (int i=tileCoords[0]; i<=tileCoords[2]; i++) {
 				Tile tile = new Tile();
-				tile.setId(j*_numTilesX+i+1);
+				tile.setId(((long)j)*_numTilesX+i+1);
+				
+				/*Computing code*/
+				String code = encodeCoordinates(i,j,0);
+				tile.setCode(code);
+				
 				double geoX = i*_tileSize + _worldBBox[0];
 				double geoY = j*_tileSize + _worldBBox[1];
 				

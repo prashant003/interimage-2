@@ -38,10 +38,10 @@ import com.vividsolutions.jts.index.strtree.STRtree;
 import com.vividsolutions.jts.io.WKTReader;
 
 /**
- * A UDF that filters geometries in relation to a list of ROIs.<br><br>
+ * A UDF that filters geometries with respect to a list of ROIs.<br><br>
  * Example:<br>
- * 		A = load 'mydata1' as (geom, tile);<br>
- * 		B = filter A by SpatialFilter(geom,tile,'intersection');<br>
+ * 		A = load 'mydata1' as (geom, data, props);<br>
+ * 		B = filter A by SpatialFilter(geom, props#'tile');<br>
  * @author Rodrigo Ferreira
  *
  */
@@ -50,7 +50,7 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 	private final GeometryParser _geometryParser = new GeometryParser();
 	private STRtree _gridIndex = null;
 	private STRtree _roiIndex = null;
-	private List<Integer> _gridIds = null;
+	private List<String> _gridIds = null;
 	
 	String _roiUrl = null;
 	String _gridUrl = null;
@@ -83,7 +83,7 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 		if (_gridIndex == null) {
 			_gridIndex = new STRtree();
 			_roiIndex = new STRtree();
-			_gridIds = new ArrayList<Integer>();
+			_gridIds = new ArrayList<String>();
 			
 			//Creates an index for the grid
 	        try {
@@ -102,7 +102,7 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 				    
 				    for (Tile t : tiles) {				    	
 				    	Geometry geometry = new WKTReader().read(t.getGeometry());
-    					_gridIndex.insert(geometry.getEnvelopeInternal(),t.getId());
+    					_gridIndex.insert(geometry.getEnvelopeInternal(),t.getCode());
 				    }
 			        			        
 	        	}
@@ -139,10 +139,13 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 		try {
 
 			Object objGeometry = input.get(0);
-			Integer tileId = DataType.toInteger(input.get(1));
+			String tileStr = DataType.toString(input.get(1));
+						
+			//converting from string T0000 to long 0000
+			//Long tileId = Long.parseLong(tileStr.substring(1));
 			
 	    	if ((!_roiUrl.isEmpty()) && (!_gridUrl.isEmpty())) {
-		        if (_gridIds.contains(tileId)) {
+		        if (_gridIds.contains(tileStr)) {
 		        	Geometry geometry = _geometryParser.parseGeometry(objGeometry);
 		        	
 	        		List<Geometry> list = _roiIndex.query(geometry.getEnvelopeInternal());

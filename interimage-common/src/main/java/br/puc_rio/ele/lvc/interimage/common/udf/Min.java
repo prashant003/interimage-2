@@ -22,10 +22,10 @@ import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 
 /**
- * A UDF that computes the smaller of two numbers.<br><br>
+ * A UDF that computes the lesser of two numbers.<br><br>
  * Example:<br>
  * 		A = load 'mydata' as (attrib1, attrib2);<br>
- * 		B = foreach A generate Min(attrib1, attrib2);<br>
+ * 		B = foreach A generate Min(attrib1, attrib2);
  * @author Rodrigo Ferreira
  *
  */
@@ -36,7 +36,7 @@ public class Min extends EvalFunc<Double> {
      * @param input tuple; first column is assumed to have a number<br>
      * second column is assumed to have a number
      * @exception java.io.IOException
-     * @return minimum value
+     * @return lesser value
      */
 	@Override
 	public Double exec(Tuple input) throws IOException {

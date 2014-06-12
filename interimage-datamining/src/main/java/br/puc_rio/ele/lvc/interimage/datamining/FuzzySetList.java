@@ -14,6 +14,7 @@ limitations under the License.*/
 
 package br.puc_rio.ele.lvc.interimage.datamining;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -56,6 +57,11 @@ public class FuzzySetList {
 	        }
 			
 			_url = url;
+			
+			File file = new File(_url);
+			
+			if (!file.exists())
+				return;
 			
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();

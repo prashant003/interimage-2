@@ -165,7 +165,7 @@ public class DataManager {
 												
 				if (url.contains(".tif")) {
 				
-					//TODO: convert and upload
+					//TODO: convert, cut and upload
 					
 				}
 								

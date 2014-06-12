@@ -27,7 +27,7 @@ import org.apache.pig.impl.logicalLayer.schema.Schema;
  * A UDF that updates the classification map with the given class and membership.<br><br>
  * Example:<br>
  * 		A = load 'mydata' as (props);<br>
- * 		B = foreach A generate ToClassification('class', membership, props) as props;<br>
+ * 		B = foreach A generate ToClassification('class', membership, props) as props;
  * @author Rodrigo Ferreira
  *
  */
@@ -36,7 +36,7 @@ public class ToClassification extends EvalFunc<Map<String,Object>> {
 	/**
      * Method invoked on every tuple during foreach evaluation.
      * @param input tuple; first column is assumed to have the class name<br>
-     * second column is assumed to have membership value<br>
+     * second column is assumed to have the membership value<br>
      * third column is assumed to have the properties map
      * @exception java.io.IOException
      * @return map with the given classification

@@ -267,7 +267,8 @@ public class Project {
 			    	
 			    	_fuzzySetList.readOldFile(fuzzySet.getAttribute("file"));
 
-				    _dataManager.setupResource(new DefaultResource(new ArrayList<FuzzySet>(_fuzzySetList.getFuzzySets().values()), DefaultResource.FUZZY_SET), null, URL.getPath(_project));
+			    	if (_fuzzySetList.size()>0)
+			    		_dataManager.setupResource(new DefaultResource(new ArrayList<FuzzySet>(_fuzzySetList.getFuzzySets().values()), DefaultResource.FUZZY_SET), null, URL.getPath(_project));			    	
 			    	
 			    } else {
 			    	throw new Exception("No fuzzysets tag defined");

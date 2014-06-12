@@ -45,13 +45,13 @@ public class AWSSource implements Source {
 
 		try {
 		
-			/*AWSCredentials credentials = new BasicAWSCredentials(_accessKey, _secretKey);
+			AWSCredentials credentials = new BasicAWSCredentials(_accessKey, _secretKey);
 			AmazonS3 conn = new AmazonS3Client(credentials);
 			conn.setEndpoint("https://s3.amazonaws.com");
 					
 			FileInputStream stream = new FileInputStream(from);
 						
-			conn.putObject(_bucket, to, stream, new ObjectMetadata());*/
+			conn.putObject(_bucket, to, stream, new ObjectMetadata());
 			
 		} catch (Exception e) {
 			System.err.println("Source put failed: " + e.getMessage());			

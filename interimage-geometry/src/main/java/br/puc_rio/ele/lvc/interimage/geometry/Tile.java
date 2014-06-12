@@ -25,9 +25,14 @@ import java.io.Serializable;
 public class Tile implements Serializable {
 
 	private long _id;
+	private String _code;
 	private String _geometry;
 		
 	public void setId(long id) { _id = id; }
+	
+	public String getCode() { return _code; }
+	
+	public void setCode(String code) { _code = code; }
 	
 	public long getId() { return _id; }
 	

@@ -44,6 +44,7 @@ import com.vividsolutions.jts.geom.CoordinateFilter;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.io.WKBWriter;
 import com.vividsolutions.jump.io.EndianDataInputStream;
 import com.vividsolutions.jump.io.EndianDataOutputStream;
 
@@ -256,16 +257,16 @@ public class ShapefileConverter {
 					if (bbox[3] > geoBBox[3]) {	//north
 						geoBBox[3] = bbox[3];
 					}
-					
+															
 	                //TODO: fix EVERYTHING to work with more than one tile	                
-					List<Long> tiles = tileManager.getTiles(bbox);
+					List<String> tiles = tileManager.getTiles(bbox);
 					
 					String tileString = new String();
 					
 					boolean first = true;
-					for (Long i : tiles) {
+					for (String i : tiles) {
 						if (first) {
-							tileString = Long.toString(i);
+							tileString = i;
 							first = false;
 						} else {
 							tileString = tileString + "," + i;
@@ -273,8 +274,10 @@ public class ShapefileConverter {
 					}
 	                					
 	                //TODO: Should work with wkb
+					
 	                String str = "{\"geometry\":";	                
-	                str += "\"" + geom.toText() + "\"";
+	                //str += "\"" + geom.toText() + "\"";
+	                str += "\"" + WKBWriter.toHex(new WKBWriter().write(geom)) + "\"";	                	                
 	                str += ",\"data\":{\"0\":\"\"}";
 	                str += ",\"properties\":{\"tile\":\"" + tileString + "\"";
 	                
