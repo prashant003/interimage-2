@@ -21,6 +21,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import br.puc_rio.ele.lvc.interimage.common.URL;
 import br.puc_rio.ele.lvc.interimage.data.Image;
@@ -42,13 +43,19 @@ public class DataManager {
 	private Source _source;
 	private double[] _geoBBox; //west, south, east, north
 	
-	public DataManager() {
-		_source = new AWSSource("AKIAJUGENPM6SS7DAWFQ","MyDA5EIuXF7zGRRMFv3ibmbTZogj9az45Gax5xGD","interimage2");
+	public DataManager() {		
 		_geoBBox = new double[4];
 		_geoBBox[0] = Double.MAX_VALUE;
 		_geoBBox[1] = Double.MAX_VALUE;
 		_geoBBox[2] = -Double.MAX_VALUE;
 		_geoBBox[3] = -Double.MAX_VALUE;
+	}
+	
+	public void setup(Properties props) {
+		String service = props.getProperty("interimage.local.storageService");
+		
+		if (service.equals("AWS"))
+			_source = new AWSSource(props.getProperty("interimage.local.aws.accessKey"),props.getProperty("interimage.local.aws.secretKey"),"interimage2");
 	}
 	
 	public void updateGeoBBox(double[] gbox) {
@@ -150,6 +157,31 @@ public class DataManager {
 				}
 				
 			} else if (rsrc.getType() == DefaultResource.SEMANTIC_NETWORK) {
+				
+			} else if (rsrc.getType() == DefaultResource.PROPERTY) {
+			
+				/*try {
+				
+					Properties props = (Properties)rsrc.getObject();
+					
+					FileWriter fw = new FileWriter(projectPath + "interimage-public.properties");
+					BufferedWriter bw = new BufferedWriter(fw);
+					
+					for (Map.Entry<Object, Object> entry : props.entrySet()) {
+						String key = (String)entry.getKey();
+						String value = (String)entry.getValue();
+			    		if (!key.startsWith("interimage.local")) {
+			    			bw.write(key + "=" + value + "\n");
+			    		}
+			    	}
+					
+					bw.close();
+					
+					_source.put(projectPath + "interimage-public.properties", "resources/" + "interimage-public.properties");
+					
+				} catch (Exception e) {
+					System.out.println("Failed to setup DefaultResource of type PROPERTY; error - " + e.getMessage());
+				}*/
 				
 			}
 			

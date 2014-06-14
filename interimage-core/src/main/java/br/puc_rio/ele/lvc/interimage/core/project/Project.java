@@ -34,6 +34,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -60,10 +61,11 @@ public class Project {
 	private DataManager _dataManager;
 	private double _minResolution;
 	//TODO: Make it a parameter
-	private int _tilePixelSize = 256;
+	private int _tilePixelSize;
 	private TileManager _tileManager;
 	private FuzzySetList _fuzzySetList;
 	//private String _decisionTree = null;
+	private Properties _properties;
 	
 	public Project() {
 		_semanticNet = new SemanticNetwork();
@@ -72,6 +74,7 @@ public class Project {
 		_dataManager = new DataManager();
 		_fuzzySetList = new FuzzySetList();
 		_minResolution = Double.MAX_VALUE;
+		_properties = new Properties();
 	}
 	
 	public String getProject() {
@@ -102,9 +105,18 @@ public class Project {
 	        		throw new Exception("No project file specified");
 	        	}
 	        }
-			
-			_project = url;
 						
+			_project = url;
+			
+			/*Reading properties file*/
+			InputStream input = new FileInputStream("interimage.properties");
+
+			_properties.load(input);
+
+			_tilePixelSize = Integer.parseInt(_properties.getProperty("interimage.tileSize"));
+			
+			_dataManager.setup(_properties);
+			
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 			
@@ -120,8 +132,8 @@ public class Project {
 		    	NodeList semNets = rootElement.getElementsByTagName("geosemnet");
 			    NodeList images = rootElement.getElementsByTagName("image");
 			    NodeList shapes = rootElement.getElementsByTagName("shape");
-			    NodeList fuzzySets = rootElement.getElementsByTagName("fuzzysets");
-		    	
+			    NodeList fuzzySets = rootElement.getElementsByTagName("fuzzysets");			    
+		    				    
 			    /*Reading Semantic Network*/
 			    if (semNets.getLength() > 0) {
 			    	
@@ -273,7 +285,7 @@ public class Project {
 			    } else {
 			    	throw new Exception("No fuzzysets tag defined");
 			    }
-			    			    
+						    
 		    } else {
 		    	throw new Exception("No geoproject tag defined");
 		    }
