@@ -129,12 +129,12 @@ public class ShapefileConverter {
 	        
 	        /*Gets the bbox and converts to internal CRS*/
 	        
-	        /*Envelope bounds = mainHeader.getBounds();
+	        Envelope bounds = mainHeader.getBounds();
 	        
 	        Coordinate coord1 = new Coordinate(bounds.getMinX(), bounds.getMinY());
 	        
 	        Coordinate coord2 = new Coordinate(bounds.getMaxX(), bounds.getMaxY());
-	        	        
+	        	        			
 	        if (epsgFromCode == 4326) {
 		    	
 	        	final WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
@@ -164,7 +164,7 @@ public class ShapefileConverter {
 	        geoBBox[0] = coord1.x;
 	        geoBBox[1] = coord1.y;
 	        geoBBox[2] = coord2.x;
-	        geoBBox[3] = coord2.y;*/
+	        geoBBox[3] = coord2.y;
 	        
 	        if (handler == null) {
 	        	in.close();
@@ -204,7 +204,7 @@ public class ShapefileConverter {
 	                //TODO: Should we do it here or in the cluster?
 	                //TODO: Maybe it's possible to postpone the conversion and tile computation to the cluster
 	                
-	                if (epsgFromCode == 4326) {
+	                /*if (epsgFromCode == 4326) {
 				    	
 			    		final WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
 						webMercator.setDatum("WGS84");
@@ -236,11 +236,11 @@ public class ShapefileConverter {
 			    	}
 	                					
 					geom.setSRID(3857);					
-					geom.geometryChanged();
+					geom.geometryChanged();*/
 	                
 					/*Computing global bounding box*/
 					
-					double[] bbox = new double[] {geom.getEnvelopeInternal().getMinX(), geom.getEnvelopeInternal().getMinY(), geom.getEnvelopeInternal().getMaxX(), geom.getEnvelopeInternal().getMaxY()};
+					/*double[] bbox = new double[] {geom.getEnvelopeInternal().getMinX(), geom.getEnvelopeInternal().getMinY(), geom.getEnvelopeInternal().getMaxX(), geom.getEnvelopeInternal().getMaxY()};
 										
 					if (bbox[0] < geoBBox[0]) {	//west
 						geoBBox[0] = bbox[0];
@@ -256,14 +256,14 @@ public class ShapefileConverter {
 					
 					if (bbox[3] > geoBBox[3]) {	//north
 						geoBBox[3] = bbox[3];
-					}
+					}*/
 															
 	                //TODO: fix EVERYTHING to work with more than one tile	                
-					List<String> tiles = tileManager.getTiles(bbox);
+					//List<String> tiles = tileManager.getTiles(bbox);
 					
 					String tileString = new String();
 					
-					boolean first = true;
+					/*boolean first = true;
 					for (String i : tiles) {
 						if (first) {
 							tileString = i;
@@ -271,7 +271,7 @@ public class ShapefileConverter {
 						} else {
 							tileString = tileString + "," + i;
 						}
-					}
+					}*/
 	                					
 	                //TODO: Should work with wkb
 					

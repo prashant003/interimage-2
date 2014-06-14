@@ -34,6 +34,7 @@ import br.puc_rio.ele.lvc.interimage.geometry.TileManager;
  * 		B = foreach A generate geom, data, ToProps(Tile(geom), 'tile', props) as props;
  * @author Rodrigo Ferreira
  *
+ * TODO: This UDF doesn't update the global grid; the replications created with respect to the previous grid should be removed 
  */
 public class Tile extends EvalFunc<String> {
 	

@@ -36,7 +36,7 @@
 	<dependency>
 		<groupId>com.vividsolutions</groupId>
 		<artifactId>jump-core</artifactId>
-		<version>1.2</version>
+		<version>1.21</version>
 	</dependency>
 	
 	<dependency>

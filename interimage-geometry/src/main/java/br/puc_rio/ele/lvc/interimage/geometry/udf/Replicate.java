@@ -81,7 +81,7 @@ public class Replicate extends EvalFunc<DataBag> {
     			
 				Map<String,Object> props = new HashMap<String,Object>(properties);
 				
-				properties.put("tile", list[i]);
+				props.put("tile", list[i]);
 				
     			Tuple t = TupleFactory.getInstance().newTuple(3);
     			t.set(0,new DataByteArray(bytes));

@@ -43,7 +43,7 @@ public class DataManager {
 	private double[] _geoBBox; //west, south, east, north
 	
 	public DataManager() {
-		_source = new AWSSource("access-key","secret-key","interimage2");
+		_source = new AWSSource("AKIAJUGENPM6SS7DAWFQ","MyDA5EIuXF7zGRRMFv3ibmbTZogj9az45Gax5xGD","interimage2");
 		_geoBBox = new double[4];
 		_geoBBox[0] = Double.MAX_VALUE;
 		_geoBBox[1] = Double.MAX_VALUE;
@@ -196,7 +196,7 @@ public class DataManager {
 					
 					/*Updating the global bbox*/
 					updateGeoBBox(gbox);
-										
+					
 				} else if (url.contains(".json")) {
 					
 				} else if (url.contains(".wkt")) {
