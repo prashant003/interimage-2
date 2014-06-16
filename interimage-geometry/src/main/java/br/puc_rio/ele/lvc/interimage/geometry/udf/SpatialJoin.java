@@ -58,7 +58,7 @@ import com.vividsolutions.jts.geom.Envelope;
 public class SpatialJoin extends EvalFunc<DataBag> {
 	
 	private final GeometryParser _geometryParser = new GeometryParser();
-	String _joinType = null;
+	private String _joinType = null;
 	
 	/**Constructor that takes the join method. It can be 'index-nested-loop' or 'hierarchical-traversal'.*/
 	public SpatialJoin(String joinType) {

@@ -39,9 +39,10 @@ DEFINE II_NumberOf br.puc_rio.ele.lvc.interimage.geometry.udf.NumberOf;
 DEFINE II_RelativeAreaOf br.puc_rio.ele.lvc.interimage.geometry.udf.RelativeAreaOf;
 DEFINE II_RelativeBorderTo br.puc_rio.ele.lvc.interimage.geometry.udf.RelativeBorderTo;
 DEFINE II_Replicate br.puc_rio.ele.lvc.interimage.geometry.udf.Replicate;
+DEFINE II_ReplicateNeighborhood br.puc_rio.ele.lvc.interimage.geometry.udf.ReplicateNeighborhood('https://s3.amazonaws.com/interimage2/resources/tiles.ser',''); --distance
 DEFINE II_SymDifference br.puc_rio.ele.lvc.interimage.geometry.udf.SymDifference;
 DEFINE II_Xor br.puc_rio.ele.lvc.interimage.geometry.udf.SymDifference;
-DEFINE II_Tile br.puc_rio.ele.lvc.interimage.geometry.udf.Tile('256','1.0');
+DEFINE II_CalculateTiles br.puc_rio.ele.lvc.interimage.geometry.udf.CalculateTiles('https://s3.amazonaws.com/interimage2/resources/tiles.ser','multiple'); --('multiple'|'single')
 DEFINE II_ToText br.puc_rio.ele.lvc.interimage.geometry.udf.ToText;
 DEFINE II_ToHex br.puc_rio.ele.lvc.interimage.geometry.udf.ToHex;
 DEFINE II_Union br.puc_rio.ele.lvc.interimage.geometry.udf.Union;
@@ -70,7 +71,7 @@ DEFINE II_OSMWay br.puc_rio.ele.lvc.interimage.geometry.udf.osm.OSMWay;
 DEFINE II_WKTGeometry br.puc_rio.ele.lvc.interimage.geometry.udf.wkt.WKTGeometry;
 
 --Special UDFs
-DEFINE SpatialGroup br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialGroup('');
+DEFINE SpatialGroup br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialGroup(''); --distance
 DEFINE II_SpatialGroup (A, B, p) RETURNS F {
 	C = COGROUP $A BY properties#'tile', $B BY properties#'tile' PARALLEL $p;
 	D = FILTER C BY NOT IsEmpty($A);

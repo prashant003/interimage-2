@@ -35,7 +35,7 @@ import com.vividsolutions.jts.io.WKBWriter;
 /**
  * A UDF that computes the aggregate convex hull of a set of geometries. It works efficiently by computing partial convex hulls and then the overall convex hull.<br><br>
  * Example:<br>
- * 		A = load 'mydata' as (geom, data, props);<br>
+ * 		A = load 'mydata' as (geom, props);<br>
  * 		B = group A by props#'class';<br>
  * 		C = foreach B generate group, AggregateConvexHull(A);
  * @author Rodrigo Ferreira

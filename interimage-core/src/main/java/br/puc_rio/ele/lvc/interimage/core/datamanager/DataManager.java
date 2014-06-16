@@ -221,6 +221,10 @@ public class DataManager {
 					list.add("fileoEast");
 					list.add("fileoSouth");
 					list.add("id");
+					list.add("llx");
+					list.add("lly");
+					list.add("urx");
+					list.add("ury");
 					
 					String json = URL.getPath(url) + URL.getFileNameWithoutExtension(url) + ".json";
 					ShapefileConverter.shapefileToJSON(url, json, list, false, shp.getEPSG(), gbox, tileManager);					

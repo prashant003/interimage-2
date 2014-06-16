@@ -35,7 +35,7 @@ import com.vividsolutions.jts.io.WKBWriter;
 /**
  * A UDF that computes the aggregate union of a set of geometries. It works efficiently by computing partial unions and then the overall union.<br><br>
  * Example:<br>
- * 		A = load 'mydata' as (geom, data, props);<br>
+ * 		A = load 'mydata' as (geom, props);<br>
  * 		B = group A by props#'class';<br>
  * 		C = foreach B generate group, AggregateUnion(A);
  * @author Rodrigo Ferreira

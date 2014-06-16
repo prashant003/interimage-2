@@ -52,7 +52,7 @@ public class SpatialGroup extends EvalFunc<DataBag> {
 	
 	private final GeometryParser _geometryParser = new GeometryParser();
 	
-	Double _distance = null;
+	private Double _distance = null;
 	
 	/**Constructor that takes the distance used to group the objects.*/
 	public SpatialGroup(String distance) {

@@ -24,7 +24,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import org.codehaus.jackson.JsonFactory;
@@ -528,6 +530,11 @@ public class ShapefileConverter {
 	        
 	        List<DbfFieldDef> fieldDefs = new ArrayList<DbfFieldDef>();
 	        
+	        /* Maps attribute names and positions in the DBF file.
+	         * It's necessary because sometimes the fields in the JSON file are written in a different order.
+	         * */
+	        Map<String,Integer> attribNameToIndex = new HashMap<String,Integer>();
+	        
 	        String line1;
 	        while ((line1 = buff1.readLine()) != null) {
 	        	
@@ -613,6 +620,8 @@ public class ShapefileConverter {
 	        			
 	        			jParser.nextToken(); //skip '{' character
 	        			
+	        			int idx = 0;
+	        			
 	        			while (jParser.nextToken() != JsonToken.END_OBJECT) {
 
 	        				String columnName = jParser.getText();
@@ -640,30 +649,27 @@ public class ShapefileConverter {
 	        				if (bool) {
 	        					
 	        					String value = jParser.getText().trim();
-	        				
-	        					if (!columnName.equals("tile")) {
 	        					
-			        				try {
-				                		//Tests if it's an integer
-				                	    @SuppressWarnings("unused")
-										Integer intValue = Integer.parseInt(value);
-				                	    fieldDefs.add(new DbfFieldDef(columnName, 'N', 16, 0));
-				                	} catch (NumberFormatException nfe) {
-				                	    //Not an integer. Tests if it's a double
-				                		try {
-				                			@SuppressWarnings("unused")
-											Double doubleValue = Double.parseDouble(value);
-				                			fieldDefs.add(new DbfFieldDef(columnName, 'F', 33, 16));
-				                		} catch (NumberFormatException nfe2) {
-				                			//Not a double. Assuming it's a string
-				                			fieldDefs.add(new DbfFieldDef(columnName, 'C', 255, 0));		                				
-				                		}
-				                	}
-			        				
-	        					} else {
-	        						fieldDefs.add(new DbfFieldDef(columnName, 'C', 255, 0));
-	        					}
-	        					
+		        				try {
+			                		//Tests if it's an integer
+			                	    @SuppressWarnings("unused")
+									Integer intValue = Integer.parseInt(value);
+			                	    fieldDefs.add(new DbfFieldDef(columnName, 'N', 16, 0));
+			                	} catch (NumberFormatException nfe) {
+			                	    //Not an integer. Tests if it's a double
+			                		try {
+			                			@SuppressWarnings("unused")
+										Double doubleValue = Double.parseDouble(value);
+			                			fieldDefs.add(new DbfFieldDef(columnName, 'F', 33, 16));
+			                		} catch (NumberFormatException nfe2) {
+			                			//Not a double. Assuming it's a string
+			                			fieldDefs.add(new DbfFieldDef(columnName, 'C', 255, 0));		                				
+			                		}
+			                	}
+		        				
+		        				attribNameToIndex.put(columnName, idx);
+		        				idx++;
+		        			
 	        				}
 	        				
 	        				
@@ -730,6 +736,7 @@ public class ShapefileConverter {
 	        while ((line = buff.readLine()) != null) {
 	        	
 	        	Vector DBFrow = new Vector();
+	        	DBFrow.setSize(fieldDefs.size());
 	        	
 	        	Geometry geometry;	        	
 	        	JsonParser jParser = jfactory.createJsonParser(line);
@@ -836,28 +843,22 @@ public class ShapefileConverter {
 	        				if (bool) {
 	        				
 		        				String value = jParser.getText().trim();
-		        				
-		        				if (!columnName.equals("tile")) {
-		        				
-			        				try {
-				                		//Tests if it's an integer
-				                	    Integer intValue = Integer.parseInt(value);
-				                	    DBFrow.add(intValue);
-				                	} catch (NumberFormatException nfe) {
-				                	    //Not an integer. Tests if it's a double
-				                		try {
-				                			Double doubleValue = Double.parseDouble(value);
-				                			DBFrow.add(doubleValue);
-				                		} catch (NumberFormatException nfe2) {
-				                			//Not a double. Assuming it's a string
-				                			DBFrow.add(value);	
-				                		}
-				                	}
-			        				
-		        				} else {
-		        					DBFrow.add(value);
-		        				}
-		        				
+		        						        				
+		        				try {
+			                		//Tests if it's an integer
+			                	    Integer intValue = Integer.parseInt(value);
+			                	    DBFrow.setElementAt(intValue, attribNameToIndex.get(columnName));
+			                	} catch (NumberFormatException nfe) {
+			                	    //Not an integer. Tests if it's a double
+			                		try {
+			                			Double doubleValue = Double.parseDouble(value);
+			                			DBFrow.setElementAt(doubleValue, attribNameToIndex.get(columnName));
+			                		} catch (NumberFormatException nfe2) {
+			                			//Not a double. Assuming it's a string
+			                			DBFrow.setElementAt(value, attribNameToIndex.get(columnName));	
+			                		}
+			                	}
+			        					        				
 	        				}
 	        				
 	        			}

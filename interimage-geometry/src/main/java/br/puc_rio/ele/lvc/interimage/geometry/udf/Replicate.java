@@ -74,6 +74,14 @@ public class Replicate extends EvalFunc<DataBag> {
 			DataBag bag = BagFactory.getInstance().newDefaultBag();
 			
 			String[] list = tileStr.split(",");
+			
+			/*Compute the lowest ID*/
+			long min = Long.MAX_VALUE;
+			for (int i=0; i<list.length; i++) {
+				long id = Long.parseLong(list[i].substring(1));
+				if (id < min)
+					min = id;
+			}
 						
 			for (int i=0; i<list.length; i++) {
 								
@@ -82,6 +90,13 @@ public class Replicate extends EvalFunc<DataBag> {
 				Map<String,Object> props = new HashMap<String,Object>(properties);
 				
 				props.put("tile", list[i]);
+				
+				long tile = Long.parseLong(list[i].substring(1));
+				
+				/*Only the minimum tile instance should remain*/
+				if (tile != min) {
+					props.put("iirep","true");
+				}
 				
     			Tuple t = TupleFactory.getInstance().newTuple(3);
     			t.set(0,new DataByteArray(bytes));

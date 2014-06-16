@@ -52,11 +52,11 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 	private STRtree _roiIndex = null;
 	private List<String> _gridIds = null;
 	
-	String _roiUrl = null;
-	String _gridUrl = null;
-	String _filterType = null;
+	private String _roiUrl = null;
+	private String _gridUrl = null;
+	private String _filterType = null;
 	
-	/**Constructor that takes the ROIs and the tiles grid URLs.*/
+	/**Constructor that takes the ROIs url, the tiles grid url and the filtering type.*/
 	public SpatialFilter(String roiUrl, String gridUrl, String filterType) {
 		_roiUrl = roiUrl;
 		_gridUrl = gridUrl;

@@ -20,7 +20,6 @@ import java.util.Map;
 
 import org.apache.pig.EvalFunc;
 import org.apache.pig.data.DataBag;
-import org.apache.pig.data.DataByteArray;
 import org.apache.pig.data.DataType;
 import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
@@ -90,9 +89,12 @@ public class AreaOf extends EvalFunc<Double> {
 	        	}
 	        	
 				if (bool) {
-		        	Map<String,Object> properties = (Map<String,Object>)t.get(2);	        	
-		        	DataByteArray data = (DataByteArray)properties.get("class");	        	
-		        	if ((new String(data.get())).equals(className)) {		        		        		
+					
+					Map<String,Object> properties = (Map<String,Object>)t.get(2);
+		        	
+					String name = (String)properties.get("class");	        	
+		        	
+		        	if (name.equals(className)) {		        		        		
 	        			area += geom.getArea();
 		        	}
 				}

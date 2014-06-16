@@ -35,7 +35,7 @@ import com.vividsolutions.jts.io.WKBWriter;
 /**
  * A UDF that computes the aggregate centroid of a set of geometries. It works efficiently by computing partial centroids and then the overall centroid.<br><br>
  * Example:<br>
- * 		A = load 'mydata' as (geom, data, props);<br>
+ * 		A = load 'mydata' as (geom, props);<br>
  * 		B = group A by props#'class';<br>
  * 		C = foreach B generate group, AggregateCentroid(A);
  * @author Rodrigo Ferreira

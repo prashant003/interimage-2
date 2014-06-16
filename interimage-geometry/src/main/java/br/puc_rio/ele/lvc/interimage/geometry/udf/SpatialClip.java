@@ -68,8 +68,8 @@ public class SpatialClip extends EvalFunc<DataBag> {
 	private STRtree _roiIndex = null;
 	private List<String> _gridIds = null;
 	
-	String _roiUrl = null;
-	String _gridUrl = null;
+	private String _roiUrl = null;
+	private String _gridUrl = null;
 	
 	/**Constructor that takes the ROIs and the tiles grid URLs.*/
 	public SpatialClip(String roiUrl, String gridUrl) {
