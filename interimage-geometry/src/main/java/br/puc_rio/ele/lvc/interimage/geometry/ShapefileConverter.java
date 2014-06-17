@@ -66,12 +66,12 @@ public class ShapefileConverter {
 	 * json - output JSON file path<br>
 	 * names - a comma-separated list of attribute names<br>
 	 * keep - tells if the method should keep or remove the listed attributes<br>
-	 * epsgFrom - input EPSG code in the form "EPSG:0000"<br>
+	 * crsFrom - input CRS code in the form "EPSG:0000"<br>
 	 * geoBBox - the method will store in this vector the bbox of the shapefile<br>
 	 * tileManager - TileManager object
 	 */	
 
-	public static void shapefileToJSON(String shapefile, String json, List<String> names, boolean keep, String epsgFrom, double[] geoBBox, TileManager tileManager) {
+	public static void shapefileToJSON(String shapefile, String json, List<String> names, boolean keep, String crsFrom, double[] geoBBox, TileManager tileManager) {
 		
 		try {
 			
@@ -92,7 +92,7 @@ public class ShapefileConverter {
 	            }
 	        }
 						
-			int epsgFromCode = Integer.parseInt(epsgFrom.split(":")[1]);
+			int crsFromCode = Integer.parseInt(crsFrom.split(":")[1]);
 			
 	        int idx = shapefile.lastIndexOf(File.separatorChar);
 	        String path = shapefile.substring(0, idx + 1); // ie. "/data1/hills.shp" -> "/data1/"
@@ -137,17 +137,17 @@ public class ShapefileConverter {
 	        
 	        Coordinate coord2 = new Coordinate(bounds.getMaxX(), bounds.getMaxY());
 	        	        			
-	        if (epsgFromCode == 4326) {
+	        if (crsFromCode == 4326) {
 		    	
 	        	final WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
 		        webMercator.setDatum("WGS84");
 	            webMercator.LatLongToWebMercator(coord1);
 	            webMercator.LatLongToWebMercator(coord2);
 	            
-	    	} else if (((epsgFromCode >= 32601) && (epsgFromCode <= 32660)) || ((epsgFromCode >= 32701) && (epsgFromCode <= 32760))) {
+	    	} else if (((crsFromCode >= 32601) && (crsFromCode <= 32660)) || ((crsFromCode >= 32701) && (crsFromCode <= 32760))) {
 	    	
-	    		final int utmZone = (epsgFromCode>32700) ? epsgFromCode-32700 : epsgFromCode-32600;
-				final boolean southern = (epsgFromCode>32700) ? true : false;
+	    		final int utmZone = (crsFromCode>32700) ? crsFromCode-32700 : crsFromCode-32600;
+				final boolean southern = (crsFromCode>32700) ? true : false;
 		    
 				final UTMLatLongConverter utm = new UTMLatLongConverter();
 				utm.setDatum("WGS84");
@@ -206,7 +206,7 @@ public class ShapefileConverter {
 	                //TODO: Should we do it here or in the cluster?
 	                //TODO: Maybe it's possible to postpone the conversion and tile computation to the cluster
 	                
-	                /*if (epsgFromCode == 4326) {
+	                /*if (crsFromCode == 4326) {
 				    	
 			    		final WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
 						webMercator.setDatum("WGS84");
@@ -217,10 +217,10 @@ public class ShapefileConverter {
 			                }
 			            });
 						
-			    	} else if (((epsgFromCode >= 32601) && (epsgFromCode <= 32660)) || ((epsgFromCode >= 32701) && (epsgFromCode <= 32760))) {
+			    	} else if (((crsFromCode >= 32601) && (crsFromCode <= 32660)) || ((crsFromCode >= 32701) && (crsFromCode <= 32760))) {
 			    	
-			    		final int utmZone = (epsgFromCode>32700) ? epsgFromCode-32700 : epsgFromCode-32600;
-						final boolean southern = (epsgFromCode>32700) ? true : false;
+			    		final int utmZone = (crsFromCode>32700) ? crsFromCode-32700 : crsFromCode-32600;
+						final boolean southern = (crsFromCode>32700) ? true : false;
 				    
 						final UTMLatLongConverter utm = new UTMLatLongConverter();
 						utm.setDatum("WGS84");
@@ -334,8 +334,8 @@ public class ShapefileConverter {
 	                	str += "\"None\"";
 	                }
 	                	                
-	                str += ",\"epsg\":";
-	                str += "\"" + epsgFrom + "\"";
+	                str += ",\"crs\":";
+	                str += "\"" + crsFrom + "\"";
 	                	                	    		    
 	    		    String id = new UUID(null).random();	        
 	    		    	                
@@ -455,7 +455,7 @@ public class ShapefileConverter {
 	 * output shapefile path
 	 */	
 	@SuppressWarnings({ "rawtypes", "unchecked"})
-	public static void JSONToShapefile(String json, String shpFileName, List<String> names, boolean keep, String epsgTo) {
+	public static void JSONToShapefile(String json, String shpFileName, List<String> names, boolean keep, String crsTo) {
 	
 		try {
 			
@@ -476,7 +476,7 @@ public class ShapefileConverter {
 	        	}
 	        }			
 			
-			int epsgToCode = Integer.parseInt(epsgTo.split(":")[1]);
+			int crsToCode = Integer.parseInt(crsTo.split(":")[1]);
 			
 			String path;
 			String fileName;
@@ -561,7 +561,7 @@ public class ShapefileConverter {
 	        			//TODO: Should work with wkb
 	        			geometry = geometryParser.parseGeometry(jParser.getText());
 	        			
-	        			if (epsgToCode == 4326) {
+	        			if (crsToCode == 4326) {
 	    			    	
 	    		    		final WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
 	    					webMercator.setDatum("WGS84");
@@ -572,7 +572,7 @@ public class ShapefileConverter {
 	    		                }
 	    		            });
 	    					
-	    		    	} else if (((epsgToCode >= 32601) && (epsgToCode <= 32660)) || ((epsgToCode >= 32701) && (epsgToCode <= 32760))) {
+	    		    	} else if (((crsToCode >= 32601) && (crsToCode <= 32660)) || ((crsToCode >= 32701) && (crsToCode <= 32760))) {
 	    		    				    
 	    					final UTMLatLongConverter utm = new UTMLatLongConverter();
 	    					utm.setDatum("WGS84");
@@ -589,7 +589,7 @@ public class ShapefileConverter {
 	    						                	  		
 	    		    	}
 	                    					
-	        			geometry.setSRID(epsgToCode);					
+	        			geometry.setSRID(crsToCode);					
 	        			geometry.geometryChanged();
 	        			
 	        			Envelope envelope = geometry.getEnvelopeInternal();
@@ -761,7 +761,7 @@ public class ShapefileConverter {
 	        			//TODO: Should work with wkb
 	        			geometry = geometryParser.parseGeometry(jParser.getText());
 	        			
-	        			if (epsgToCode == 4326) {
+	        			if (crsToCode == 4326) {
 					    	
 				    		final WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
 							webMercator.setDatum("WGS84");
@@ -772,7 +772,7 @@ public class ShapefileConverter {
 				                }
 				            });
 							
-				    	} else if (((epsgToCode >= 32601) && (epsgToCode <= 32660)) || ((epsgToCode >= 32701) && (epsgToCode <= 32760))) {
+				    	} else if (((crsToCode >= 32601) && (crsToCode <= 32660)) || ((crsToCode >= 32701) && (crsToCode <= 32760))) {
 				    						    
 							final UTMLatLongConverter utm = new UTMLatLongConverter();
 							utm.setDatum("WGS84");
@@ -789,7 +789,7 @@ public class ShapefileConverter {
 								                	  		
 				    	}
 		                					
-	        			geometry.setSRID(epsgToCode);					
+	        			geometry.setSRID(crsToCode);					
 	        			geometry.geometryChanged();
 	        			
 	        			if (handler == null) {
@@ -888,10 +888,10 @@ public class ShapefileConverter {
 	 * Converts from Shapefile to WKT. This method also converts the reference system.<br>
 	 * @param shapefile - shapefile path<br>
 	 * wkt - WKT file path<br>
-	 * epsgFrom - input EPSG code in the form "EPSG:0000"
+	 * crsFrom - input CRS code in the form "EPSG:0000"
 	 */	
 	@SuppressWarnings("unused")
-	public static void shapefileToWKT(String shapefile, String wkt, String epsgFrom) {
+	public static void shapefileToWKT(String shapefile, String wkt, String crsFrom) {
 		
 		try {
 			
@@ -912,7 +912,7 @@ public class ShapefileConverter {
 	        	}
 	        }
 			
-			int epsgFromCode = Integer.parseInt(epsgFrom.split(":")[1]);
+			int crsFromCode = Integer.parseInt(crsFrom.split(":")[1]);
 			
 			/* Stream for output file */
 			OutputStream out = new FileOutputStream(wkt);
@@ -950,7 +950,7 @@ public class ShapefileConverter {
 	                //TODO: Should we do it here or in the cluster?
 	                //TODO: Maybe it's possible to postpone the conversion and tile computation to the cluster
 	                
-	                if (epsgFromCode == 4326) {
+	                if (crsFromCode == 4326) {
 				    	
 			    		final WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
 						webMercator.setDatum("WGS84");
@@ -961,10 +961,10 @@ public class ShapefileConverter {
 			                }
 			            });
 						
-			    	} else if (((epsgFromCode >= 32601) && (epsgFromCode <= 32660)) || ((epsgFromCode >= 32701) && (epsgFromCode <= 32760))) {
+			    	} else if (((crsFromCode >= 32601) && (crsFromCode <= 32660)) || ((crsFromCode >= 32701) && (crsFromCode <= 32760))) {
 			    	
-			    		final int utmZone = (epsgFromCode>32700) ? epsgFromCode-32700 : epsgFromCode-32600;
-						final boolean southern = (epsgFromCode>32700) ? true : false;
+			    		final int utmZone = (crsFromCode>32700) ? crsFromCode-32700 : crsFromCode-32600;
+						final boolean southern = (crsFromCode>32700) ? true : false;
 				    
 						final UTMLatLongConverter utm = new UTMLatLongConverter();
 						utm.setDatum("WGS84");
@@ -1007,7 +1007,7 @@ public class ShapefileConverter {
 	 * output shapefile path
 	 */	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static void WKTToShapefile(String wkt, String shpFileName, String epsgTo) {
+	public static void WKTToShapefile(String wkt, String shpFileName, String crsTo) {
 		
 		try {
 		
@@ -1028,7 +1028,7 @@ public class ShapefileConverter {
 	        	}
 	        }
 			
-			int epsgToCode = Integer.parseInt(epsgTo.split(":")[1]);
+			int crsToCode = Integer.parseInt(crsTo.split(":")[1]);
 			
 			String path;
 			String fileName;
@@ -1085,7 +1085,7 @@ public class ShapefileConverter {
 	        	
 	        	Geometry geometry = geometryParser.parseGeometry(line1);
     			
-	        	if (epsgToCode == 4326) {
+	        	if (crsToCode == 4326) {
 			    	
 		    		final WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
 					webMercator.setDatum("WGS84");
@@ -1096,7 +1096,7 @@ public class ShapefileConverter {
 		                }
 		            });
 					
-		    	} else if (((epsgToCode >= 32601) && (epsgToCode <= 32660)) || ((epsgToCode >= 32701) && (epsgToCode <= 32760))) {
+		    	} else if (((crsToCode >= 32601) && (crsToCode <= 32660)) || ((crsToCode >= 32701) && (crsToCode <= 32760))) {
 		    				    
 					final UTMLatLongConverter utm = new UTMLatLongConverter();
 					utm.setDatum("WGS84");
@@ -1113,7 +1113,7 @@ public class ShapefileConverter {
 						                	  		
 		    	}
                 					
-    			geometry.setSRID(epsgToCode);					
+    			geometry.setSRID(crsToCode);					
     			geometry.geometryChanged();
 	        	
     			Envelope envelope = geometry.getEnvelopeInternal();
@@ -1203,7 +1203,7 @@ public class ShapefileConverter {
 	            	handler = Shapefile.getShapeHandler(geometry,2);
 	            }
     			
-    			if (epsgToCode == 4326) {
+    			if (crsToCode == 4326) {
 			    	
 		    		final WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
 					webMercator.setDatum("WGS84");
@@ -1214,7 +1214,7 @@ public class ShapefileConverter {
 		                }
 		            });
 					
-		    	} else if (((epsgToCode >= 32601) && (epsgToCode <= 32660)) || ((epsgToCode >= 32701) && (epsgToCode <= 32760))) {
+		    	} else if (((crsToCode >= 32601) && (crsToCode <= 32660)) || ((crsToCode >= 32701) && (crsToCode <= 32760))) {
 		    				    
 					final UTMLatLongConverter utm = new UTMLatLongConverter();
 					utm.setDatum("WGS84");
@@ -1231,7 +1231,7 @@ public class ShapefileConverter {
 						                	  		
 		    	}
                 					
-    			geometry.setSRID(epsgToCode);					
+    			geometry.setSRID(crsToCode);					
     			geometry.geometryChanged();
     			
     			/*Writing to index file*/

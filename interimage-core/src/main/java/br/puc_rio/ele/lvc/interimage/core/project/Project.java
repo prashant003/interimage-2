@@ -50,7 +50,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * A class that holds the information about an interpretation project. 
  * @author Rodrigo Ferreira
  * 
- * TODO: preprocess net file: 1) replace "topdown/", 2) get rid of decision rules and 3) set epsg code 		 
+ * TODO: preprocess net file: 1) replace "topdown/", 2) get rid of decision rules and 3) set crs code 		 
  */
 public class Project {
 
@@ -165,19 +165,19 @@ public class Project {
 					    	img.setDefault(Boolean.parseBoolean(image.getAttribute("default")));
 					    	img.setURL(image.getAttribute("file"));
 						    					    	
-					    	String epsgFrom = image.getAttribute("epsg");
+					    	String crsFrom = image.getAttribute("crs");
 					    	
-					    	img.setEPSG(epsgFrom);
+					    	img.setCRS(crsFrom);
 					    	
 					    	//TODO: Check if this conversion can be done somewhere else
 					    	
-					    	int epsgFromCode = Integer.parseInt(epsgFrom.split(":")[1]);
+					    	int crsFromCode = Integer.parseInt(crsFrom.split(":")[1]);
 					    						    								
 							Coordinate coord1 = new Coordinate(Double.parseDouble(image.getAttribute("geoWest")), Double.parseDouble(image.getAttribute("geoSouth")));
 							
 							Coordinate coord2 = new Coordinate(Double.parseDouble(image.getAttribute("geoEast")), Double.parseDouble(image.getAttribute("geoNorth")));
 							
-					    	if (epsgFromCode == 4326) {
+					    	if (crsFromCode == 4326) {
 					    	
 					    		WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
 								webMercator.setDatum("WGS84");
@@ -185,10 +185,10 @@ public class Project {
 					    		webMercator.LatLongToWebMercator(coord1);
 					    		webMercator.LatLongToWebMercator(coord2);
 								
-					    	} else if (((epsgFromCode >= 32601) && (epsgFromCode <= 32660)) || ((epsgFromCode >= 32701) && (epsgFromCode <= 32760))) {
+					    	} else if (((crsFromCode >= 32601) && (crsFromCode <= 32660)) || ((crsFromCode >= 32701) && (crsFromCode <= 32760))) {
 					    	
-					    		int utmZone = (epsgFromCode>32700) ? epsgFromCode-32700 : epsgFromCode-32600;
-								boolean southern = (epsgFromCode>32700) ? true : false;
+					    		int utmZone = (crsFromCode>32700) ? crsFromCode-32700 : crsFromCode-32600;
+								boolean southern = (crsFromCode>32700) ? true : false;
 						    
 								UTMLatLongConverter utm = new UTMLatLongConverter();
 								utm.setDatum("WGS84");
@@ -249,8 +249,8 @@ public class Project {
 				    	shp.setKey(key);
 				    	shp.setURL(shape.getAttribute("file"));
 				    	
-				    	String epsgFrom = shape.getAttribute("epsg");				    	
-				    	shp.setEPSG(epsgFrom);
+				    	String crsFrom = shape.getAttribute("crs");				    	
+				    	shp.setCRS(crsFrom);
 				    	
 				    	Boolean splittable = new Boolean(shape.getAttribute("splittable"));				    	
 				    	shp.isSplittable(splittable);

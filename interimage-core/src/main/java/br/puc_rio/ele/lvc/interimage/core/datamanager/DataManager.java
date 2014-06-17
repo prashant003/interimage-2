@@ -151,7 +151,7 @@ public class DataManager {
 				} else if (url.contains(".shp")) {
 										
 					String wkt = URL.getPath(url) + URL.getFileNameWithoutExtension(url) + ".wkt";
-					ShapefileConverter.shapefileToWKT(url, wkt, shp.getEPSG());
+					ShapefileConverter.shapefileToWKT(url, wkt, shp.getCRS());
 					_source.put(wkt, "resources/shapes/" + shp.getKey() + ".wkt");
 					
 				}
@@ -227,7 +227,7 @@ public class DataManager {
 					list.add("ury");
 					
 					String json = URL.getPath(url) + URL.getFileNameWithoutExtension(url) + ".json";
-					ShapefileConverter.shapefileToJSON(url, json, list, false, shp.getEPSG(), gbox, tileManager);					
+					ShapefileConverter.shapefileToJSON(url, json, list, false, shp.getCRS(), gbox, tileManager);					
 					_source.put(json, "resources/shapes/" + shp.getKey() + ".json");
 					
 					/*Updating the global bbox*/

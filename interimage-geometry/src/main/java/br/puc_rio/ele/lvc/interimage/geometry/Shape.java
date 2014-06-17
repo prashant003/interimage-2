@@ -22,7 +22,7 @@ public class Shape {
 
 	private String _key;
 	private String _url;
-	private String _epsg;
+	private String _crs;
 	private boolean _splittable;
 	
 	public void setKey(String key) {
@@ -41,12 +41,12 @@ public class Shape {
 		return _url;
 	}
 	
-	public void setEPSG(String epsg) {
-		_epsg = epsg;
+	public void setCRS(String crs) {
+		_crs = crs;
 	}
 	
-	public String getEPSG() {
-		return _epsg;
+	public String getCRS() {
+		return _crs;
 	}
 	
 	public void isSplittable(boolean splittable) {
