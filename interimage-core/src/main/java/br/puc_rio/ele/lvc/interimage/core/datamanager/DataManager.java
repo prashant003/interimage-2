@@ -52,10 +52,10 @@ public class DataManager {
 	}
 	
 	public void setup(Properties props) {
-		String service = props.getProperty("interimage.local.storageService");
+		String service = props.getProperty("interimage.storageService");
 		
 		if (service.equals("AWS"))
-			_source = new AWSSource(props.getProperty("interimage.local.aws.accessKey"),props.getProperty("interimage.local.aws.secretKey"),"interimage2");
+			_source = new AWSSource(props.getProperty("interimage.aws.accessKey"),props.getProperty("interimage.aws.secretKey"),props.getProperty("interimage.aws.S3Bucket"));
 	}
 	
 	public void updateGeoBBox(double[] gbox) {
@@ -77,7 +77,9 @@ public class DataManager {
 				
 	}
 		
-	public void setupResource(Resource resource, TileManager tileManager, String projectPath) {
+	public String setupResource(Resource resource, TileManager tileManager, String projectPath) {
+		
+		String returnUrl = null;
 		
 		if (resource instanceof DefaultResource) {
 			
@@ -107,7 +109,11 @@ public class DataManager {
 				    
 				    bw.close();
 				    
-				    _source.put(projectPath + "tiles.ser", "resources/tiles.ser");
+				    String to = "resources/tiles.ser";
+				    
+				    _source.put(projectPath + "tiles.ser", to);
+				    
+				    returnUrl = _source.getURL() + to;
 				    
 				} catch (Exception e) {
 					System.out.println("Failed to setup DefaultResource of type TILE; error - " + e.getMessage());
@@ -127,7 +133,11 @@ public class DataManager {
 				    
 				    out.close();
 				    
-				    _source.put(projectPath + "fuzzysets.ser", "resources/fuzzysets.ser");
+				    String to = "resources/fuzzysets.ser";
+				    
+				    _source.put(projectPath + "fuzzysets.ser", to);
+				    
+				    returnUrl = _source.getURL() + to;
 				    
 				} catch (Exception e) {
 					System.out.println("Failed to setup DefaultResource of type FUZZY_SET; error - " + e.getMessage());
@@ -141,18 +151,32 @@ public class DataManager {
 								
 				if (url.contains(".csv")) {
 										
-					_source.put(url, "resources/" + shp.getKey() + ".csv");
+					String to = "resources/" + shp.getKey() + ".csv";
+					
+					_source.put(url, to);
+					
+					returnUrl = _source.getURL() + to;
 					
 				} else if (url.contains(".wkt")) {
 				
 					//TODO: Convert to internal CRS					
-					_source.put(url, "resources/shapes/" + shp.getKey() + ".wkt");
+					
+					String to = "resources/shapes/" + shp.getKey() + ".wkt";
+					
+					_source.put(url, to);
+					
+					returnUrl = _source.getURL() + to;
 					
 				} else if (url.contains(".shp")) {
 										
 					String wkt = URL.getPath(url) + URL.getFileNameWithoutExtension(url) + ".wkt";
 					ShapefileConverter.shapefileToWKT(url, wkt, shp.getCRS());
-					_source.put(wkt, "resources/shapes/" + shp.getKey() + ".wkt");
+					
+					String to = "resources/shapes/" + shp.getKey() + ".wkt";
+					
+					_source.put(wkt, to);
+					
+					returnUrl = _source.getURL() + to;
 					
 				}
 				
@@ -182,6 +206,24 @@ public class DataManager {
 				} catch (Exception e) {
 					System.out.println("Failed to setup DefaultResource of type PROPERTY; error - " + e.getMessage());
 				}*/
+				
+			} else if (rsrc.getType() == DefaultResource.FILE) {
+				
+				String url = (String)rsrc.getObject();
+				
+				String path = URL.getPath(url);
+				
+				String name = URL.getFileName(url);
+				
+				if (url.contains(".pig")) {
+				
+					_source.put(path + name, "resources/scripts/" + name);
+					
+				} else if (url.contains(".jar")) {
+					
+					_source.put(path + name, "resources/libs/" + name);
+					
+				}
 				
 			}
 			
@@ -227,8 +269,13 @@ public class DataManager {
 					list.add("ury");
 					
 					String json = URL.getPath(url) + URL.getFileNameWithoutExtension(url) + ".json";
-					ShapefileConverter.shapefileToJSON(url, json, list, false, shp.getCRS(), gbox, tileManager);					
-					_source.put(json, "resources/shapes/" + shp.getKey() + ".json");
+					ShapefileConverter.shapefileToJSON(url, json, list, false, shp.getCRS(), gbox, tileManager);
+					
+					String to = "resources/shapes/" + shp.getKey() + ".json";
+					
+					_source.put(json, to);
+					
+					returnUrl = _source.getURL() + to;
 					
 					/*Updating the global bbox*/
 					updateGeoBBox(gbox);
@@ -247,10 +294,16 @@ public class DataManager {
 			
 		}
 		
+		return returnUrl;
+		
 	}
 	
 	public double[] getGeoBBox() {
 		return _geoBBox;
+	}
+	
+	public String getSourceURL() {
+		return _source.getURL();
 	}
 	
 }

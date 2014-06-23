@@ -25,6 +25,7 @@ public class DefaultResource implements Resource {
 	public static final short SHAPE = 3;
 	public static final short SEMANTIC_NETWORK = 4;
 	public static final short PROPERTY = 5;
+	public static final short FILE = 6;
 	
 	private Object _object;
 	private short _type;	

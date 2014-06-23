@@ -22,4 +22,5 @@ public interface Source {
 
 	public void put(String from, String to);
 	
+	public String getURL();
 }

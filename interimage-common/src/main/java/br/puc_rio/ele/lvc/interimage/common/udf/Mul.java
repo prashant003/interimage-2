@@ -22,21 +22,21 @@ import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 
 /**
- * A UDF that computes the maximum of n numbers.<br><br>
+ * A UDF that computes the multiplication of n numbers.<br><br>
  * Example:<br>
  * 		A = load 'mydata' as (attrib1, ..., attribn);<br>
- * 		B = foreach A generate Max(attrib1, ..., attribn);
+ * 		B = foreach A generate Mul(attrib1, ..., attribn);
  * @author Rodrigo Ferreira
  *
  */
-public class Max extends EvalFunc<Double> {
+public class Mul extends EvalFunc<Double> {
 	
 	/**
      * Method invoked on every tuple during foreach evaluation.
      * @param input tuple<br>
      * the columns are assumed to have numbers
      * @exception java.io.IOException
-     * @return max value
+     * @return multiplication value
      */
 	@Override
 	public Double exec(Tuple input) throws IOException {
@@ -47,16 +47,18 @@ public class Max extends EvalFunc<Double> {
 			
 			int size = input.size();
 			
-			double max = -Double.MAX_VALUE;
+			Double mul = null;
 			
 			for (int i=0; i<size; i++) {
 				Double value = DataType.toDouble(input.get(i));
-				if (value > max) {
-					max = value;
+				if (mul == null) {
+					mul = new Double(value);
+				} else {
+					mul = mul * value;
 				}
 			}
 			
-			return max;
+			return mul;
 			
 		} catch (Exception e) {
 			throw new IOException("Caught exception processing input row ", e);

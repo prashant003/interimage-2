@@ -59,4 +59,8 @@ public class AWSSource implements Source {
 		
 	}
 	
+	public String getURL() {
+		return "s3n://interimage2/" + _bucket + "/";
+	}
+	
 }

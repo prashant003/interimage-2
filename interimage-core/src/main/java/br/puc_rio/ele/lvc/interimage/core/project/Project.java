@@ -18,6 +18,7 @@ import br.puc_rio.ele.lvc.interimage.common.URL;
 import br.puc_rio.ele.lvc.interimage.core.datamanager.DataManager;
 import br.puc_rio.ele.lvc.interimage.core.datamanager.DefaultResource;
 import br.puc_rio.ele.lvc.interimage.core.datamanager.SplittableResource;
+import br.puc_rio.ele.lvc.interimage.core.ruleset.RuleSet;
 import br.puc_rio.ele.lvc.interimage.core.semanticnetwork.SemanticNetwork;
 import br.puc_rio.ele.lvc.interimage.data.Image;
 import br.puc_rio.ele.lvc.interimage.data.ImageList;
@@ -50,7 +51,7 @@ import com.vividsolutions.jts.geom.Coordinate;
  * A class that holds the information about an interpretation project. 
  * @author Rodrigo Ferreira
  * 
- * TODO: preprocess net file: 1) replace "topdown/", 2) get rid of decision rules and 3) set crs code 		 
+ * TODO: preprocess net file: 1) replace "topdown/", 2) get rid of decision rules and 3) set crs code
  */
 public class Project {
 
@@ -66,6 +67,7 @@ public class Project {
 	private FuzzySetList _fuzzySetList;
 	//private String _decisionTree = null;
 	private Properties _properties;
+	private RuleSet _ruleSet;
 	
 	public Project() {
 		_semanticNet = new SemanticNetwork();
@@ -75,6 +77,7 @@ public class Project {
 		_fuzzySetList = new FuzzySetList();
 		_minResolution = Double.MAX_VALUE;
 		_properties = new Properties();
+		_ruleSet = new RuleSet();
 	}
 	
 	public String getProject() {
@@ -116,6 +119,8 @@ public class Project {
 			_tilePixelSize = Integer.parseInt(_properties.getProperty("interimage.tileSize"));
 			
 			_dataManager.setup(_properties);
+			
+			_properties.setProperty("sourceURL", _dataManager.getSourceURL());
 			
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -270,8 +275,15 @@ public class Project {
 			    	
 			    /*Creating Tiles*/
 			    _tileManager.setTiles(_dataManager.getGeoBBox());
-			    _dataManager.setupResource(new DefaultResource(_tileManager.getTiles(), DefaultResource.TILE), null, URL.getPath(_project));
-			    			    
+			    
+			    String tileUrl = null;
+			    
+			    tileUrl = _dataManager.setupResource(new DefaultResource(_tileManager.getTiles(), DefaultResource.TILE), null, URL.getPath(_project));
+			    		
+			    _properties.setProperty("interimage.tileUrl", tileUrl);
+			    
+			    String fuzzyUrl = null;
+			    
 			    /*Reading FuzzySets*/
 			    if (fuzzySets.getLength() > 0) {
 			    	
@@ -280,12 +292,36 @@ public class Project {
 			    	_fuzzySetList.readOldFile(fuzzySet.getAttribute("file"));
 
 			    	if (_fuzzySetList.size()>0)
-			    		_dataManager.setupResource(new DefaultResource(new ArrayList<FuzzySet>(_fuzzySetList.getFuzzySets().values()), DefaultResource.FUZZY_SET), null, URL.getPath(_project));			    	
+			    		fuzzyUrl = _dataManager.setupResource(new DefaultResource(new ArrayList<FuzzySet>(_fuzzySetList.getFuzzySets().values()), DefaultResource.FUZZY_SET), null, URL.getPath(_project));			    	
 			    	
 			    } else {
 			    	throw new Exception("No fuzzysets tag defined");
 			    }
-						    
+			    
+			    _properties.setProperty("interimage.fuzzyUrl", fuzzyUrl);
+			    
+			    _ruleSet.setup(_properties);
+			    
+			    //Test			    
+			    _ruleSet.readOldFile("C:\\Users\\Rodrigo\\Desktop\\test.dt");
+			    System.out.println(_ruleSet.getPigCode());
+			    //Test
+			    
+			    /*Sending libs to the cluster*/			    
+			    File folder = new File("lib");
+				
+				for (final File fileEntry : folder.listFiles()) {
+			        if (fileEntry.isDirectory()) {
+			        	//ignore
+			        } else {
+			        	_dataManager.setupResource(new DefaultResource(new String("lib/" + fileEntry.getName()), DefaultResource.FILE), null, null);	
+			        }
+			    }
+			    
+			    /*Sending import file to the cluster*/
+			    _dataManager.setupResource(new DefaultResource(new String("interimage-import.pig"), DefaultResource.FILE), null, null);
+			    
+			    
 		    } else {
 		    	throw new Exception("No geoproject tag defined");
 		    }
