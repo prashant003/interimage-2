@@ -20,7 +20,6 @@ import java.util.Map;
 
 import org.apache.pig.EvalFunc;
 import org.apache.pig.data.DataBag;
-import org.apache.pig.data.DataByteArray;
 import org.apache.pig.data.DataType;
 import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
@@ -77,9 +76,10 @@ public class RelativeBorderTo extends EvalFunc<Double> {
 	        	if (geometry.intersects(geom)) {
 	        	
 		        	Map<String,Object> properties = (Map<String,Object>)t.get(2);	        	        			      
-		        	DataByteArray data = (DataByteArray)properties.get("class");
 		        	
-		        	if ((new String(data.get())).equals(className)) {	        			        		
+		        	String name = (String)properties.get("class");
+		        	
+		        	if (name.equals(className)) {	        			        		
 		        		Geometry intersection = geometry.intersection(geom);
 		        		border += intersection.getLength();
 		        	}

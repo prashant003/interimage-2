@@ -51,11 +51,14 @@ import com.vividsolutions.jts.geom.Envelope;
  * Edwin H. Jacox and Hanan Samet. 2007. Spatial join techniques.
  * ACM Trans. Database Syst. 32, 1, Article 7 (March 2007).
  * DOI=10.1145/1206049.1206056 http://doi.acm.org/10.1145/1206049.1206056  
+ * 
+ * TODO: Should create new objects as in clip?
+ * 
  */
 public class SpatialJoin extends EvalFunc<DataBag> {
 	
 	private final GeometryParser _geometryParser = new GeometryParser();
-	String _joinType = null;
+	private String _joinType = null;
 	
 	/**Constructor that takes the join method. It can be 'index-nested-loop' or 'hierarchical-traversal'.*/
 	public SpatialJoin(String joinType) {

@@ -18,12 +18,17 @@ limitations under the License.*/
  */
 
 --Eval UDFs
+DEFINE II_AggregateCentroid br.puc_rio.ele.lvc.interimage.geometry.udf.AggregateCentroid;
+DEFINE II_AggregateConvexHull br.puc_rio.ele.lvc.interimage.geometry.udf.AggregateConvexHull;
+DEFINE II_AggregateEnvelope br.puc_rio.ele.lvc.interimage.geometry.udf.AggregateEnvelope;
+DEFINE II_AggregateUnion br.puc_rio.ele.lvc.interimage.geometry.udf.AggregateUnion;
 DEFINE II_Area br.puc_rio.ele.lvc.interimage.geometry.udf.Area;
 DEFINE II_AreaOf br.puc_rio.ele.lvc.interimage.geometry.udf.AreaOf;
 DEFINE II_BorderTo br.puc_rio.ele.lvc.interimage.geometry.udf.BorderTo;
 DEFINE II_Buffer br.puc_rio.ele.lvc.interimage.geometry.udf.Buffer;
 DEFINE II_Centroid br.puc_rio.ele.lvc.interimage.geometry.udf.Centroid;
 DEFINE II_ConvexHull br.puc_rio.ele.lvc.interimage.geometry.udf.ConvexHull;
+DEFINE II_CRSTransform br.puc_rio.ele.lvc.interimage.geometry.udf.CRSTransform;
 DEFINE II_Difference br.puc_rio.ele.lvc.interimage.geometry.udf.Difference;
 DEFINE II_Distance br.puc_rio.ele.lvc.interimage.geometry.udf.Distance;
 DEFINE II_Envelope br.puc_rio.ele.lvc.interimage.geometry.udf.Envelope;
@@ -33,8 +38,11 @@ DEFINE II_Length br.puc_rio.ele.lvc.interimage.geometry.udf.Length;
 DEFINE II_NumberOf br.puc_rio.ele.lvc.interimage.geometry.udf.NumberOf;
 DEFINE II_RelativeAreaOf br.puc_rio.ele.lvc.interimage.geometry.udf.RelativeAreaOf;
 DEFINE II_RelativeBorderTo br.puc_rio.ele.lvc.interimage.geometry.udf.RelativeBorderTo;
+DEFINE II_Replicate br.puc_rio.ele.lvc.interimage.geometry.udf.Replicate;
+DEFINE II_ReplicateNeighborhood br.puc_rio.ele.lvc.interimage.geometry.udf.ReplicateNeighborhood('https://s3.amazonaws.com/interimage2/resources/tiles.ser',''); --distance
 DEFINE II_SymDifference br.puc_rio.ele.lvc.interimage.geometry.udf.SymDifference;
 DEFINE II_Xor br.puc_rio.ele.lvc.interimage.geometry.udf.SymDifference;
+DEFINE II_CalculateTiles br.puc_rio.ele.lvc.interimage.geometry.udf.CalculateTiles('https://s3.amazonaws.com/interimage2/resources/tiles.ser','multiple'); --('multiple'|'single')
 DEFINE II_ToText br.puc_rio.ele.lvc.interimage.geometry.udf.ToText;
 DEFINE II_ToHex br.puc_rio.ele.lvc.interimage.geometry.udf.ToHex;
 DEFINE II_Union br.puc_rio.ele.lvc.interimage.geometry.udf.Union;
@@ -51,20 +59,19 @@ DEFINE II_Intersects br.puc_rio.ele.lvc.interimage.geometry.udf.Intersects;
 DEFINE II_IsEmpty br.puc_rio.ele.lvc.interimage.geometry.udf.IsEmpty;
 DEFINE II_IsValid br.puc_rio.ele.lvc.interimage.geometry.udf.IsValid;
 DEFINE II_Overlaps br.puc_rio.ele.lvc.interimage.geometry.udf.Overlaps;
-DEFINE II_SpatialClip br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialClip('https://s3.amazonaws.com/interimage2/datasets/quadras.wkt', 'https://s3.amazonaws.com/interimage2/datasets/tiles.ser');
-DEFINE II_SpatialFilter br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialFilter('https://s3.amazonaws.com/interimage2/datasets/quadras.wkt', 'https://s3.amazonaws.com/interimage2/datasets/tiles.ser', 'intersection'); --('intersection'|'containment')
+DEFINE II_SpatialClip br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialClip('https://s3.amazonaws.com/interimage2/resources/quadras.wkt', 'https://s3.amazonaws.com/interimage2/resources/tiles.ser');
+DEFINE II_SpatialFilter br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialFilter('https://s3.amazonaws.com/interimage2/resources/quadras.wkt', 'https://s3.amazonaws.com/interimage2/resources/tiles.ser', 'intersection'); --('intersection'|'containment')
 DEFINE II_Touches br.puc_rio.ele.lvc.interimage.geometry.udf.Touches;
 DEFINE II_Within br.puc_rio.ele.lvc.interimage.geometry.udf.Within;
 DEFINE II_WithinDistance br.puc_rio.ele.lvc.interimage.geometry.udf.WithinDistance;
 
-DEFINE II_CRSTransform br.puc_rio.ele.lvc.interimage.geometry.udf.CRSTransform;
 DEFINE II_KMLPlacemark br.puc_rio.ele.lvc.interimage.geometry.udf.kml.KMLPlacemark;
 DEFINE II_OSMNode br.puc_rio.ele.lvc.interimage.geometry.udf.osm.OSMNode;
 DEFINE II_OSMWay br.puc_rio.ele.lvc.interimage.geometry.udf.osm.OSMWay;
 DEFINE II_WKTGeometry br.puc_rio.ele.lvc.interimage.geometry.udf.wkt.WKTGeometry;
 
 --Special UDFs
-DEFINE SpatialGroup br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialGroup('');
+DEFINE SpatialGroup br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialGroup(''); --distance
 DEFINE II_SpatialGroup (A, B, p) RETURNS F {
 	C = COGROUP $A BY properties#'tile', $B BY properties#'tile' PARALLEL $p;
 	D = FILTER C BY NOT IsEmpty($A);

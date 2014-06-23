@@ -26,7 +26,7 @@ import org.apache.pig.impl.logicalLayer.schema.Schema;
  * A UDF that classifies an object.<br><br>
  * Example:<br>
  * 		A = load 'mydata' as (props);<br>
- * 		B = foreach A generate Classify(props) as props;<br>
+ * 		B = foreach A generate Classify(props) as props;
  * @author Rodrigo Ferreira
  *
  */
@@ -36,7 +36,7 @@ public class Classify extends EvalFunc<Map<String,Object>> {
      * Method invoked on every tuple during foreach evaluation.
      * @param input tuple; first column is assumed to have the properties map
      * @exception java.io.IOException
-     * @return map with the given classification
+     * @return map with the final classification
      */
 	@SuppressWarnings("unchecked")
 	@Override

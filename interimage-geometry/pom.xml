@@ -36,7 +36,7 @@
 	<dependency>
 		<groupId>com.vividsolutions</groupId>
 		<artifactId>jump-core</artifactId>
-		<version>1.2</version>
+		<version>1.21</version>
 	</dependency>
 	
 	<dependency>
@@ -47,24 +47,6 @@
 	</dependency>
 	
   </dependencies>
-  
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-gpg-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>sign-artifacts</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>sign</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
   
    <developers>
     <developer>

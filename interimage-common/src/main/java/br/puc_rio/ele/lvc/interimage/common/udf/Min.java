@@ -22,10 +22,10 @@ import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 
 /**
- * A UDF that computes the smaller of two numbers.<br><br>
+ * A UDF that computes the minimum of n numbers.<br><br>
  * Example:<br>
- * 		A = load 'mydata' as (attrib1, attrib2);<br>
- * 		B = foreach A generate Min(attrib1, attrib2);<br>
+ * 		A = load 'mydata' as (attrib1, ..., attribn);<br>
+ * 		B = foreach A generate Min(attrib1, ..., attribn);
  * @author Rodrigo Ferreira
  *
  */
@@ -33,10 +33,10 @@ public class Min extends EvalFunc<Double> {
 	
 	/**
      * Method invoked on every tuple during foreach evaluation.
-     * @param input tuple; first column is assumed to have a number<br>
-     * second column is assumed to have a number
+     * @param input tuple<br>
+     * the columns are assumed to have numbers
      * @exception java.io.IOException
-     * @return minimum value
+     * @return min value
      */
 	@Override
 	public Double exec(Tuple input) throws IOException {
@@ -44,9 +44,20 @@ public class Min extends EvalFunc<Double> {
             return null;
         
 		try {
-			Double first = DataType.toDouble(input.get(0));
-			Double second = DataType.toDouble(input.get(1));
-			return Math.min(first,second);
+			
+			int size = input.size();
+			
+			double min = Double.MAX_VALUE;
+			
+			for (int i=0; i<size; i++) {
+				Double value = DataType.toDouble(input.get(i));
+				if (value < min) {
+					min = value;
+				}
+			}
+			
+			return min;
+			
 		} catch (Exception e) {
 			throw new IOException("Caught exception processing input row ", e);
 		}

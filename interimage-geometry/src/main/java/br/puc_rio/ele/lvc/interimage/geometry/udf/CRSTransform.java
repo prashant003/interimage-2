@@ -63,18 +63,18 @@ public class CRSTransform extends EvalFunc<DataByteArray> {
 		try {
 			Geometry geometry = _geometryParser.parseGeometry(input.get(0));
 			
-			String epsgFrom = DataType.toString(input.get(1));
-			String epsgTo = DataType.toString(input.get(2));
+			String crsFrom = DataType.toString(input.get(1));
+			String crsTo = DataType.toString(input.get(2));
 	        
-			int epsgFromCode = Integer.parseInt(epsgFrom.split(":")[1]);					
-			int epsgToCode = Integer.parseInt(epsgTo.split(":")[1]);
+			int crsFromCode = Integer.parseInt(crsFrom.split(":")[1]);					
+			int crsToCode = Integer.parseInt(crsTo.split(":")[1]);
 						
-			if (((epsgFromCode >= 32601) && (epsgFromCode <= 32660)) || ((epsgFromCode >= 32701) && (epsgFromCode <= 32760))) {	//from UTM
+			if (((crsFromCode >= 32601) && (crsFromCode <= 32660)) || ((crsFromCode >= 32701) && (crsFromCode <= 32760))) {	//from UTM
 				
-				final int utmZone = (epsgFromCode>32700) ? epsgFromCode-32700 : epsgFromCode-32600;
-				final boolean southern = (epsgFromCode>32700) ? true : false;
+				final int utmZone = (crsFromCode>32700) ? crsFromCode-32700 : crsFromCode-32600;
+				final boolean southern = (crsFromCode>32700) ? true : false;
 								
-				if (epsgToCode == 4326) {	//to Longlat
+				if (crsToCode == 4326) {	//to Longlat
 					
 					final UTMLatLongConverter converter = new UTMLatLongConverter();
 					converter.setDatum("WGS84");
@@ -85,10 +85,10 @@ public class CRSTransform extends EvalFunc<DataByteArray> {
 		                }
 		            });
 					
-					geometry.setSRID(epsgToCode);					
+					geometry.setSRID(crsToCode);					
 					geometry.geometryChanged();
 					
-				} else if (epsgToCode == 3857) {	//To Web Mercator
+				} else if (crsToCode == 3857) {	//To Web Mercator
 					
 					final UTMLatLongConverter converter = new UTMLatLongConverter();
 					converter.setDatum("WGS84");
@@ -103,13 +103,13 @@ public class CRSTransform extends EvalFunc<DataByteArray> {
 		                }
 		            });
 					
-					geometry.setSRID(epsgToCode);					
+					geometry.setSRID(crsToCode);					
 					geometry.geometryChanged();
 					
 				}
-			} else if (epsgFromCode == 4326) {	//from Longlat
+			} else if (crsFromCode == 4326) {	//from Longlat
 				
-				if (((epsgToCode >= 32601) && (epsgToCode <= 32660)) || ((epsgToCode >= 32701) && (epsgToCode <= 32760))) {	//to UTM
+				if (((crsToCode >= 32601) && (crsToCode <= 32660)) || ((crsToCode >= 32701) && (crsToCode <= 32760))) {	//to UTM
 								
 					final UTMLatLongConverter converter = new UTMLatLongConverter();
 					converter.setDatum("WGS84");
@@ -120,10 +120,10 @@ public class CRSTransform extends EvalFunc<DataByteArray> {
 		                }
 		            });
 					
-					geometry.setSRID(epsgToCode);					
+					geometry.setSRID(crsToCode);					
 					geometry.geometryChanged();
 					
-				} else if (epsgToCode == 3857) {	//to Web Mercator
+				} else if (crsToCode == 3857) {	//to Web Mercator
 					
 					final WebMercatorLatLongConverter converter = new WebMercatorLatLongConverter();
 					converter.setDatum("WGS84");
@@ -134,14 +134,14 @@ public class CRSTransform extends EvalFunc<DataByteArray> {
 		                }
 		            });
 					
-					geometry.setSRID(epsgToCode);					
+					geometry.setSRID(crsToCode);					
 					geometry.geometryChanged();
 					
 				}
 				
-			} else if (epsgFromCode == 3857) {	//from Web Mercator
+			} else if (crsFromCode == 3857) {	//from Web Mercator
 			
-				if (((epsgToCode >= 32601) && (epsgToCode <= 32660)) || ((epsgToCode >= 32701) && (epsgToCode <= 32760))) {	//to UTM
+				if (((crsToCode >= 32601) && (crsToCode <= 32660)) || ((crsToCode >= 32701) && (crsToCode <= 32760))) {	//to UTM
 				
 					final UTMLatLongConverter converter = new UTMLatLongConverter();
 					converter.setDatum("WGS84");
@@ -156,10 +156,10 @@ public class CRSTransform extends EvalFunc<DataByteArray> {
 		                }
 		            });
 					
-					geometry.setSRID(epsgToCode);					
+					geometry.setSRID(crsToCode);					
 					geometry.geometryChanged();
 					
-				} else if (epsgToCode == 4326) {	//to Longlat
+				} else if (crsToCode == 4326) {	//to Longlat
 					
 					final WebMercatorLatLongConverter converter = new WebMercatorLatLongConverter();
 					converter.setDatum("WGS84");
@@ -170,13 +170,13 @@ public class CRSTransform extends EvalFunc<DataByteArray> {
 		                }
 		            });
 					
-					geometry.setSRID(epsgToCode);
+					geometry.setSRID(crsToCode);
 					geometry.geometryChanged();
 					
 				}
 				
 			} else {
-				throw new Exception("EPSG code " + epsgFromCode + " not supported");
+				throw new Exception("CRS code " + crsFromCode + " not supported");
 			}
 						
 			return new DataByteArray(new WKBWriter().write(geometry));

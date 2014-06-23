@@ -23,6 +23,7 @@ import java.io.ObjectInputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -49,14 +50,14 @@ import com.vividsolutions.jts.io.WKTReader;
  * For efficiency reasons, it should always be used after SpatialFilter.<br><br>
  * 
  * Some observations:<br>
- * 1 - For the geometries that do not intersect any ROI a null bag will be returned
- * 2 - The geometries that intersect more than one ROI will produce the respective number of tuples
+ * 1 - The geometries that do not intersect any ROI will be filtered out<br>
+ * 2 - The geometries that intersect more than one ROI will produce the respective number of tuples<br>
  * 3 - Makes no sense to call this UDF after SpatialFilter when it is used with the 'containment' filter type
  * <br><br>
  * Example:<br>
- * 		A = load 'mydata1' as (geom, tile);<br>
- * 		B = filter A by SpatialFilter(geom,tile,'intersection');
- * 		C = foreach B generate flatten(SpatialClip(B));<br>
+ * 		A = load 'mydata1' as (geom, data, props);<br>
+ * 		B = filter A by SpatialFilter(geom, props#'tile');<br>
+ * 		C = foreach B generate flatten(SpatialClip(geom, data, props)) as (geom, data, props);
  * @author Rodrigo Ferreira
  *
  */
@@ -65,10 +66,10 @@ public class SpatialClip extends EvalFunc<DataBag> {
 	private final GeometryParser _geometryParser = new GeometryParser();
 	private STRtree _gridIndex = null;
 	private STRtree _roiIndex = null;
-	private List<Integer> _gridIds = null;
+	private List<String> _gridIds = null;
 	
-	String _roiUrl = null;
-	String _gridUrl = null;
+	private String _roiUrl = null;
+	private String _gridUrl = null;
 	
 	/**Constructor that takes the ROIs and the tiles grid URLs.*/
 	public SpatialClip(String roiUrl, String gridUrl) {
@@ -79,23 +80,25 @@ public class SpatialClip extends EvalFunc<DataBag> {
 	/**
      * Method invoked on every tuple during filter evaluation.
      * @param input tuple<br>
-     * first column is assumed to have a tuple
+     * first column is assumed to have the geometry<br>
+     * second column is assumed to have the data<br>
+     * third column is assumed to have the properties
      * @exception java.io.IOException
-     * @return a bag with tuples with the clipped geometries, or a null bag in case of no intersection
+     * @return a bag with tuples of clipped geometries, or a null bag in case of no intersection
      * 
      * TODO: Use distributed cache; check if an index for the ROIs is necessary; deal with data
      */
 	@SuppressWarnings("unchecked")
 	@Override
 	public DataBag exec(Tuple input) throws IOException {
-		if (input == null || input.size() == 0)
+		if (input == null || input.size() < 3)
             return null;
         
 		//executes initialization
 		if (_gridIndex == null) {
 			_gridIndex = new STRtree();
 			_roiIndex = new STRtree();
-			_gridIds = new ArrayList<Integer>();
+			_gridIds = new ArrayList<String>();
 			
 			//Creates an index for the grid
 	        try {
@@ -114,7 +117,7 @@ public class SpatialClip extends EvalFunc<DataBag> {
 				    
 				    for (Tile t : tiles) {
 				    	Geometry geometry = new WKTReader().read(t.getGeometry());
-    					_gridIndex.insert(geometry.getEnvelopeInternal(),t.getId());
+    					_gridIndex.insert(geometry.getEnvelopeInternal(),t.getCode());
 				    }
 			        			        
 	        	}
@@ -150,24 +153,26 @@ public class SpatialClip extends EvalFunc<DataBag> {
 		
 		try {
 
-			Tuple tuple = DataType.toTuple(input.get(0));
-			
-			Object objGeometry = tuple.get(0);
-			Map<String,String> data = (Map<String,String>)tuple.get(1);
-			Map<String,Object> properties = DataType.toMap(tuple.get(2));
-			
-			Integer tileId = (Integer)properties.get("tile");
+			Object objGeometry = input.get(0);
+			Map<String,String> data = (Map<String,String>)input.get(1);
+			Map<String,Object> properties = DataType.toMap(input.get(2));
 						
+			String tileStr = DataType.toString(properties.get("tile"));
+			
+			//converting from string T0000 to long 0000
+			//Long tileId = Long.parseLong(tileStr.substring(1));
+			
 			DataBag bag = BagFactory.getInstance().newDefaultBag();
 			
 	    	if ((!_roiUrl.isEmpty()) && (!_gridUrl.isEmpty())) {
-		        if (_gridIds.contains(tileId)) {
+		        if (_gridIds.contains(tileStr)) {
 		        	Geometry geometry = _geometryParser.parseGeometry(objGeometry);
 	
 	        		List<Geometry> list = _roiIndex.query(geometry.getEnvelopeInternal());
 	  	        		
 		        	for (Geometry geom : list) {
 
+		        		//TODO: duplicate properties
 		        		if (geom.intersects(geometry)) {
 		        			Geometry g = geom.intersection(geometry);
 		        			
@@ -175,11 +180,11 @@ public class SpatialClip extends EvalFunc<DataBag> {
 		        			
 		        			Tuple t = TupleFactory.getInstance().newTuple(3);
 		        			t.set(0,new DataByteArray(bytes));
-		        			t.set(1,data);
-		        			t.set(2,properties);
+		        			t.set(1,new HashMap<String,String>(data));
+		        			t.set(2,new HashMap<String,Object>(properties));
 		        			bag.add(t);
 		        				        
-		        		    properties.put("IIUUID",new UUID(null).random());
+		        		    properties.put("iiuuid",new UUID(null).random());
 		        			
 		        		}
 		        		
@@ -187,8 +192,8 @@ public class SpatialClip extends EvalFunc<DataBag> {
 		        			        				        	
 		        }
 		        
-	    	} else {
-	    		bag.add(tuple);	    		
+	    	} else {	    		
+	    		bag.add(input);	    		
 	    	}
 			
 	    	return bag;

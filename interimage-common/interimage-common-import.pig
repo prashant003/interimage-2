@@ -18,11 +18,15 @@ limitations under the License.*/
  */
 
 --Eval UDFs
-DEFINE II_ToProps br.puc_rio.ele.lvc.interimage.common.udf.ToProps;
-DEFINE II_Max br.puc_rio.ele.lvc.interimage.common.udf.Max;
-DEFINE II_Min br.puc_rio.ele.lvc.interimage.common.udf.Min;
-DEFINE II_ToClassification br.puc_rio.ele.lvc.interimage.common.udf.ToClassification;
 DEFINE II_Classify br.puc_rio.ele.lvc.interimage.common.udf.Classify;
+DEFINE II_Combine br.puc_rio.ele.lvc.interimage.common.udf.Combine;
+DEFINE II_Max br.puc_rio.ele.lvc.interimage.common.udf.Max;
+DEFINE II_Mean br.puc_rio.ele.lvc.interimage.common.udf.Mean;
+DEFINE II_Min br.puc_rio.ele.lvc.interimage.common.udf.Min;
+DEFINE II_Mul br.puc_rio.ele.lvc.interimage.common.udf.Mul;
+DEFINE II_Sum br.puc_rio.ele.lvc.interimage.common.udf.Sum;
+DEFINE II_ToClassification br.puc_rio.ele.lvc.interimage.common.udf.ToClassification;
+DEFINE II_ToProps br.puc_rio.ele.lvc.interimage.common.udf.ToProps;
 
 --Filter UDFs
 

@@ -26,7 +26,7 @@ import org.apache.pig.impl.logicalLayer.schema.Schema;
  * A UDF that updates the properties map with the given field.<br><br>
  * Example:<br>
  * 		A = load 'mydata' as (field, props);<br>
- * 		B = foreach A generate ToProps(field, 'name', props) as props;<br>
+ * 		B = foreach A generate ToProps(field, 'name', props) as props;
  * @author Rodrigo Ferreira
  *
  */

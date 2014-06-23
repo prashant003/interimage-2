@@ -14,15 +14,15 @@ limitations under the License.*/
 
 /**
  * A Pig script that defines the data mining package UDFs.
- * @author Rodrigo Ferreira, Victor Quirita
+ * @author Victor Quirita, Rodrigo Ferreira
  */
 
 --Eval UDFs
-DEFINE II_Membership br.puc_rio.ele.lvc.interimage.datamining.udf.Membership('https://s3.amazonaws.com/interimage2/datasets/fuzzysets.ser');
-DEFINE II_BayesClassifier br.puc_rio.ele.lvc.interimage.datamining.udf.BayesClassifier;
-DEFINE II_DecisionTreeClassifier br.puc_rio.ele.lvc.interimage.datamining.udf.DecisionTreeClassifier;
-DEFINE II_RandomForestClassifier br.puc_rio.ele.lvc.interimage.datamining.udf.RandomForestClassifier;
-DEFINE II_SVMClassifier br.puc_rio.ele.lvc.interimage.datamining.udf.SVMClassifier;
+DEFINE II_Membership br.puc_rio.ele.lvc.interimage.datamining.udf.Membership('https://s3.amazonaws.com/interimage2/resources/fuzzysets.ser');
+DEFINE II_BayesClassifier br.puc_rio.ele.lvc.interimage.datamining.udf.BayesClassifier('https://s3.amazonaws.com/interimage2/resources/training-data.csv');
+DEFINE II_DecisionTreeClassifier br.puc_rio.ele.lvc.interimage.datamining.udf.DecisionTreeClassifier('https://s3.amazonaws.com/interimage2/resources/training-data.csv');
+DEFINE II_RandomForestClassifier br.puc_rio.ele.lvc.interimage.datamining.udf.RandomForestClassifier('https://s3.amazonaws.com/interimage2/resources/training-data.csv');
+DEFINE II_SVMClassifier br.puc_rio.ele.lvc.interimage.datamining.udf.SVMClassifier('https://s3.amazonaws.com/interimage2/resources/training-data.csv');
 
 --Filter UDFs
 

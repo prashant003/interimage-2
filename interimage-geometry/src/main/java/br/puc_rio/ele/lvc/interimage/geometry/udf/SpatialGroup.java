@@ -43,13 +43,16 @@ import com.vividsolutions.jts.geom.Geometry;
  * The method provided by this class is described in this paper:
  * Edwin H. Jacox and Hanan Samet. 2007. Spatial join techniques.
  * ACM Trans. Database Syst. 32, 1, Article 7 (March 2007).
- * DOI=10.1145/1206049.1206056 http://doi.acm.org/10.1145/1206049.1206056  
+ * DOI=10.1145/1206049.1206056 http://doi.acm.org/10.1145/1206049.1206056
+ * 
+ * TODO: Should create new objects as in clip?
+ *   
  */
 public class SpatialGroup extends EvalFunc<DataBag> {
 	
 	private final GeometryParser _geometryParser = new GeometryParser();
 	
-	Double _distance = null;
+	private Double _distance = null;
 	
 	/**Constructor that takes the distance used to group the objects.*/
 	public SpatialGroup(String distance) {
