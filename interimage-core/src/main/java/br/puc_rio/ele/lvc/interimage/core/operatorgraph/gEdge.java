@@ -7,14 +7,14 @@ public class gEdge extends DefaultEdge {
 	 * 
 	 */
 	private static final long serialVersionUID = 3311759278952307446L;
-	private boolean activated=true;
+	private boolean activated_=true;
 
 	public boolean isActivated() {
-		return activated;
+		return activated_;
 	}
 
 	public void setActivated(boolean activated) {
-		this.activated = activated;
+		this.activated_ = activated;
 	}
 	
 }
