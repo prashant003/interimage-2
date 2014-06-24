@@ -2,11 +2,11 @@ package br.puc_rio.ele.lvc.interimage.core.operatorgraph;
 
 import java.io.IOException;
 
-public class gCommandLineNode extends gNode {
+public class gCommandLineOperator extends gNode {
 
 	private String commandLine_;
 	
-	public gCommandLineNode(String command){
+	public gCommandLineOperator(String command){
 		setCommandLine(command);
 	}
 
