@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class gII1Operator extends gNode {
+public class gII1Operator extends gOperator {
 
 	private String II1Executable_;
 	private String projectFile_;

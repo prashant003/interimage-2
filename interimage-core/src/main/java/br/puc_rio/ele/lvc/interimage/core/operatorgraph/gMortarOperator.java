@@ -4,7 +4,7 @@ import com.mortardata.api.v2.JobRequest;
 import com.mortardata.api.v2.Jobs;
 import com.mortardata.api.v2.Jobs.JobStatus;
 
-public class gMortarOperator extends gNode {
+public class gMortarOperator extends gOperator {
 	private String pigScriptPath_;
 	private Jobs jobs_;
 	private String projectName_;
