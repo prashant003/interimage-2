@@ -18,11 +18,15 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 
+import br.puc_rio.ele.lvc.interimage.data.Image;
+
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 
 /**
  * A Source class that communicates with Amazon S3. 
@@ -41,17 +45,44 @@ public class AWSSource implements Source {
 		_bucket = bucket;
 	}
 	
-	public void put(String from, String to) {
+	public void put(String from, String to, Resource resource) {
 
 		try {
 		
 			AWSCredentials credentials = new BasicAWSCredentials(_accessKey, _secretKey);
 			AmazonS3 conn = new AmazonS3Client(credentials);
 			conn.setEndpoint("https://s3.amazonaws.com");
-					
-			FileInputStream stream = new FileInputStream(from);
-						
-			conn.putObject(_bucket, to, stream, new ObjectMetadata());
+								
+			//conn.setBucketAcl(_bucket, CannedAccessControlList.PublicRead);
+			
+			//FileInputStream stream = new FileInputStream(from);
+			File file = new File(from);
+			
+			//conn.putObject(_bucket, to, stream, new ObjectMetadata());
+				
+			PutObjectRequest putObjectRequest = new PutObjectRequest(_bucket, to, file);
+			putObjectRequest.withCannedAcl(CannedAccessControlList.PublicRead); // public for all
+			
+			/*ObjectMetadata data = new ObjectMetadata();
+			data.setContentType("application/octet-stream");
+			putObjectRequest.setMetadata(data);*/
+			
+			/*if (resource instanceof SplittableResource) {
+				SplittableResource rsrc = (SplittableResource)resource;
+				if (rsrc.getType() == SplittableResource.IMAGE) {
+					Image image = (Image)rsrc.getObject();
+					//TODO: support other formats
+					if ((image.getURL().endsWith(".tif")) || (image.getURL().endsWith(".tiff"))) {
+						ObjectMetadata data = new ObjectMetadata();
+						data.setContentType("image/tiff");
+						putObjectRequest.setMetadata(data);
+					}
+				}
+			}*/
+			
+			conn.putObject(putObjectRequest);
+			
+			//System.out.println("Should upload this file: " + to);
 			
 		} catch (Exception e) {
 			System.err.println("Source put failed: " + e.getMessage());			
@@ -60,7 +91,7 @@ public class AWSSource implements Source {
 	}
 	
 	public String getURL() {
-		return "s3n://interimage2/" + _bucket + "/";
+		return "https://s3.amazonaws.com/" + _bucket + "/";
 	}
 	
 }

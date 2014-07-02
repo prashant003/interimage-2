@@ -25,7 +25,7 @@ import org.apache.pig.data.DataByteArray;
 import org.apache.pig.data.Tuple;
 import org.apache.pig.data.TupleFactory;
 
-import br.puc_rio.ele.lvc.interimage.geometry.GeometryParser;
+import br.puc_rio.ele.lvc.interimage.common.GeometryParser;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryCollection;

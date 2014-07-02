@@ -39,14 +39,16 @@ import org.geotools.shapefile.ShapeHandler;
 import org.geotools.shapefile.Shapefile;
 import org.geotools.shapefile.ShapefileHeader;
 
+import br.puc_rio.ele.lvc.interimage.common.CRS;
+import br.puc_rio.ele.lvc.interimage.common.GeometryParser;
+import br.puc_rio.ele.lvc.interimage.common.TileManager;
 import br.puc_rio.ele.lvc.interimage.common.UUID;
 
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.CoordinateFilter;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.io.WKBWriter;
+import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jump.io.EndianDataInputStream;
 import com.vividsolutions.jump.io.EndianDataOutputStream;
 
@@ -71,7 +73,7 @@ public class ShapefileConverter {
 	 * tileManager - TileManager object
 	 */	
 
-	public static void shapefileToJSON(String shapefile, String json, List<String> names, boolean keep, String crsFrom, double[] geoBBox, TileManager tileManager) {
+	public static void shapefileToJSON(String shapefile, String json, List<String> names, boolean keep, String crsFrom, String crsTo, double[] geoBBox, TileManager tileManager) {
 		
 		try {
 			
@@ -92,8 +94,6 @@ public class ShapefileConverter {
 	            }
 	        }
 						
-			int crsFromCode = Integer.parseInt(crsFrom.split(":")[1]);
-			
 	        int idx = shapefile.lastIndexOf(File.separatorChar);
 	        String path = shapefile.substring(0, idx + 1); // ie. "/data1/hills.shp" -> "/data1/"
 	        String fileName = shapefile.substring(idx + 1); // ie. "/data1/hills.shp" -> "hills.shp"
@@ -133,40 +133,27 @@ public class ShapefileConverter {
 	        
 	        Envelope bounds = mainHeader.getBounds();
 	        
-	        Coordinate coord1 = new Coordinate(bounds.getMinX(), bounds.getMinY());
+	        Point coord1 = new GeometryFactory().createPoint(new Coordinate(bounds.getMinX(), bounds.getMinY()));
 	        
-	        Coordinate coord2 = new Coordinate(bounds.getMaxX(), bounds.getMaxY());
-	        	        			
-	        if (crsFromCode == 4326) {
-		    	
-	        	final WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
-		        webMercator.setDatum("WGS84");
-	            webMercator.LatLongToWebMercator(coord1);
-	            webMercator.LatLongToWebMercator(coord2);
-	            
-	    	} else if (((crsFromCode >= 32601) && (crsFromCode <= 32660)) || ((crsFromCode >= 32701) && (crsFromCode <= 32760))) {
-	    	
-	    		final int utmZone = (crsFromCode>32700) ? crsFromCode-32700 : crsFromCode-32600;
-				final boolean southern = (crsFromCode>32700) ? true : false;
-		    
-				final UTMLatLongConverter utm = new UTMLatLongConverter();
-				utm.setDatum("WGS84");
-								
-				final WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
-		        webMercator.setDatum("WGS84");
-				
-	            utm.UTMToLatLong(coord1, utmZone, southern);
-				webMercator.LatLongToWebMercator(coord1);
-	            	                	  		
-				utm.UTMToLatLong(coord2, utmZone, southern);
-				webMercator.LatLongToWebMercator(coord2);
-				
-	    	}
+	        Point coord2 = new GeometryFactory().createPoint(new Coordinate(bounds.getMaxX(), bounds.getMaxY()));
+	        	        		
+	        /*System.out.println(bounds.getMinX());
+	        System.out.println(bounds.getMinY());
+	        System.out.println(bounds.getMaxX());
+	        System.out.println(bounds.getMaxY());*/
 	        
-	        geoBBox[0] = coord1.x;
-	        geoBBox[1] = coord1.y;
-	        geoBBox[2] = coord2.x;
-	        geoBBox[3] = coord2.y;
+	        CRS.convert(crsFrom, crsTo, coord1);
+	        CRS.convert(crsFrom, crsTo, coord2);
+	        
+	        geoBBox[0] = coord1.getX();
+	        geoBBox[1] = coord1.getY();
+	        geoBBox[2] = coord2.getX();
+	        geoBBox[3] = coord2.getY();
+	        
+	        /*System.out.println(coord1.x);
+	        System.out.println(coord1.y);
+	        System.out.println(coord2.x);
+	        System.out.println(coord2.y);*/
 	        
 	        if (handler == null) {
 	        	in.close();
@@ -217,6 +204,9 @@ public class ShapefileConverter {
 			                }
 			            });
 						
+			    		geom.setSRID(3857);					
+						geom.geometryChanged();
+			    		
 			    	} else if (((crsFromCode >= 32601) && (crsFromCode <= 32660)) || ((crsFromCode >= 32701) && (crsFromCode <= 32760))) {
 			    	
 			    		final int utmZone = (crsFromCode>32700) ? crsFromCode-32700 : crsFromCode-32600;
@@ -234,12 +224,12 @@ public class ShapefileConverter {
 						    	webMercator.LatLongToWebMercator(coord);
 			                }
 			            });
-							                	  		
-			    	}
-	                					
-					geom.setSRID(3857);					
-					geom.geometryChanged();*/
-	                
+							    
+						geom.setSRID(3857);					
+						geom.geometryChanged();
+						
+			    	}*/
+	                	                
 					/*Computing global bounding box*/
 					
 					/*double[] bbox = new double[] {geom.getEnvelopeInternal().getMinX(), geom.getEnvelopeInternal().getMinY(), geom.getEnvelopeInternal().getMaxX(), geom.getEnvelopeInternal().getMaxY()};
@@ -278,8 +268,8 @@ public class ShapefileConverter {
 	                //TODO: Should work with wkb
 					
 	                String str = "{\"geometry\":";	                
-	                //str += "\"" + geom.toText() + "\"";
-	                str += "\"" + WKBWriter.toHex(new WKBWriter().write(geom)) + "\"";	                	                
+	                str += "\"" + geom.toText() + "\"";
+	                //str += "\"" + WKBWriter.toHex(new WKBWriter().write(geom)) + "\"";	                	                
 	                str += ",\"data\":{\"0\":\"\"}";
 	                str += ",\"properties\":{\"tile\":\"" + tileString + "\"";
 	                
@@ -455,7 +445,7 @@ public class ShapefileConverter {
 	 * output shapefile path
 	 */	
 	@SuppressWarnings({ "rawtypes", "unchecked"})
-	public static void JSONToShapefile(String json, String shpFileName, List<String> names, boolean keep, String crsTo) {
+	public static void JSONToShapefile(String json, String shpFileName, List<String> names, boolean keep, String crsFrom, String crsTo) {
 	
 		try {
 			
@@ -475,8 +465,6 @@ public class ShapefileConverter {
 	        		throw new Exception("No Shapefile specified");
 	        	}
 	        }			
-			
-			int crsToCode = Integer.parseInt(crsTo.split(":")[1]);
 			
 			String path;
 			String fileName;
@@ -561,37 +549,8 @@ public class ShapefileConverter {
 	        			//TODO: Should work with wkb
 	        			geometry = geometryParser.parseGeometry(jParser.getText());
 	        			
-	        			if (crsToCode == 4326) {
-	    			    	
-	    		    		final WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
-	    					webMercator.setDatum("WGS84");
-	    		    					    		
-	    					geometry.apply(new CoordinateFilter() {
-	    		                public void filter(Coordinate coord) {
-	    		                	webMercator.WebMercatorToLatLong(coord);
-	    		                }
-	    		            });
-	    					
-	    		    	} else if (((crsToCode >= 32601) && (crsToCode <= 32660)) || ((crsToCode >= 32701) && (crsToCode <= 32760))) {
-	    		    				    
-	    					final UTMLatLongConverter utm = new UTMLatLongConverter();
-	    					utm.setDatum("WGS84");
-	    					
-	    					final WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
-	    					webMercator.setDatum("WGS84");
-	    					
-	    					geometry.apply(new CoordinateFilter() {
-	    		                public void filter(Coordinate coord) {
-	    		                	webMercator.WebMercatorToLatLong(coord);
-	    		                	utm.LatLongToUTM(coord);							    	
-	    		                }
-	    		            });
-	    						                	  		
-	    		    	}
-	                    					
-	        			geometry.setSRID(crsToCode);					
-	        			geometry.geometryChanged();
-	        			
+	        			CRS.convert(crsFrom, crsTo, geometry);
+	                    
 	        			Envelope envelope = geometry.getEnvelopeInternal();
 	        			
 	        			if (envelope.getMinX() < boundsArr[0])
@@ -687,7 +646,7 @@ public class ShapefileConverter {
 	        buff1.close();
 	        
 	        bounds = new Envelope(boundsArr[0], boundsArr[2], boundsArr[1], boundsArr[3]);
-	        
+	        	        
 	        /*Preparing to write dbf file*/
 	        DbfFileWriter dbf;
 	        dbf = new DbfFileWriter(dbfFileName);
@@ -761,37 +720,8 @@ public class ShapefileConverter {
 	        			//TODO: Should work with wkb
 	        			geometry = geometryParser.parseGeometry(jParser.getText());
 	        			
-	        			if (crsToCode == 4326) {
-					    	
-				    		final WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
-							webMercator.setDatum("WGS84");
-				    					    		
-							geometry.apply(new CoordinateFilter() {
-				                public void filter(Coordinate coord) {
-				                	webMercator.WebMercatorToLatLong(coord);
-				                }
-				            });
-							
-				    	} else if (((crsToCode >= 32601) && (crsToCode <= 32660)) || ((crsToCode >= 32701) && (crsToCode <= 32760))) {
-				    						    
-							final UTMLatLongConverter utm = new UTMLatLongConverter();
-							utm.setDatum("WGS84");
-							
-							final WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
-							webMercator.setDatum("WGS84");
-							
-							geometry.apply(new CoordinateFilter() {
-				                public void filter(Coordinate coord) {
-				                	webMercator.WebMercatorToLatLong(coord);
-				                	utm.LatLongToUTM(coord);							    	
-				                }
-				            });
-								                	  		
-				    	}
-		                					
-	        			geometry.setSRID(crsToCode);					
-	        			geometry.geometryChanged();
-	        			
+	        			CRS.convert(crsFrom, crsTo, geometry);
+		                	        			
 	        			if (handler == null) {
 	    	            	handler = Shapefile.getShapeHandler(geometry,2);
 	    	            }
@@ -891,7 +821,7 @@ public class ShapefileConverter {
 	 * crsFrom - input CRS code in the form "EPSG:0000"
 	 */	
 	@SuppressWarnings("unused")
-	public static void shapefileToWKT(String shapefile, String wkt, String crsFrom) {
+	public static void shapefileToWKT(String shapefile, String wkt, String crsFrom, String crsTo) {
 		
 		try {
 			
@@ -950,39 +880,7 @@ public class ShapefileConverter {
 	                //TODO: Should we do it here or in the cluster?
 	                //TODO: Maybe it's possible to postpone the conversion and tile computation to the cluster
 	                
-	                if (crsFromCode == 4326) {
-				    	
-			    		final WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
-						webMercator.setDatum("WGS84");
-			    					    		
-			    		geom.apply(new CoordinateFilter() {
-			                public void filter(Coordinate coord) {
-			                	webMercator.LatLongToWebMercator(coord);
-			                }
-			            });
-						
-			    	} else if (((crsFromCode >= 32601) && (crsFromCode <= 32660)) || ((crsFromCode >= 32701) && (crsFromCode <= 32760))) {
-			    	
-			    		final int utmZone = (crsFromCode>32700) ? crsFromCode-32700 : crsFromCode-32600;
-						final boolean southern = (crsFromCode>32700) ? true : false;
-				    
-						final UTMLatLongConverter utm = new UTMLatLongConverter();
-						utm.setDatum("WGS84");
-						
-						final WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
-						webMercator.setDatum("WGS84");
-						
-						geom.apply(new CoordinateFilter() {
-			                public void filter(Coordinate coord) {
-			                	utm.UTMToLatLong(coord, utmZone, southern);
-						    	webMercator.LatLongToWebMercator(coord);
-			                }
-			            });
-							                	  		
-			    	}
-	                					
-					geom.setSRID(3857);					
-					geom.geometryChanged();
+	                CRS.convert(crsFrom, crsTo, geom);
 	                
 	                String str = geom.toText() + "\n";
 	                
@@ -1007,7 +905,7 @@ public class ShapefileConverter {
 	 * output shapefile path
 	 */	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static void WKTToShapefile(String wkt, String shpFileName, String crsTo) {
+	public static void WKTToShapefile(String wkt, String shpFileName, String crsFrom, String crsTo) {
 		
 		try {
 		
@@ -1027,9 +925,7 @@ public class ShapefileConverter {
 	        		throw new Exception("No Shapefile specified");
 	        	}
 	        }
-			
-			int crsToCode = Integer.parseInt(crsTo.split(":")[1]);
-			
+						
 			String path;
 			String fileName;
 			
@@ -1085,36 +981,7 @@ public class ShapefileConverter {
 	        	
 	        	Geometry geometry = geometryParser.parseGeometry(line1);
     			
-	        	if (crsToCode == 4326) {
-			    	
-		    		final WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
-					webMercator.setDatum("WGS84");
-		    					    		
-					geometry.apply(new CoordinateFilter() {
-		                public void filter(Coordinate coord) {
-		                	webMercator.WebMercatorToLatLong(coord);
-		                }
-		            });
-					
-		    	} else if (((crsToCode >= 32601) && (crsToCode <= 32660)) || ((crsToCode >= 32701) && (crsToCode <= 32760))) {
-		    				    
-					final UTMLatLongConverter utm = new UTMLatLongConverter();
-					utm.setDatum("WGS84");
-					
-					final WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
-					webMercator.setDatum("WGS84");
-					
-					geometry.apply(new CoordinateFilter() {
-		                public void filter(Coordinate coord) {
-		                	webMercator.WebMercatorToLatLong(coord);
-		                	utm.LatLongToUTM(coord);							    	
-		                }
-		            });
-						                	  		
-		    	}
-                					
-    			geometry.setSRID(crsToCode);					
-    			geometry.geometryChanged();
+	        	CRS.convert(crsFrom, crsTo, geometry);
 	        	
     			Envelope envelope = geometry.getEnvelopeInternal();
     			
@@ -1203,36 +1070,7 @@ public class ShapefileConverter {
 	            	handler = Shapefile.getShapeHandler(geometry,2);
 	            }
     			
-    			if (crsToCode == 4326) {
-			    	
-		    		final WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
-					webMercator.setDatum("WGS84");
-		    					    		
-					geometry.apply(new CoordinateFilter() {
-		                public void filter(Coordinate coord) {
-		                	webMercator.WebMercatorToLatLong(coord);
-		                }
-		            });
-					
-		    	} else if (((crsToCode >= 32601) && (crsToCode <= 32660)) || ((crsToCode >= 32701) && (crsToCode <= 32760))) {
-		    				    
-					final UTMLatLongConverter utm = new UTMLatLongConverter();
-					utm.setDatum("WGS84");
-					
-					final WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
-					webMercator.setDatum("WGS84");
-					
-					geometry.apply(new CoordinateFilter() {
-		                public void filter(Coordinate coord) {
-		                	webMercator.WebMercatorToLatLong(coord);
-		                	utm.LatLongToUTM(coord);							    	
-		                }
-		            });
-						                	  		
-		    	}
-                					
-    			geometry.setSRID(crsToCode);					
-    			geometry.geometryChanged();
+    			CRS.convert(crsFrom, crsTo, geometry);
     			
     			/*Writing to index file*/
     			indexLen = handler.getLength(geometry);	        	        

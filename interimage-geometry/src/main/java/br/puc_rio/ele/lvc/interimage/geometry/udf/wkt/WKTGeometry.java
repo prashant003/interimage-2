@@ -27,8 +27,8 @@ import org.apache.pig.data.Tuple;
 import org.apache.pig.data.TupleFactory;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 
+import br.puc_rio.ele.lvc.interimage.common.GeometryParser;
 import br.puc_rio.ele.lvc.interimage.common.UUID;
-import br.puc_rio.ele.lvc.interimage.geometry.GeometryParser;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.WKBWriter;

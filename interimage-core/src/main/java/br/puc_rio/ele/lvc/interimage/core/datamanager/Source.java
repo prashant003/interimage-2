@@ -20,7 +20,7 @@ package br.puc_rio.ele.lvc.interimage.core.datamanager;
  */
 public interface Source {
 
-	public void put(String from, String to);
+	public void put(String from, String to, Resource resource);
 	
 	public String getURL();
 }

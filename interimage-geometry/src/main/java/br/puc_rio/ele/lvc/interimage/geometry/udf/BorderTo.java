@@ -26,7 +26,7 @@ import org.apache.pig.impl.logicalLayer.schema.Schema;
 
 import com.vividsolutions.jts.geom.Geometry;
 
-import br.puc_rio.ele.lvc.interimage.geometry.GeometryParser;
+import br.puc_rio.ele.lvc.interimage.common.GeometryParser;
 
 /**
  * A UDF that computes the shared border of an object in relation to the objects of a specific class that exist in the neighborhood.<br><br>

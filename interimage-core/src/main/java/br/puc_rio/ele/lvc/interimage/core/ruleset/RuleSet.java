@@ -33,6 +33,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import br.puc_rio.ele.lvc.interimage.common.Common;
 import br.puc_rio.ele.lvc.interimage.core.udf.UDFSet;
 
 /**
@@ -168,21 +169,7 @@ public class RuleSet {
 		String result = type + "_" + count;		
 		return result;
 	}
-	
-	private static boolean isNumeric(String str)  
-	{  
-	  try  
-	  {  
-	    @SuppressWarnings("unused")
-		double d = Double.parseDouble(str);  
-	  }  
-	  catch(NumberFormatException nfe)  
-	  {  
-	    return false;  
-	  }  
-	  return true;  
-	}
-	
+		
 	public String parseExpression(String expression) {
 		String result = null;
 		if (_udfSet.getUDFs().containsKey(expression)) {
@@ -214,7 +201,7 @@ public class RuleSet {
 					)
 				{
 					if (!tokens[i].isEmpty())
-						if (!isNumeric(tokens[i]))
+						if (!Common.isNumeric(tokens[i]))
 							tokens[i] = "properties#'" + tokens[i] + "'";
 				}
 				
@@ -229,11 +216,10 @@ public class RuleSet {
 		}
 		return result;
 	}
-	
-	@SuppressWarnings("unused")
-	private void loadSpectral(StringBuilder code) {
+
+	private void loadSpectral(Rule rule, StringBuilder code) {
 		
-		checkSpectral(_root);
+		checkSpectral(rule);
 		
 		if (_spectralCalculations.size()>0) {
 			
@@ -242,18 +228,22 @@ public class RuleSet {
 			
 			for (String s : _spectralCalculations) {
 				if (first) {
-					list += s;
+					list += s.replace("'", "");
 					first = false;
 				} else {
-					list += ";" + s;
+					list += ";" + s.replace("'", "");
 				}
 			}
 			
+			//TODO: Maybe a parameter could define the way spectral features will be considered
 			String relation = nextRelation("group");
-			code.append(relation + " = II_SpectralFeatures(" + _lastRelation + "," + list + "," + _parallel + ");\n");			
+			code.append("DEFINE SpectralFeatures br.puc_rio.ele.lvc.interimage.data.udf.SpectralFeatures('" + _properties.getProperty("sourceURL") + "resources/images/','" + list + "','" + _properties.getProperty("interimage.tileSize") + "');\n");
+			code.append(relation + " = II_SpectralFeatures(" + _lastRelation + "," + _parallel + ");\n");			
 			_lastRelation = relation;
 						
 		}
+		
+		_spectralCalculations.clear();
 		
 	}
 	
@@ -267,7 +257,7 @@ public class RuleSet {
 			
 			for (int k=0; k<rule.getChildren().size(); k++) {
 				
-				if (first) {
+				if (first) {					
 					evaluateRule(rule.getChildren().get(k), code);
 					loads.add(_lastRelation);
 					first = false;
@@ -349,9 +339,9 @@ public class RuleSet {
 			code.append(relation + " = FOREACH " + _lastRelation + " GENERATE FLATTEN(II_Replicate(geometry, data, properties)) AS (geometry:bytearray, data:map[], properties:map[]);\n");
 			_lastRelation = relation;
 			
-			if (!rule.getParent().getType().equals("Union")) {
-				//loadSpectral(code);
-			}
+			//if (!rule.getParent().getType().equals("Union")) {
+				loadSpectral(rule, code);
+			//}
 									
 		} else if (rule.getType().equals("And")) {
 			
@@ -859,40 +849,49 @@ public class RuleSet {
 			for (Map.Entry<String, Map<String, Object>> entry : _udfSet.getUDFs().entrySet()) {
 				String name = entry.getKey();
 				Map<String, Object> map = entry.getValue();
-				String str = "DEFINE " + map.get("alias") + " " + map.get("import");
 				
-				@SuppressWarnings("unchecked")
-				List<String> params = (List<String>)map.get("params");
+				String str = null;
 				
-				if (params.size()>0) {
+				if (!map.get("lazyDefinition").equals("true")) {
 				
-					str = str + "(";
+					str = "DEFINE " + map.get("alias") + " " + map.get("import");
 					
-					boolean first = true;
-					for (String p : params) {
+					@SuppressWarnings("unchecked")
+					List<String> params = (List<String>)map.get("params");
+					
+					if (params.size()>0) {
+					
+						str = str + "(";
 						
-						String property = null;
-						
-						if (_properties.containsKey("interimage." + name + "." + p)) {
-							property = _properties.getProperty("interimage." + name + "." + p);
-						} else if (_properties.containsKey("interimage." + p)) {
-							property = _properties.getProperty("interimage." + p);
-						} else {
-							property = "";
+						boolean first = true;
+						for (String p : params) {
+							
+							String property = null;
+							
+							if (_properties.containsKey("interimage." + name + "." + p)) {
+								property = _properties.getProperty("interimage." + name + "." + p);
+							} else if (_properties.containsKey("interimage." + p)) {
+								property = _properties.getProperty("interimage." + p);
+							} else {
+								property = "";
+							}
+							
+							if (first) {
+								str = str + "'" + property + "'";
+								first = false;
+							} else
+								str = str + ",'" + property + "'";
 						}
 						
-						if (first) {
-							str = str + "'" + property + "'";
-							first = false;
-						} else
-							str = str + ",'" + property + "'";
+						str = str + ")";
+						
 					}
 					
-					str = str + ")";
+					str = str + ";\n";
 					
+				} else {
+					str = "";
 				}
-				
-				str = str + ";\n";
 				
 				@SuppressWarnings("unchecked")
 				List<String> macros = (List<String>)map.get("macros");

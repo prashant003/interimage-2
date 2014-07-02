@@ -14,6 +14,7 @@ limitations under the License.*/
 
 package br.puc_rio.ele.lvc.interimage.core.project;
 
+import br.puc_rio.ele.lvc.interimage.common.TileManager;
 import br.puc_rio.ele.lvc.interimage.common.URL;
 import br.puc_rio.ele.lvc.interimage.core.datamanager.DataManager;
 import br.puc_rio.ele.lvc.interimage.core.datamanager.DefaultResource;
@@ -26,9 +27,6 @@ import br.puc_rio.ele.lvc.interimage.datamining.FuzzySet;
 import br.puc_rio.ele.lvc.interimage.datamining.FuzzySetList;
 import br.puc_rio.ele.lvc.interimage.geometry.Shape;
 import br.puc_rio.ele.lvc.interimage.geometry.ShapeList;
-import br.puc_rio.ele.lvc.interimage.geometry.TileManager;
-import br.puc_rio.ele.lvc.interimage.geometry.UTMLatLongConverter;
-import br.puc_rio.ele.lvc.interimage.geometry.WebMercatorLatLongConverter;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -46,6 +44,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
 
 /**
  * A class that holds the information about an interpretation project. 
@@ -155,6 +155,8 @@ public class Project {
 			    /*Reading Image List*/
 			    if (images.getLength() > 0) {
 			    				    	
+			    	String crs = null;
+			    	
 			    	for (int k = 0; k < images.getLength(); k++) {
 				    	
 			    		Node imageNode = images.item(k);
@@ -166,59 +168,45 @@ public class Project {
 					    	Image img = new Image();
 					    	String key = image.getAttribute("key");				    	
 					    	
+					    	boolean isDefault = Boolean.parseBoolean(image.getAttribute("default"));
+					    						    	
 					    	img.setKey(key);
-					    	img.setDefault(Boolean.parseBoolean(image.getAttribute("default")));
+					    	img.setDefault(isDefault);
 					    	img.setURL(image.getAttribute("file"));
 						    					    	
 					    	String crsFrom = image.getAttribute("crs");
 					    	
+					    	if (isDefault) {
+					    		crs = crsFrom;
+					    	}
+					    	
 					    	img.setCRS(crsFrom);
 					    	
-					    	//TODO: Check if this conversion can be done somewhere else
+					    	//TODO: Check if a conversion should be done here
+					    			
+					    	Point coord1 = new GeometryFactory().createPoint(new Coordinate(Double.parseDouble(image.getAttribute("geoWest")), Double.parseDouble(image.getAttribute("geoSouth"))));
+					        
+					        Point coord2 = new GeometryFactory().createPoint(new Coordinate(Double.parseDouble(image.getAttribute("geoEast")), Double.parseDouble(image.getAttribute("geoNorth"))));
 					    	
-					    	int crsFromCode = Integer.parseInt(crsFrom.split(":")[1]);
-					    						    								
-							Coordinate coord1 = new Coordinate(Double.parseDouble(image.getAttribute("geoWest")), Double.parseDouble(image.getAttribute("geoSouth")));
+					        //CRS.convert(crsFrom, crsFrom, coord1);
+					        //CRS.convert(crsFrom, crsFrom, coord2);
+					        
+							img.setGeoWest(coord1.getX());
+							img.setGeoSouth(coord1.getY());
+							img.setGeoEast(coord2.getX());					    	
+					    	img.setGeoNorth(coord2.getY());
 							
-							Coordinate coord2 = new Coordinate(Double.parseDouble(image.getAttribute("geoEast")), Double.parseDouble(image.getAttribute("geoNorth")));
-							
-					    	if (crsFromCode == 4326) {
+					    	/*System.out.println(coord1.x);
+					        System.out.println(coord1.y);
+					        System.out.println(coord2.x);
+					        System.out.println(coord2.y);*/
 					    	
-					    		WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
-								webMercator.setDatum("WGS84");
-					    		
-					    		webMercator.LatLongToWebMercator(coord1);
-					    		webMercator.LatLongToWebMercator(coord2);
-								
-					    	} else if (((crsFromCode >= 32601) && (crsFromCode <= 32660)) || ((crsFromCode >= 32701) && (crsFromCode <= 32760))) {
-					    	
-					    		int utmZone = (crsFromCode>32700) ? crsFromCode-32700 : crsFromCode-32600;
-								boolean southern = (crsFromCode>32700) ? true : false;
-						    
-								UTMLatLongConverter utm = new UTMLatLongConverter();
-								utm.setDatum("WGS84");
-								
-								WebMercatorLatLongConverter webMercator = new WebMercatorLatLongConverter();
-								webMercator.setDatum("WGS84");
-								
-								utm.UTMToLatLong(coord1, utmZone, southern);
-						    	webMercator.LatLongToWebMercator(coord1);
-						    	
-						    	utm.UTMToLatLong(coord2, utmZone, southern);
-						    	webMercator.LatLongToWebMercator(coord2);
-			                	  		
-					    	}
-					    		
-					    	img.setGeoWest(coord1.x);
-					    	img.setGeoNorth(coord2.y);
-					    	img.setGeoEast(coord2.x);
-					    	img.setGeoSouth(coord1.y);
-					    						    	
 					    	img.setCols(Integer.parseInt(image.getAttribute("cols")));
 					    	img.setRows(Integer.parseInt(image.getAttribute("rows")));
 					    	img.setBands(Integer.parseInt(image.getAttribute("bands")));
 					    		
 					    	double res = Math.abs((img.getGeoEast()-img.getGeoWest())/img.getCols());
+					    	res = Math.min(res, Math.abs((img.getGeoSouth()-img.getGeoNorth())/img.getRows()));
 					    						    	
 					    	if (res < _minResolution) {
 					    		_minResolution = res; 
@@ -230,12 +218,16 @@ public class Project {
 			    	
 			    	}
 			    				    	
-			    	_tileManager = new TileManager(_tilePixelSize * _minResolution);
+			    	_properties.setProperty("interimage.tileSize", String.valueOf(_tilePixelSize * _minResolution));
+			    				    	
+			    	//System.out.println(_properties.getProperty("interimage.tileSize"));
+			    	
+			    	_tileManager = new TileManager(_tilePixelSize * _minResolution, crs);
 			    	
 			    	_dataManager.updateGeoBBox(new double[] {_imageList.getGeoWest(), _imageList.getGeoSouth(), _imageList.getGeoEast(), _imageList.getGeoNorth()}); 
 			    	
 			    	for (Map.Entry<String, Image> entry : _imageList.getImages().entrySet()) {
-			    		_dataManager.setupResource(new SplittableResource(entry.getValue(),SplittableResource.IMAGE), _tileManager, null);
+			    		_dataManager.setupResource(new SplittableResource(entry.getValue(),SplittableResource.IMAGE), _tileManager, URL.getPath(_project));
 			    	}
 			    				    	
 			    } else {

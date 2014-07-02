@@ -32,8 +32,8 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.index.strtree.STRtree;
 import com.vividsolutions.jts.io.WKTReader;
 
-import br.puc_rio.ele.lvc.interimage.geometry.GeometryParser;
-import br.puc_rio.ele.lvc.interimage.geometry.Tile;
+import br.puc_rio.ele.lvc.interimage.common.GeometryParser;
+import br.puc_rio.ele.lvc.interimage.common.Tile;
 
 /**
  * A UDF that computes the tiles a geometry intersects.<br><br>
@@ -144,6 +144,7 @@ public class CalculateTiles extends EvalFunc<String> {
 						min = id;
 				}
 				
+				//TODO: store the full list in a property
 				tileString = "T" + String.valueOf(min);
 				
 			}

@@ -139,4 +139,40 @@ public class DataParser {
 		}
 	}
 	
+	/*public FloatProcessor parseGeometryImageData(Map<String, Map<String, Object>> tiles, int band, Image image, Geometry geometry) {
+
+		try {
+			
+			BufferedImage buff = (BufferedImage)tiles.get("0").get("image");
+			double[] geoBox = (double[])tiles.get("0").get("geoBox");
+			
+			int[] bBox = Image.imgBBox(new double[] {geometry.getEnvelopeInternal().getMinX(), geometry.getEnvelopeInternal().getMinY(), geometry.getEnvelopeInternal().getMaxX(), geometry.getEnvelopeInternal().getMaxY()}, 
+					new double[] {image.getGeoWest(), image.getGeoSouth(), image.getGeoEast(), image.getGeoNorth()}, new int[] {buff.getWidth(), buff.getHeight()});
+			
+			FloatProcessor ip = new FloatProcessor(bBox[2]-bBox[0]+1, bBox[1]-bBox[3]+1);
+			
+			int imgidx = 0;
+			
+			ImageProcessor mask = new ShortProcessor(bBox[2]-bBox[0]+1, bBox[1]-bBox[3]+1);
+			
+			for (int j=0; j<buff.getHeight(); j++) {
+				for (int i=0; i<buff.getWidth(); i++) {
+					float dArray[] = new float[buff.getRaster().getNumDataElements()];
+					buff.getRaster().getPixel(i, j, dArray);
+					ip.setf(imgidx%buff.getWidth(), imgidx/buff.getWidth(), dArray[band]);
+					imgidx++;					
+				}
+			}
+			
+			ip.setMask(mask);
+			
+			return ip;
+			
+		} catch (Exception e) {
+			System.err.println("Failed to process input; error - " + e.getMessage());
+			return null;
+		}
+		
+	}*/
+	
 }

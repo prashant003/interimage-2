@@ -15,6 +15,7 @@ limitations under the License.*/
 package br.puc_rio.ele.lvc.interimage.core.datamanager;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.ObjectOutputStream;
@@ -23,13 +24,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import br.puc_rio.ele.lvc.interimage.common.Tile;
+import br.puc_rio.ele.lvc.interimage.common.TileManager;
 import br.puc_rio.ele.lvc.interimage.common.URL;
 import br.puc_rio.ele.lvc.interimage.data.Image;
+import br.puc_rio.ele.lvc.interimage.data.ImageConverter;
 import br.puc_rio.ele.lvc.interimage.datamining.FuzzySet;
 import br.puc_rio.ele.lvc.interimage.geometry.Shape;
 import br.puc_rio.ele.lvc.interimage.geometry.ShapefileConverter;
-import br.puc_rio.ele.lvc.interimage.geometry.Tile;
-import br.puc_rio.ele.lvc.interimage.geometry.TileManager;
 
 /**
  * A class that holds the information about the data used in an interpretation project. 
@@ -111,7 +113,7 @@ public class DataManager {
 				    
 				    String to = "resources/tiles.ser";
 				    
-				    _source.put(projectPath + "tiles.ser", to);
+				    _source.put(projectPath + "tiles.ser", to, rsrc);
 				    
 				    returnUrl = _source.getURL() + to;
 				    
@@ -135,7 +137,7 @@ public class DataManager {
 				    
 				    String to = "resources/fuzzysets.ser";
 				    
-				    _source.put(projectPath + "fuzzysets.ser", to);
+				    _source.put(projectPath + "fuzzysets.ser", to, rsrc);
 				    
 				    returnUrl = _source.getURL() + to;
 				    
@@ -153,7 +155,7 @@ public class DataManager {
 										
 					String to = "resources/" + shp.getKey() + ".csv";
 					
-					_source.put(url, to);
+					_source.put(url, to, rsrc);
 					
 					returnUrl = _source.getURL() + to;
 					
@@ -163,18 +165,18 @@ public class DataManager {
 					
 					String to = "resources/shapes/" + shp.getKey() + ".wkt";
 					
-					_source.put(url, to);
+					_source.put(url, to, rsrc);
 					
 					returnUrl = _source.getURL() + to;
 					
 				} else if (url.contains(".shp")) {
 										
 					String wkt = URL.getPath(url) + URL.getFileNameWithoutExtension(url) + ".wkt";
-					ShapefileConverter.shapefileToWKT(url, wkt, shp.getCRS());
+					ShapefileConverter.shapefileToWKT(url, wkt, shp.getCRS(), shp.getCRS());
 					
 					String to = "resources/shapes/" + shp.getKey() + ".wkt";
 					
-					_source.put(wkt, to);
+					_source.put(wkt, to, rsrc);
 					
 					returnUrl = _source.getURL() + to;
 					
@@ -217,11 +219,11 @@ public class DataManager {
 				
 				if (url.contains(".pig")) {
 				
-					_source.put(path + name, "resources/scripts/" + name);
+					_source.put(path + name, "resources/scripts/" + name, rsrc);
 					
 				} else if (url.contains(".jar")) {
 					
-					_source.put(path + name, "resources/libs/" + name);
+					_source.put(path + name, "resources/libs/" + name, rsrc);
 					
 				}
 				
@@ -235,11 +237,24 @@ public class DataManager {
 				
 				Image img = (Image)rsrc.getObject();
 				
-				String url = img.getURL();
-												
-				if (url.contains(".tif")) {
+				String key = img.getKey();
 				
-					//TODO: convert, cut and upload
+				String url = img.getURL();
+				
+				//TODO: treat other formats
+				if ((url.endsWith(".tif")) || (url.endsWith(".tiff"))) {
+										
+					ImageConverter.ImageToJSON(img, projectPath + "images/" + key + "/", null, true, tileManager);
+					
+					File folder = new File(projectPath + "images/" + key + "/");
+					
+					for (final File fileEntry : folder.listFiles()) {
+				        if (fileEntry.isDirectory()) {
+				        	//ignore
+				        } else {
+				        	_source.put(projectPath + "images/" + key + "/" + fileEntry.getName(), "resources/images/" + fileEntry.getName(), rsrc);
+				        }
+				    }
 					
 				}
 								
@@ -269,13 +284,18 @@ public class DataManager {
 					list.add("ury");
 					
 					String json = URL.getPath(url) + URL.getFileNameWithoutExtension(url) + ".json";
-					ShapefileConverter.shapefileToJSON(url, json, list, false, shp.getCRS(), gbox, tileManager);
-					
+					ShapefileConverter.shapefileToJSON(url, json, list, false, shp.getCRS(), shp.getCRS(), gbox, tileManager);
+					//ShapefileConverter.JSONToShapefile(json, "C:\\Users\\Rodrigo\\Desktop\\test.shp", list, false, shp.getCRS(), shp.getCRS());
 					String to = "resources/shapes/" + shp.getKey() + ".json";
 					
-					_source.put(json, to);
+					_source.put(json, to, rsrc);
 					
 					returnUrl = _source.getURL() + to;
+					
+					/*System.out.println(gbox[0]);
+					System.out.println(gbox[1]);
+					System.out.println(gbox[2]);
+					System.out.println(gbox[3]);*/
 					
 					/*Updating the global bbox*/
 					updateGeoBBox(gbox);

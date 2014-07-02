@@ -115,5 +115,39 @@ public class Image {
 	public String getCRS() {
 		return _crs;
 	}
+
+	public static double imgToGeoX(double x, int cols, double imgGeo[]) {
+	    return ((x+0.5) * ((imgGeo[2]-imgGeo[0]) / cols)) + imgGeo[0];
+	}
+	
+	public static double imgToGeoY(double y, int rows, double imgGeo[]) {
+	    return ((y+0.5) * ((imgGeo[1]-imgGeo[3]) / rows)) + imgGeo[3];
+	}
+	
+	public static double geoToImgX(double geoX, int cols, double imgGeo[]) {
+		return ((geoX-imgGeo[0]) / (imgGeo[2]-imgGeo[0])) * cols;
+	}
+	
+	public static double geoToImgY(double geoY, int rows, double imgGeo[]) {
+		return ((geoY-imgGeo[3]) / (imgGeo[1]-imgGeo[3])) * rows;
+	}
+
+	public static int[] imgBBox(double tileGeo[], double imgGeo[], int imgSize[]) {
+		int[] tileBBox = new int[4];
+		tileBBox[0] = (int)Math.floor(geoToImgX(tileGeo[0],imgSize[0],imgGeo) + 0.5);
+		tileBBox[2] = (int)Math.floor(geoToImgX(tileGeo[2],imgSize[0],imgGeo) - 0.5);
+	    tileBBox[1] = (int)Math.floor(geoToImgY(tileGeo[1],imgSize[1],imgGeo) - 0.5);	    
+	    tileBBox[3] = (int)Math.floor(geoToImgY(tileGeo[3],imgSize[1],imgGeo) + 0.5);
+	    return tileBBox;
+	}
+
+	public static double[] geoBBox(int tile[], double imgGeo[], int imgSize[]) {
+		double[] geoBBox = new double[4];
+		geoBBox[0] = imgToGeoX(tile[0] - 0.5, imgSize[0], imgGeo);
+		geoBBox[2] = imgToGeoX(tile[2] + 0.5, imgSize[0], imgGeo);
+		geoBBox[1] = imgToGeoY(tile[1] + 0.5, imgSize[1], imgGeo);
+		geoBBox[3] = imgToGeoY(tile[3] - 0.5, imgSize[1], imgGeo);
+	    return geoBBox;
+	}
 	
 }

@@ -39,7 +39,7 @@ import org.w3c.dom.NodeList;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.WKBWriter;
 
-import br.puc_rio.ele.lvc.interimage.geometry.GeometryParser;
+import br.puc_rio.ele.lvc.interimage.common.GeometryParser;
 import br.puc_rio.ele.lvc.interimage.common.UUID;
 
 /**

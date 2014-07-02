@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>net.imglib2</groupId>
+  <artifactId>imglib2-io</artifactId>
+  <versioning>
+    <versions>
+      <version>2.0.0-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20140701114414</lastUpdated>
+  </versioning>
+</metadata>

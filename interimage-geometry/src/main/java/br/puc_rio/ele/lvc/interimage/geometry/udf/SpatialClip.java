@@ -36,9 +36,9 @@ import org.apache.pig.data.Tuple;
 import org.apache.pig.data.TupleFactory;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 
+import br.puc_rio.ele.lvc.interimage.common.GeometryParser;
+import br.puc_rio.ele.lvc.interimage.common.Tile;
 import br.puc_rio.ele.lvc.interimage.common.UUID;
-import br.puc_rio.ele.lvc.interimage.geometry.GeometryParser;
-import br.puc_rio.ele.lvc.interimage.geometry.Tile;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.index.strtree.STRtree;
@@ -181,11 +181,13 @@ public class SpatialClip extends EvalFunc<DataBag> {
 		        			Tuple t = TupleFactory.getInstance().newTuple(3);
 		        			t.set(0,new DataByteArray(bytes));
 		        			t.set(1,new HashMap<String,String>(data));
-		        			t.set(2,new HashMap<String,Object>(properties));
-		        			bag.add(t);
-		        				        
-		        		    properties.put("iiuuid",new UUID(null).random());
 		        			
+		        			HashMap<String,Object> props = new HashMap<String,Object>(properties);
+		        			props.put("iiuuid",new UUID(null).random());		        			
+		        			t.set(2,props);
+		        			
+		        			bag.add(t);
+		        					        			
 		        		}
 		        		
 		        	}

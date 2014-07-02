@@ -35,20 +35,8 @@ public class gController extends DefaultDirectedGraph<gNode, gEdge> {
 				node.setAvailable(true);
 	}
 	
-	public gMortarOperator addMortarOperator(String scriptPath){
-		gMortarOperator node = new gMortarOperator(scriptPath);
-		this.addVertex(node);
-		return node;
-	}
-	
-	public gCommandLineOperator addCommandLineOperator(String command){
-		gCommandLineOperator node = new gCommandLineOperator(command);
-		this.addVertex(node);
-		return node;
-	}
-	
-	public gII1Operator addII1Operator(){
-		gII1Operator node = new gII1Operator();
+	public gMortarNode addMortarOperator(String scriptPath){
+		gMortarNode node = new gMortarNode(scriptPath);
 		this.addVertex(node);
 		return node;
 	}

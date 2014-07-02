@@ -15,6 +15,7 @@ limitations under the License.*/
 package br.puc_rio.ele.lvc.interimage.common;
 
 import java.io.File;
+import java.net.HttpURLConnection;
 
 /**
  * Help class to work with URLs.
@@ -69,5 +70,21 @@ public class URL {
         return fileNameWithoutExtention;
 		
 	}
+	
+	public static boolean exists(String URLName){
+	    try {
+	      HttpURLConnection.setFollowRedirects(false);
+	      // note : you may also need
+	      //        HttpURLConnection.setInstanceFollowRedirects(false)
+	      HttpURLConnection con =
+	         (HttpURLConnection) new java.net.URL(URLName).openConnection();
+	      con.setRequestMethod("HEAD");
+	      return (con.getResponseCode() == HttpURLConnection.HTTP_OK);
+	    }
+	    catch (Exception e) {
+	       e.printStackTrace();
+	       return false;
+	    }
+	  }
 	
 }
