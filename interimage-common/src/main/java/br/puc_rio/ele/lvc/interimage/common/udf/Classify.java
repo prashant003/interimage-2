@@ -64,12 +64,12 @@ public class Classify extends EvalFunc<Map<String,Object>> {
 				objProperties.put("class", className);
 				objProperties.put("membership", membership);
 				
-			} else {
+			} /*else {
 				
 				objProperties.put("class", "None");
 				objProperties.put("membership", 0.0);
 				
-			}
+			}*/
 			
 			return objProperties;
 			

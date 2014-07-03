@@ -16,9 +16,7 @@ package br.puc_rio.ele.lvc.interimage.geometry.udf;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -31,13 +29,9 @@ import org.apache.pig.data.TupleFactory;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 
 import br.puc_rio.ele.lvc.interimage.common.GeometryParser;
-import br.puc_rio.ele.lvc.interimage.geometry.SpatialIndex;
+import br.puc_rio.ele.lvc.interimage.common.SpatialIndex;
 
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.index.strtree.AbstractNode;
-import com.vividsolutions.jts.index.strtree.Boundable;
-import com.vividsolutions.jts.index.strtree.ItemBoundable;
-import com.vividsolutions.jts.geom.Envelope;
 
 /**
  * A UDF that spatially joins geometries.<br><br>
@@ -58,6 +52,7 @@ import com.vividsolutions.jts.geom.Envelope;
 public class SpatialJoin extends EvalFunc<DataBag> {
 	
 	private final GeometryParser _geometryParser = new GeometryParser();
+	@SuppressWarnings("unused")
 	private String _joinType = null;
 	
 	/**Constructor that takes the join method. It can be 'index-nested-loop' or 'hierarchical-traversal'.*/
@@ -67,8 +62,7 @@ public class SpatialJoin extends EvalFunc<DataBag> {
 	
 	/**This method computes intersecting pairs using the index nested loop method.<br>
 	 * It is used by {@link #computeHierarchicalTraversalJoin(DataBag, DataBag, DataBag, boolean)}.*/
-	@SuppressWarnings("unchecked")	
-	private List<Map<String,Boundable>> findIntersectingPairs(Map<String,Boundable> map) {
+	/*private List<Map<String,Boundable>> findIntersectingPairs(Map<String,Boundable> map) {
 		
 		List<Map<String,Boundable>> list = new ArrayList<Map<String,Boundable>>();
 		
@@ -160,15 +154,15 @@ public class SpatialJoin extends EvalFunc<DataBag> {
 		}
 	
 		return list;
-	}
+	}*/
 	
 	/**This method computes a spatial join using a hierarchical traversal method.*/
-	private void computeHierarchicalTraversalJoin(DataBag bag1, DataBag bag2, DataBag output) {
+	/*private void computeHierarchicalTraversalJoin(DataBag bag1, DataBag bag2, DataBag output) {
 	
 		try {
 			
-			SpatialIndex index1 = createIndex(bag1);
-			SpatialIndex index2 = createIndex(bag2);
+			SpatialIndex index1 = createIndex(bag1, 0);
+			SpatialIndex index2 = createIndex(bag2, 0);
 			
 			index1.build();
 			index2.build();
@@ -225,48 +219,66 @@ public class SpatialJoin extends EvalFunc<DataBag> {
 			System.err.println("Failed to compute join; error - " + e.getMessage());
 		}
 		
-	}
+	}*/
 	
 	/**This method computes a spatial join using the index nested loop method.*/
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private void computeIndexNestedLoopJoin(DataBag bag1, DataBag bag2, DataBag output, boolean invert) {
+	private void computeIndexNestedLoopJoin(DataBag bag1, List<DataBag> bagList, DataBag output) {
 		
 		try {
 			
-			SpatialIndex index = createIndex(bag2);
+			int size = bagList.size();
+			
+			SpatialIndex[] index = new SpatialIndex[size];
+			Long currentTileId = null;
 			
 			Iterator it = bag1.iterator();
 	        while (it.hasNext()) {
 	            Tuple t1 = (Tuple)it.next();
 	        	Geometry geometry = _geometryParser.parseGeometry(t1.get(0));
 	            
-	        	List<Tuple> list = index.query(geometry.getEnvelopeInternal());
+	        	Map<String,Object> properties = DataType.toMap(t1.get(2));
+	        	
+	        	String tileStr = DataType.toString(properties.get("tile"));
+								
+				long tileId = Long.parseLong(tileStr.substring(1));
+	        	
+				if (currentTileId == null)
+					currentTileId = (long)-1;
+				
+				if (currentTileId != tileId) {
+					
+					for (int k=0; k<size; k++)
+						index[k] = createIndex(bagList.get(k), tileId);
+					
+					currentTileId = tileId;
+				}
+	        	
+				List<Tuple> list = new ArrayList<Tuple>();
+	        	
+	        	for (int k=0; k<size; k++) {
+	        		List<Tuple> l = index[k].query(geometry.getEnvelopeInternal());
+	        		list.addAll(l);
+	        	}
+	        	
+	        	Tuple tuple = TupleFactory.getInstance().newTuple(3*size+1);
+	        	
+	        	tuple.set(0,t1.get(0));
+    			tuple.set(1,t1.get(1));
+    			tuple.set(2,t1.get(2));
+    			
+    			int count = 3;
 	        	
 	        	for (Tuple t2 : list) {
-	        			
-        			Tuple tuple = TupleFactory.getInstance().newTuple(6);	        			
+	        		        			
+        			tuple.set(count+0,t2.get(0));
+        			tuple.set(count+1,t2.get(1));
+        			tuple.set(count+2,t2.get(2));
         			
-        			if (!invert) {
-	        			tuple.set(0,t1.get(0));
-	        			tuple.set(1,t1.get(1));
-	        			tuple.set(2,t1.get(2));
-	        			
-	        			tuple.set(3,t2.get(0));
-	        			tuple.set(4,t2.get(1));
-	        			tuple.set(5,t2.get(2));
-        			} else {
-        				tuple.set(0,t2.get(0));
-	        			tuple.set(1,t2.get(1));
-	        			tuple.set(2,t2.get(2));
-	        			
-	        			tuple.set(3,t1.get(0));
-	        			tuple.set(4,t1.get(1));
-	        			tuple.set(5,t1.get(2));
-        			}
-        			
-        			output.add(tuple);
-
+    			    count = count + 3;
 	        	}
+	        	
+	        	output.add(tuple);
 	        	
 	        }
 	        
@@ -278,7 +290,7 @@ public class SpatialJoin extends EvalFunc<DataBag> {
 	
 	/**This method creates an STR-Tree index for the input bag and returns it.*/
 	@SuppressWarnings("rawtypes")
-	private SpatialIndex createIndex(DataBag bag) {
+	private SpatialIndex createIndex(DataBag bag, long tileId) {
 		
 		SpatialIndex index = null;
 		
@@ -286,12 +298,29 @@ public class SpatialJoin extends EvalFunc<DataBag> {
 		
 			index = new SpatialIndex();
 					
+			Long currentTileId = null;
+			
 			Iterator it = bag.iterator();
 	        while (it.hasNext()) {
 	            Tuple t = (Tuple)it.next();
             	Geometry geometry = _geometryParser.parseGeometry(t.get(0));
-            	            	
-                index.insert(geometry.getEnvelopeInternal(),t);
+            	
+            	Map<String,Object> properties = DataType.toMap(t.get(2));
+            	
+            	String tileStr = DataType.toString(properties.get("tile"));
+				
+				long id = Long.parseLong(tileStr.substring(1));
+				
+				if (currentTileId == null)
+					currentTileId = id;
+				
+				/* As polygons are ordered by tile id, we don't have to go through all polygons. */
+				if ((id != currentTileId) && (currentTileId == tileId))
+					break;					
+				
+				if (id == tileId)
+					index.insert(geometry.getEnvelopeInternal(),t);
+					
 	        }
 		} catch (Exception e) {
 			System.err.println("Failed to index bag; error - " + e.getMessage());
@@ -320,24 +349,15 @@ public class SpatialJoin extends EvalFunc<DataBag> {
 			DataBag output = BagFactory.getInstance().newDefaultBag();
 			
 			DataBag bag1 = DataType.toBag(input.get(0));
-			DataBag bag2 = DataType.toBag(input.get(1));
 			
-			if ((bag1.size() == 0) || (bag2.size() == 0))
-				return null;
+			List<DataBag> bagList = new ArrayList<DataBag>();
 			
-			if (_joinType.equals("index-nested-loop")) {
-			
-				if (bag1.size() > bag2.size()) {
-					computeIndexNestedLoopJoin(bag2, bag1, output, true);
-				} else {
-					computeIndexNestedLoopJoin(bag1, bag2, output, false);
-				}
-				
-			} else if (_joinType.equals("hierarchical-traversal")) {
-				computeHierarchicalTraversalJoin(bag1, bag2, output);
-			} else {
-				computeHierarchicalTraversalJoin(bag1, bag2, output);
+			for (int i=1; i<input.size(); i++) {
+				DataBag bag2 = DataType.toBag(input.get(i));
+				bagList.add(bag2);				
 			}
+			
+			computeIndexNestedLoopJoin(bag1, bagList, output);
 			
 			return output;
 			
@@ -355,10 +375,12 @@ public class SpatialJoin extends EvalFunc<DataBag> {
 			list.add(new Schema.FieldSchema(null, DataType.BYTEARRAY));
 			list.add(new Schema.FieldSchema(null, DataType.MAP));
 			list.add(new Schema.FieldSchema(null, DataType.MAP));
-			
-			list.add(new Schema.FieldSchema(null, DataType.BYTEARRAY));
-			list.add(new Schema.FieldSchema(null, DataType.MAP));
-			list.add(new Schema.FieldSchema(null, DataType.MAP));
+						
+			for (int i=0; i<(input.size()-1); i++) {
+				list.add(new Schema.FieldSchema(null, DataType.BYTEARRAY));
+				list.add(new Schema.FieldSchema(null, DataType.MAP));
+				list.add(new Schema.FieldSchema(null, DataType.MAP));
+			}
 			
 			Schema tupleSchema = new Schema(list);
 			

@@ -27,7 +27,7 @@ import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 
 /**
- * A UDF that combines two bags into one.<br><br>
+ * A UDF that combines several bags into one.<br><br>
  * Example:<br>
  * 		A = load 'mydata1' as (geometry, data, properties);<br>
  * 		B = load 'mydata2' as (geometry, data, properties);<br>
@@ -41,7 +41,7 @@ public class Combine extends EvalFunc<DataBag> {
 	/**
      * Method invoked on every bag during foreach evaluation.
      * @param input tuple<br>
-     * the columns are assumed to have a bags
+     * the columns are assumed to have the bags
      * @exception java.io.IOException
      * @return a bag with the input bags combined
      */
@@ -62,7 +62,7 @@ public class Combine extends EvalFunc<DataBag> {
 		        while (it.hasNext()) {
 		        	Tuple t = (Tuple)it.next();
 		        	output.add(t);
-		        }				
+		        }
 			}
 			
 			return output;

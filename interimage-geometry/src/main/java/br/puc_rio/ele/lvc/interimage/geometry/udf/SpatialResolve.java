@@ -23,47 +23,34 @@ import java.util.Map;
 import org.apache.pig.EvalFunc;
 import org.apache.pig.data.BagFactory;
 import org.apache.pig.data.DataBag;
+import org.apache.pig.data.DataByteArray;
 import org.apache.pig.data.DataType;
 import org.apache.pig.data.Tuple;
-import org.apache.pig.data.TupleFactory;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 
 import br.puc_rio.ele.lvc.interimage.common.GeometryParser;
 import br.puc_rio.ele.lvc.interimage.common.SpatialIndex;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.WKBWriter;
 
 /**
- * A UDF that spatially groups geometries.<br><br>
+ * A UDF that combines several bags into one considering spatial overlaps and resolving them.<br><br>
  * Example:<br>
- * 		A = load 'mydata1' as (geom);<br>
- * 		B = load 'mydata2' as (geom);<br>
- * 		C = SpatialGroup(A,B,2);<br>
+ * 		A = load 'mydata1' as (geometry, data, properties);<br>
+ * 		B = load 'mydata2' as (geometry, data, properties);<br>
+ * 		C = cogroup A by properties#'tile', B by properties#'tile';<br>
+ * 		D = flatten(SpatialResolve(A,B));
  * @author Rodrigo Ferreira
- * <br><br>
- * The method provided by this class is described in this paper:
- * Edwin H. Jacox and Hanan Samet. 2007. Spatial join techniques.
- * ACM Trans. Database Syst. 32, 1, Article 7 (March 2007).
- * DOI=10.1145/1206049.1206056 http://doi.acm.org/10.1145/1206049.1206056
  * 
- * TODO: Should create new objects as in clip?
- *   
  */
-public class SpatialGroup extends EvalFunc<DataBag> {
-	
+public class SpatialResolve extends EvalFunc<DataBag> {
+		
 	private final GeometryParser _geometryParser = new GeometryParser();
 	
-	private Double _distance = null;
-	
-	/**Constructor that takes the distance used to group the objects.*/
-	public SpatialGroup(String distance) {
-		if (!distance.isEmpty())
-			_distance = Double.parseDouble(distance);		
-	}
-	
-	/**This method computes a spatial grouping using the index nested loop method.*/
+	/**This method computes a spatial resolve using the index nested loop method.*/
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private void computeIndexNestedLoopGroup(DataBag bag1, List<DataBag> bagList, DataBag output) {
+	private void computeIndexNestedLoopSpatialResolve(DataBag bag1, List<DataBag> bagList, DataBag output) {
 		
 		try {
 			
@@ -75,19 +62,17 @@ public class SpatialGroup extends EvalFunc<DataBag> {
 			Iterator it = bag1.iterator();
 	        while (it.hasNext()) {
 	            Tuple t1 = (Tuple)it.next();
-	        	Geometry geometry = null;
+	        	Geometry geom1 = null;
 	            
-	        	if (_distance != null) {
-	        		geometry = _geometryParser.parseGeometry(t1.get(0)).buffer(_distance);
-	        	} else {
-	        		geometry = _geometryParser.parseGeometry(t1.get(0));
-	        	}
+	        	geom1 = _geometryParser.parseGeometry(t1.get(0));
 	        	
-	        	Map<String,Object> properties = DataType.toMap(t1.get(2));
+	        	Map<String,Object> props1 = DataType.toMap(t1.get(2));
 	        	
-	        	String tileStr = DataType.toString(properties.get("tile"));
+	        	String tileStr = DataType.toString(props1.get("tile"));
 								
 				long tileId = Long.parseLong(tileStr.substring(1));
+				
+				double membership1 = DataType.toDouble(props1.get("membership"));
 	        	
 				if (currentTileId == null)
 					currentTileId = (long)-1;
@@ -100,44 +85,43 @@ public class SpatialGroup extends EvalFunc<DataBag> {
 					currentTileId = tileId;
 				}
 				
-	        	Tuple tuple1 = TupleFactory.getInstance().newTuple(4);
-	        	
 	        	List<Tuple> list = new ArrayList<Tuple>();
 	        	
 	        	for (int k=0; k<size; k++) {
-	        		List<Tuple> l = index[k].query(geometry.getEnvelopeInternal());
+	        		List<Tuple> l = index[k].query(geom1.getEnvelopeInternal());
 	        		list.addAll(l);
 	        	}
 	        	
-	        	tuple1.set(0,t1.get(0));
-	        	tuple1.set(1,t1.get(1));
-	        	tuple1.set(2,t1.get(2));
-	        	
-	        	DataBag bag = BagFactory.getInstance().newDefaultBag();
-	        	
-	        	Tuple tuple2 = TupleFactory.getInstance().newTuple(3*size);
-	        	
-	        	int count = 0;
-	        	
 	        	for (Tuple t2 : list) {
 	        		
-        			tuple2.set(count+0,t2.get(0));
-        			tuple2.set(count+1,t2.get(1));
-        			tuple2.set(count+2,t2.get(2));
-        			        			
-        			count = count + 3;
-
+	        		Geometry geom2 = _geometryParser.parseGeometry(t2.get(0));
+        		
+	        		Map<String,Object> props2 = DataType.toMap(t2.get(2));
+		        	
+		        	double membership2 = DataType.toDouble(props2.get("membership"));
+	        		
+	        		if (geom1.intersects(geom2)) {
+	        			
+	        			if (membership1 >= membership2) {
+	        				Geometry g = geom2.difference(geom1);
+	        				byte[] bytes = new WKBWriter().write(g);
+	        				t2.set(0, new DataByteArray(bytes));
+	        			} else {
+	        				Geometry g = geom1.difference(geom2);
+	        				byte[] bytes = new WKBWriter().write(g);
+	        				t1.set(0, new DataByteArray(bytes));
+	        			}
+	        			
+	        		}
+	        		
 	        	}
 	        	
-	        	bag.add(tuple2);
-	        	
-	        	tuple1.set(3,bag);
-	        	output.add(tuple1);
+	        	output.add(t1);
 	        	
 	        }
 	        
 		} catch (Exception e) {
-			System.err.println("Failed to compute the grouping; error - " + e.getMessage());
+			System.err.println("Failed to compute the spatial resolve; error - " + e.getMessage());
 		}
 
 	}
@@ -187,9 +171,9 @@ public class SpatialGroup extends EvalFunc<DataBag> {
 	/**
      * Method invoked on every bag during foreach evaluation.
      * @param input tuple<br>
-     * the columns are assumed to have the bags; the first is the reference and the others are the targets
+     * the columns are assumed to have the bags
      * @exception java.io.IOException
-     * @return a bag with the reference tuple and the grouped target tuples
+     * @return a bag with the input bags spatially resolved
      */
 	@Override
 	public DataBag exec(Tuple input) throws IOException {
@@ -198,19 +182,28 @@ public class SpatialGroup extends EvalFunc<DataBag> {
             return null;
 		
 		try {
-			
+						
 			DataBag output = BagFactory.getInstance().newDefaultBag();
-			
-			DataBag bag1 = DataType.toBag(input.get(0));
-			
-			List<DataBag> bagList = new ArrayList<DataBag>();
-			
-			for (int i=1; i<input.size(); i++) {
-				DataBag bag2 = DataType.toBag(input.get(i));
-				bagList.add(bag2);				
+						
+			for (int i=0; i<input.size(); i++) {
+				DataBag bag1 = DataType.toBag(input.get(i));				
+				
+				if (i<(input.size()-1)) {//not necessary for the last bag
+				
+					List<DataBag> bagList = new ArrayList<DataBag>();
+					
+					for (int j=i+1; j<input.size(); j++) {
+						
+						DataBag bag2 = DataType.toBag(input.get(i));
+						bagList.add(bag2);
+						
+					}
+					
+					computeIndexNestedLoopSpatialResolve(bag1, bagList, output);
+					
+				}
+				
 			}
-			
-			computeIndexNestedLoopGroup(bag1, bagList, output);
 			
 			return output;
 			
@@ -225,34 +218,19 @@ public class SpatialGroup extends EvalFunc<DataBag> {
 		try {
 
 			List<Schema.FieldSchema> list = new ArrayList<Schema.FieldSchema>();
-			
-			for (int i=0; i<(input.size()-1); i++) {
-				list.add(new Schema.FieldSchema(null, DataType.BYTEARRAY));
-				list.add(new Schema.FieldSchema(null, DataType.MAP));
-				list.add(new Schema.FieldSchema(null, DataType.MAP));
-			}
+			list.add(new Schema.FieldSchema(null, DataType.BYTEARRAY));
+			list.add(new Schema.FieldSchema(null, DataType.MAP));
+			list.add(new Schema.FieldSchema(null, DataType.MAP));
 			
 			Schema tupleSchema = new Schema(list);
 			
 			Schema.FieldSchema ts = new Schema.FieldSchema(null, tupleSchema, DataType.TUPLE);
 			
 			Schema bagSchema = new Schema(ts);
-						
-			List<Schema.FieldSchema> list2 = new ArrayList<Schema.FieldSchema>();
-			list2.add(new Schema.FieldSchema(null, DataType.BYTEARRAY));
-			list2.add(new Schema.FieldSchema(null, DataType.MAP));
-			list2.add(new Schema.FieldSchema(null, DataType.MAP));
-			list2.add(new Schema.FieldSchema(null, bagSchema, DataType.BAG));
 			
-			Schema tupleSchema2 = new Schema(list2);
+			Schema.FieldSchema bs = new Schema.FieldSchema(null, bagSchema, DataType.BAG);
 			
-			Schema.FieldSchema ts2 = new Schema.FieldSchema(null, tupleSchema2, DataType.TUPLE);
-			
-			Schema bagSchema2 = new Schema(ts2);
-			
-			Schema.FieldSchema bs2 = new Schema.FieldSchema(null, bagSchema2, DataType.BAG);
-			
-			return new Schema(bs2);
+			return new Schema(bs);
 
 		} catch (Exception e) {
 			return null;

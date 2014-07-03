@@ -12,7 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.*/
 
-package br.puc_rio.ele.lvc.interimage.geometry;
+package br.puc_rio.ele.lvc.interimage.common;
 
 import com.vividsolutions.jts.index.strtree.AbstractNode;
 import com.vividsolutions.jts.index.strtree.STRtree;

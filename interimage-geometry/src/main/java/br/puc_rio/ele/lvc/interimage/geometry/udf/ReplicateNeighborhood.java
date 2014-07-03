@@ -41,8 +41,8 @@ import com.vividsolutions.jts.io.WKBWriter;
 import com.vividsolutions.jts.io.WKTReader;
 
 import br.puc_rio.ele.lvc.interimage.common.GeometryParser;
+import br.puc_rio.ele.lvc.interimage.common.SpatialIndex;
 import br.puc_rio.ele.lvc.interimage.common.Tile;
-import br.puc_rio.ele.lvc.interimage.geometry.SpatialIndex;
 
 /**
  * A UDF that recalculates the tiles according to a neighborhood criterion.<br><br>
