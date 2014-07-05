@@ -115,6 +115,12 @@ public class Project {
 			InputStream input = new FileInputStream("interimage.properties");
 
 			_properties.load(input);
+			
+			/*Setting reduce parallelism*/
+			int clusterSize = Integer.parseInt(_properties.getProperty("interimage.clusterSize"));
+			int parallel = (int)Math.round(clusterSize * 0.8);
+			
+			_properties.setProperty("interimage.parallel", String.valueOf(parallel));
 
 			_tilePixelSize = Integer.parseInt(_properties.getProperty("interimage.tileSize"));
 			
@@ -218,7 +224,7 @@ public class Project {
 			    	
 			    	}
 			    				    	
-			    	_properties.setProperty("interimage.tileSize", String.valueOf(_tilePixelSize * _minResolution));
+			    	_properties.setProperty("interimage.tileSizeMeters", String.valueOf(_tilePixelSize * _minResolution));
 			    				    	
 			    	//System.out.println(_properties.getProperty("interimage.tileSize"));
 			    	
@@ -262,7 +268,7 @@ public class Project {
 			    	}
 			    				    	
 			    } else {
-			    	throw new Exception("No shape tag defined");
+			    	System.out.println("Warning: No shape tag defined in your project file.");
 			    }
 			    	
 			    /*Creating Tiles*/
@@ -270,7 +276,7 @@ public class Project {
 			    
 			    String tileUrl = null;
 			    
-			    tileUrl = _dataManager.setupResource(new DefaultResource(_tileManager.getTiles(), DefaultResource.TILE), null, URL.getPath(_project));
+			    tileUrl = _dataManager.setupResource(new DefaultResource(_tileManager.getTiles(), DefaultResource.TILE), _tileManager, URL.getPath(_project));
 			    		
 			    _properties.setProperty("interimage.tileUrl", tileUrl);
 			    
@@ -287,7 +293,7 @@ public class Project {
 			    		fuzzyUrl = _dataManager.setupResource(new DefaultResource(new ArrayList<FuzzySet>(_fuzzySetList.getFuzzySets().values()), DefaultResource.FUZZY_SET), null, URL.getPath(_project));			    	
 			    	
 			    } else {
-			    	throw new Exception("No fuzzysets tag defined");
+			    	System.out.println("Warning: No fuzzysets tag defined in your project file.");
 			    }
 			    
 			    _properties.setProperty("interimage.fuzzyUrl", fuzzyUrl);
@@ -295,8 +301,8 @@ public class Project {
 			    _ruleSet.setup(_properties);
 			    
 			    //Test			    
-			    _ruleSet.readOldFile("C:\\Users\\Rodrigo\\Desktop\\test.dt");
-			    System.out.println(_ruleSet.getPigCode());
+			    //_ruleSet.readOldFile("C:\\Users\\Rodrigo\\Desktop\\test.dt");
+			    //System.out.println(_ruleSet.getPigCode());
 			    //Test
 			    
 			    /*Sending libs to the cluster*/			    

@@ -62,6 +62,7 @@ public class RuleSet {
 		_counts.put("filter", 0);
 		_counts.put("group", 0);
 		_counts.put("load", 0);
+		_counts.put("union", 0);
 		_lastRelation = "undefined";
 		_lastClassRelation = "undefined";
 		
@@ -237,7 +238,7 @@ public class RuleSet {
 			
 			//TODO: Maybe a parameter could define the way spectral features will be considered
 			String relation = nextRelation("group");
-			code.append("DEFINE SpectralFeatures br.puc_rio.ele.lvc.interimage.data.udf.SpectralFeatures('" + _properties.getProperty("sourceURL") + "resources/images/','" + list + "','" + _properties.getProperty("interimage.tileSize") + "');\n");
+			code.append("DEFINE SpectralFeatures br.puc_rio.ele.lvc.interimage.data.udf.SpectralFeatures('" + _properties.getProperty("sourceURL") + "resources/images/','" + list + "','" + _properties.getProperty("interimage.tileSizeMeters") + "');\n");
 			code.append(relation + " = II_SpectralFeatures(" + _lastRelation + "," + _parallel + ");\n");			
 			_lastRelation = relation;
 						
@@ -270,7 +271,7 @@ public class RuleSet {
 			
 			code.append("\n");
 			
-			String relation = nextRelation("group");
+			/*String relation = nextRelation("group");
 			code.append(relation + " = COGROUP ");
 			
 			first = true;
@@ -286,7 +287,10 @@ public class RuleSet {
 			_lastRelation = relation;
 			
 			relation = nextRelation("projection");
-			code.append(relation + " = FOREACH " + _lastRelation + " GENERATE FLATTEN(II_Combine(");
+			code.append(relation + " = FOREACH " + _lastRelation + " GENERATE FLATTEN(II_Combine(");*/
+			
+			String relation = nextRelation("union");
+			code.append(relation + " = UNION ");
 			
 			first = true;
 			for (int i=0; i<loads.size(); i++) {
@@ -297,7 +301,11 @@ public class RuleSet {
 					code.append(", " + loads.get(i));
 			}
 		
-			code.append(")) AS (geometry:bytearray, data:map[], properties:map[]);");
+			/*code.append(")) AS (geometry:bytearray, data:map[], properties:map[]);");
+			_lastRelation = relation;*/
+			
+			code.append(";\n");
+			
 			_lastRelation = relation;
 			
 			return;

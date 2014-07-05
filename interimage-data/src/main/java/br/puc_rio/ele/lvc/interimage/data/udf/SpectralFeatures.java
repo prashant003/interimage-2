@@ -273,7 +273,7 @@ public class SpectralFeatures extends EvalFunc<DataBag> {
 									if (buff == null)
 										throw new Exception("Could not instantiate tile image: " + imageFile.toString());
 									
-									URL worldFile = new URL(_imageUrl + img + "_" + tile + ".tifw");
+									/*URL worldFile = new URL(_imageUrl + img + "_" + tile + ".tifw");
 									URLConnection urlConn = worldFile.openConnection();
 					                urlConn.connect();
 									InputStreamReader inStream = new InputStreamReader(urlConn.getInputStream());
@@ -288,19 +288,42 @@ public class SpectralFeatures extends EvalFunc<DataBag> {
 								        	worldArr[index] = Double.parseDouble(line);
 								        	index++;
 							        	}
-							        }
+							        }*/
 									
 					                //after downloading, update the map
 									Map<String, Object> aux2 = new HashMap<String, Object>();
 									
 									double[] tileGeoBox = new double[4];
 									
-									double [] origin = new double[] {worldArr[4] - (worldArr[0]/2), worldArr[5] - (worldArr[3]/2)};
+									/*double [] origin = new double[] {worldArr[4] - (worldArr[0]/2), worldArr[5] - (worldArr[3]/2)};
 																		
 									tileGeoBox[0] = origin[0];
 									tileGeoBox[1] = origin[1] + (worldArr[3]*buff.getHeight());
 									tileGeoBox[2] = origin[0] + (worldArr[0]*buff.getWidth());
-									tileGeoBox[3] = origin[1];
+									tileGeoBox[3] = origin[1];*/
+									
+									/*Getting width and height*/
+						        	URL worldFile1 = new URL(_imageUrl + img + "_" + tile + ".meta");
+									URLConnection urlConn1 = worldFile1.openConnection();
+					                urlConn1.connect();
+									InputStreamReader inStream1 = new InputStreamReader(urlConn1.getInputStream());
+							        BufferedReader reader1 = new BufferedReader(inStream1);
+							        
+							        String line1;
+							        int index1 = 0;
+							        while ((line1 = reader1.readLine()) != null) {
+							        	if (!line1.trim().isEmpty()) {
+							        		if (index1==3)
+							        			tileGeoBox[0] = Double.parseDouble(line1);
+							        		else if (index1==4)
+							        			tileGeoBox[1] = Double.parseDouble(line1);
+							        		else if (index1==5)
+							        			tileGeoBox[2] = Double.parseDouble(line1);
+							        		else if (index1==6)
+							        			tileGeoBox[3] = Double.parseDouble(line1);
+								        	index1++;
+							        	}
+							        }
 									
 									aux2.put("geoBox",tileGeoBox);
 									aux2.put("image",buff);
@@ -342,9 +365,9 @@ public class SpectralFeatures extends EvalFunc<DataBag> {
 				        		if (index==0)
 				        			imageObj.setBands(Integer.parseInt(line));
 				        		else if (index==1)
-				        			imageObj.setRows(Integer.parseInt(line));
-				        		else if (index==2)
 				        			imageObj.setCols(Integer.parseInt(line));
+				        		else if (index==2)
+				        			imageObj.setRows(Integer.parseInt(line));
 				        		else if (index==3)
 				        			imageObj.setGeoWest(Double.parseDouble(line));
 				        		else if (index==4)

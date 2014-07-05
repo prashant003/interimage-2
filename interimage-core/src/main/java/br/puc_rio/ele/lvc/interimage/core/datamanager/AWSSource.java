@@ -27,6 +27,8 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.Upload;
 
 /**
  * A Source class that communicates with Amazon S3. 
@@ -63,6 +65,9 @@ public class AWSSource implements Source {
 			PutObjectRequest putObjectRequest = new PutObjectRequest(_bucket, to, file);
 			putObjectRequest.withCannedAcl(CannedAccessControlList.PublicRead); // public for all
 			
+			TransferManager tx = new TransferManager(credentials);
+			Upload myUpload = tx.upload(putObjectRequest);
+			
 			/*ObjectMetadata data = new ObjectMetadata();
 			data.setContentType("application/octet-stream");
 			putObjectRequest.setMetadata(data);*/
@@ -80,7 +85,7 @@ public class AWSSource implements Source {
 				}
 			}*/
 			
-			conn.putObject(putObjectRequest);
+			//conn.putObject(putObjectRequest);
 			
 			//System.out.println("Should upload this file: " + to);
 			

@@ -327,7 +327,7 @@ public class ShapefileConverter {
 	                str += ",\"crs\":";
 	                str += "\"" + crsFrom + "\"";
 	                	                	    		    
-	    		    String id = new UUID(null).random();	        
+	    		    String id = new UUID(null).random();
 	    		    	                
 	                str += ",\"iiuuid\":";
 	               	str += "\"" + id + "\"";

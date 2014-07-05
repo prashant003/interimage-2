@@ -27,6 +27,7 @@ import java.util.Properties;
 import br.puc_rio.ele.lvc.interimage.common.Tile;
 import br.puc_rio.ele.lvc.interimage.common.TileManager;
 import br.puc_rio.ele.lvc.interimage.common.URL;
+import br.puc_rio.ele.lvc.interimage.common.UUID;
 import br.puc_rio.ele.lvc.interimage.data.Image;
 import br.puc_rio.ele.lvc.interimage.data.ImageConverter;
 import br.puc_rio.ele.lvc.interimage.datamining.FuzzySet;
@@ -90,7 +91,7 @@ public class DataManager {
 			if (rsrc.getType() == DefaultResource.TILE) {
 				
 				try {
-									
+					
 					@SuppressWarnings("unchecked")
 					List<Tile> tiles = (List<Tile>)rsrc.getObject();
 					
@@ -104,21 +105,58 @@ public class DataManager {
 				    //TODO: Just for test purposes
 				    FileWriter fw = new FileWriter(projectPath + "tiles.wkt");
 					BufferedWriter bw = new BufferedWriter(fw);
-				    				    
+				    	
+					File path = new File(projectPath + "tiles/");
+					
+					path.mkdirs();
+					
+					for (final File fileEntry : path.listFiles()) {
+				        if (fileEntry.isDirectory()) {
+				        	//ignore
+				        } else {
+				        	fileEntry.delete();
+				        }
+				    }
+					
 				    for (Tile tile : tiles) {
 				    	bw.write(tile.getGeometry() + "\n");
+				    	
+				    	/*for segmentation purposes*/
+					    OutputStream out2 = new FileOutputStream(projectPath + "tiles/" + tile.getCode() + ".json");
+				    	
+				    	String id = new UUID(null).random();
+				    	
+				    	String str = "{\"geometry\":";	                
+		                str += "\"" + tile.getGeometry() + "\"";
+		                //str += "\"" + WKBWriter.toHex(new WKBWriter().write(geom)) + "\"";	                	                
+		                str += ",\"data\":{\"0\":\"\"}";
+		                str += ",\"properties\":{\"tile\":\"" + tile.getCode() + "\",\"crs\":\"" + tileManager.getCRS() + "\",\"class\":\"None\",\"iiuuid\":\"" + id + "\"}}\n";
+				    	out2.write(str.getBytes());
+				    	
+				    	out2.close();
 				    }
 				    
 				    bw.close();
 				    
+				    File folder = new File(projectPath + "tiles/");
+					
+					for (final File fileEntry : folder.listFiles()) {
+				        if (fileEntry.isDirectory()) {
+				        	//ignore
+				        } else {
+				        	_source.put(projectPath + "tiles/" + fileEntry.getName(), "resources/tiles/" + fileEntry.getName(), rsrc);
+				        }
+				    }
+				    
 				    String to = "resources/tiles.ser";
 				    
 				    _source.put(projectPath + "tiles.ser", to, rsrc);
-				    
+				    			
 				    returnUrl = _source.getURL() + to;
 				    
 				} catch (Exception e) {
 					System.out.println("Failed to setup DefaultResource of type TILE; error - " + e.getMessage());
+					e.printStackTrace();
 				}
 				
 			} else if (rsrc.getType() == DefaultResource.FUZZY_SET) {
@@ -252,7 +290,8 @@ public class DataManager {
 				        if (fileEntry.isDirectory()) {
 				        	//ignore
 				        } else {
-				        	_source.put(projectPath + "images/" + key + "/" + fileEntry.getName(), "resources/images/" + fileEntry.getName(), rsrc);
+				        	if (!fileEntry.getName().endsWith("w"))
+				        		_source.put(projectPath + "images/" + key + "/" + fileEntry.getName(), "resources/images/" + fileEntry.getName(), rsrc);
 				        }
 				    }
 					

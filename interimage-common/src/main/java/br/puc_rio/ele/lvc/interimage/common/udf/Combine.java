@@ -36,6 +36,7 @@ import org.apache.pig.impl.logicalLayer.schema.Schema;
  * @author Rodrigo Ferreira
  * 
  */
+@Deprecated
 public class Combine extends EvalFunc<DataBag> {
 		
 	/**

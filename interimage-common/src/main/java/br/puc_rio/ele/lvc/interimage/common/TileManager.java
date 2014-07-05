@@ -32,6 +32,7 @@ public class TileManager {
 	private double[] _worldBBox;
 	private List<Tile> _tiles;
 	private int _levels;
+	private String _crs;
 	
 	/* Z-order
 	 *  ----------------
@@ -119,8 +120,10 @@ public class TileManager {
 	
 	private void setSize(double size, String crs) {
 		_tileSize = size;
-				
-		double[] bounds = new CRS().getBounds(crs); 
+		
+		_crs = crs;
+		
+		double[] bounds = new CRS().getBounds(_crs); 
 		
 		_numTilesX = (int)Math.ceil((bounds[2]-bounds[0]) / _tileSize);
 		_numTilesY = (int)Math.ceil((bounds[3]-bounds[1]) / _tileSize);
@@ -343,6 +346,10 @@ public class TileManager {
 		neighbours += "," + root + getUpperLevelNeighbor(currentLevel, upperLevel, "NW") + _neighbors.get("NW")[_directionsMap.get(currentLevel)];
 		
 		return neighbours;
+	}
+	
+	public String getCRS() {
+		return _crs;
 	}
 	
 	public List<Tile> getTiles() {

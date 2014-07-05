@@ -153,7 +153,20 @@ public class ImageConverter {
 	        Rectangle sourceRegion = new Rectangle();    		
 	        
     		BufferedImage img=null;
-    		    		
+    		            
+            /*deleting previous files*/
+            File dir = new File(projectPath);
+            
+            dir.mkdirs();
+            
+            for (final File fileEntry : dir.listFiles()) {
+		        if (fileEntry.isDirectory()) {
+		        	//ignore
+		        } else {
+		        	fileEntry.delete();
+		        }
+		    }
+    		
 	        for (int j=tiles[3]; j>=tiles[1]; j--) {
 	        	for (int i=tiles[0]; i<=tiles[2]; i++) {
 	        		
@@ -222,8 +235,6 @@ public class ImageConverter {
 	                /*Write tiff file*/
 	                File outputfile = new File(projectPath + imageObj.getKey() + "_T" + id + extension);
 	                
-	                outputfile.mkdirs();
-	                
 	                ImageIO.write(img, formatName, outputfile);
 	                
 	                OutputStream out = new FileOutputStream(projectPath + imageObj.getKey() + "_T" + id + extension + "w");
@@ -250,6 +261,20 @@ public class ImageConverter {
 	                out.write(str.getBytes());
 	                
 	                out.close();
+	                
+	                OutputStream out3 = new FileOutputStream(projectPath + imageObj.getKey() + "_T" + id + ".meta");
+	                
+	                str = imageObj.getBands() + "\n";
+	                str = str + (imgBBox[2]-imgBBox[0]+1) + "\n";
+	                str = str + (imgBBox[1]-imgBBox[3]+1) + "\n";
+	                str = str + newGeo[0] + "\n";
+	                str = str + newGeo[1] + "\n";
+	                str = str + newGeo[2] + "\n";
+	                str = str + newGeo[3] + "\n";
+	                
+	                out3.write(str.getBytes());
+	                
+	                out3.close();
 	                
 	                /*OutputStream[] bandFiles = new FileOutputStream[img.getData().getNumDataElements()];
 	                
@@ -291,7 +316,7 @@ public class ImageConverter {
 	        	}
 	        }
 	      	            
-            /*OutputStream out2 = new FileOutputStream(projectPath + imageObj.getKey() + extension + "w");
+            /*OutputStream out2 = new FileOutputStream(projectPath + imageObj.getKey() + ".meta");
                 		
             String str = imageObj.getBands() + "\n";
             str = str + imgW + "\n";
