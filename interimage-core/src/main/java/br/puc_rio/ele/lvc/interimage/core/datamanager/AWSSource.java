@@ -65,8 +65,8 @@ public class AWSSource implements Source {
 			PutObjectRequest putObjectRequest = new PutObjectRequest(_bucket, to, file);
 			putObjectRequest.withCannedAcl(CannedAccessControlList.PublicRead); // public for all
 			
-			TransferManager tx = new TransferManager(credentials);
-			Upload myUpload = tx.upload(putObjectRequest);
+			//TransferManager tx = new TransferManager(credentials);
+			//Upload myUpload = tx.upload(putObjectRequest);
 			
 			/*ObjectMetadata data = new ObjectMetadata();
 			data.setContentType("application/octet-stream");

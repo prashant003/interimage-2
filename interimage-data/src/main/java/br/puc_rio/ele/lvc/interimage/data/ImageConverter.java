@@ -236,7 +236,7 @@ public class ImageConverter {
 	                File outputfile = new File(projectPath + imageObj.getKey() + "_T" + id + extension);
 	                
 	                ImageIO.write(img, formatName, outputfile);
-	                
+	                	                
 	                OutputStream out = new FileOutputStream(projectPath + imageObj.getKey() + "_T" + id + extension + "w");
 	                
 	                double[] newGeo = Image.geoBBox(imgBBox, geoBBox, new int[] {imgW, imgH});

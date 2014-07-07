@@ -343,7 +343,7 @@ public class FeatureCalculator {
 				return Double.NaN;				
 			}
 			
-			double mean = Double.NaN;
+			double sum = 0.0;
 			int count = 0;
 			
 			for (Map.Entry<String, Map<Integer, Object>> entry : tiles.entrySet()) {
@@ -365,11 +365,7 @@ public class FeatureCalculator {
 				
 				double partial = res.compute(cursor, new DoubleType()).get() * c;
 
-				if (Double.isNaN(mean)) {
-					mean = partial;
-				} else {
-					mean = (mean + partial);
-				}
+				sum = sum + partial;
 				
 				//System.out.println("partial: " + partial/c);
 				
@@ -395,7 +391,7 @@ public class FeatureCalculator {
 			
 			//System.out.println("final: " + mean/count);
 			
-			return mean/count;
+			return sum/count;
 						
 		} else {
 			
@@ -419,7 +415,7 @@ public class FeatureCalculator {
 				return Double.NaN;				
 			}
 			
-			double max = Double.NaN;			
+			double max = -Double.MAX_VALUE;			
 			
 			for (Map.Entry<String, Map<Integer, Object>> entry : tiles.entrySet()) {
 				
@@ -437,11 +433,7 @@ public class FeatureCalculator {
 				
 				double partial = res.compute(cursor, new DoubleType()).get();
 
-				if (Double.isNaN(max)) {
-					max = partial;
-				} else {
-					max = Math.max(max, partial);
-				}
+				max = Math.max(max, partial);				
 				
 				//System.out.println("partial: " + partial);
 								
@@ -473,7 +465,7 @@ public class FeatureCalculator {
 				return Double.NaN;				
 			}
 			
-			double min = Double.NaN;			
+			double min = Double.MAX_VALUE;			
 			
 			for (Map.Entry<String, Map<Integer, Object>> entry : tiles.entrySet()) {
 				
@@ -491,12 +483,8 @@ public class FeatureCalculator {
 				
 				double partial = res.compute(cursor, new DoubleType()).get();
 
-				if (Double.isNaN(min)) {
-					min = partial;
-				} else {
-					min = Math.min(min, partial);
-				}
-												
+				min = Math.min(min, partial);
+																
 				//System.out.println("partial: " + partial);
 				
 			}
@@ -750,8 +738,8 @@ public class FeatureCalculator {
 				return Double.NaN;				
 			}
 			
-			double min = Double.NaN;
-			double max = Double.NaN;
+			double min = Double.MAX_VALUE;
+			double max = -Double.MAX_VALUE;
 			
 			for (Map.Entry<String, Map<Integer, Object>> entry : tiles.entrySet()) {
 				
@@ -774,13 +762,8 @@ public class FeatureCalculator {
 				
 				double partialMax = resMax.compute(cursor, new DoubleType()).get();
 
-				if (Double.isNaN(min)) {
-					min = partialMin;
-					max = partialMax;
-				} else {
-					min = Math.min(min, partialMin);
-					max = Math.max(max, partialMax);
-				}
+				min = Math.min(min, partialMin);
+				max = Math.max(max, partialMax);
 												
 				//System.out.println("partial: " + partialMin);
 				//System.out.println("partial: " + partialMax);

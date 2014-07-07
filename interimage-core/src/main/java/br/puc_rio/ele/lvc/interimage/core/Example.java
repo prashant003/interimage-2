@@ -77,12 +77,12 @@ public class Example {
 				
 		System.out.println(coord4.toString());*/
 		
-		//Project project = new Project();
+		Project project = new Project();
 		
 		//C:\\Users\\Rodrigo\\Documents\\interimage\\interpretation_projects\\aquila\\aquila.gap
 		//C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\exercise13.gap
 		
-		//project.readOldFile("C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\exercise13.gap");
+		project.readOldFile("C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\exercise13.gap");
 			
 		/*try {
 		
