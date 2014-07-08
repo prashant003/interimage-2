@@ -106,6 +106,7 @@ public class DataManager {
 				    FileWriter fw = new FileWriter(projectPath + "tiles.wkt");
 					BufferedWriter bw = new BufferedWriter(fw);
 				    	
+					/*Cleaning folder*/
 					File path = new File(projectPath + "tiles/");
 					
 					path.mkdirs();

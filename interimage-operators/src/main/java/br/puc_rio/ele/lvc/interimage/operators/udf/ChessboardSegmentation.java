@@ -32,7 +32,10 @@ import org.apache.pig.data.Tuple;
 import org.apache.pig.data.TupleFactory;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 
+import br.puc_rio.ele.lvc.interimage.common.UUID;
+
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.index.strtree.STRtree;
 import com.vividsolutions.jts.io.WKBWriter;
 import com.vividsolutions.jts.io.WKTReader;
 
@@ -42,11 +45,15 @@ public class ChessboardSegmentation extends EvalFunc<DataBag> {
 	private Double _segmentSize;
 	private String _imageUrl;
 	private String _image;
+	private STRtree _roiIndex = null;
 	
-	public ChessboardSegmentation(String imageUrl, String image, String segmentSize) {
+	private String _roiUrl = null;
+	
+	public ChessboardSegmentation(String imageUrl, String image, String segmentSize, String roiUrl) {
 		_segmentSize = Double.parseDouble(segmentSize);
 		_imageUrl = imageUrl;
 		_image = image;
+		_roiUrl = roiUrl;
 	}
 	
 	/**
@@ -64,6 +71,34 @@ public class ChessboardSegmentation extends EvalFunc<DataBag> {
 		if (input == null || input.size() < 3)
             return null;
         
+		//executes initialization
+		if (_roiIndex == null) {
+			_roiIndex = new STRtree();
+						        
+	        //Creates index for the ROIs
+	        try {
+	        	
+	        	if (!_roiUrl.isEmpty()) {
+	        			        		
+	        		URL url  = new URL(_roiUrl);	        		
+	                URLConnection urlConn = url.openConnection();
+	                urlConn.connect();
+	                InputStreamReader inStream = new InputStreamReader(urlConn.getInputStream());
+			        BufferedReader buff = new BufferedReader(inStream);
+			        
+			        String line;
+			        while ((line = buff.readLine()) != null) {
+			        	Geometry geometry = new WKTReader().read(line);
+			        	_roiIndex.insert(geometry.getEnvelopeInternal(),geometry);					        	
+			        }
+
+	        	}
+	        } catch (Exception e) {
+				throw new IOException("Caught exception reading ROI file ", e);
+			}
+	        
+		}
+		
 		try {
 						
 			//Object objGeometry = input.get(0);
@@ -119,12 +154,47 @@ public class ChessboardSegmentation extends EvalFunc<DataBag> {
 						
 						Geometry geom = new WKTReader().read(String.format("POLYGON ((%f %f, %f %f, %f %f, %f %f, %f %f))", geoX, geoY, Math.min(geoX + _segmentSize, imageTileGeoBox[2]), geoY, Math.min(geoX + _segmentSize, imageTileGeoBox[2]), Math.min(geoY + _segmentSize, imageTileGeoBox[3]), geoX, Math.min(geoY + _segmentSize, imageTileGeoBox[3]), geoX, geoY));
 		        		
-		        		byte[] bytes = new WKBWriter().write(geom);
-		        		
-		        		t.set(0,new DataByteArray(bytes));
-		        		t.set(1,new HashMap<String,String>(data));
-		        		t.set(2,new HashMap<String,Object>(properties));
-		        		bag.add(t);
+						if (_roiIndex.size()>0) {
+						
+							//Clipping according to the ROI
+							List<Geometry> list = _roiIndex.query(geom.getEnvelopeInternal());
+							
+							for (Geometry g : list) {
+								if (g.intersects(geom)) {
+									Geometry geometry = g.intersection(geom);
+									
+									byte[] bytes = new WKBWriter().write(geometry);
+					        		
+					        		Map<String,Object> props = new HashMap<String,Object>(properties);
+					        		
+					        		String id = new UUID(null).random();
+					        		
+					        		props.put("iiuuid", id);
+					        		
+					        		t.set(0,new DataByteArray(bytes));
+					        		t.set(1,new HashMap<String,String>(data));
+					        		t.set(2,props);
+					        		bag.add(t);
+									
+								}
+							}
+							
+						} else {
+						
+			        		byte[] bytes = new WKBWriter().write(geom);
+			        		
+			        		Map<String,Object> props = new HashMap<String,Object>(properties);
+			        		
+			        		String id = new UUID(null).random();
+			        		
+			        		props.put("iiuuid", id);
+			        		
+			        		t.set(0,new DataByteArray(bytes));
+			        		t.set(1,new HashMap<String,String>(data));
+			        		t.set(2,props);
+			        		bag.add(t);
+			        		
+						}
 		        		
 		        	}
 		        }

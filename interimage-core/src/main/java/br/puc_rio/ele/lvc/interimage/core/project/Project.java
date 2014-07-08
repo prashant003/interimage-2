@@ -170,12 +170,18 @@ public class Project {
 			    		if (imageNode.getNodeType() == Node.ELEMENT_NODE) {
 			    			
 				    		Element image = (Element)imageNode;
+
+					    	boolean isEnabled = Boolean.parseBoolean(image.getAttribute("enabled"));
+					    	
+					    	if (!isEnabled)
+					    		continue;
 				    		
 					    	Image img = new Image();
+					    	
 					    	String key = image.getAttribute("key");				    	
 					    	
 					    	boolean isDefault = Boolean.parseBoolean(image.getAttribute("default"));
-					    						    	
+					    	
 					    	img.setKey(key);
 					    	img.setDefault(isDefault);
 					    	img.setURL(image.getAttribute("file"));
