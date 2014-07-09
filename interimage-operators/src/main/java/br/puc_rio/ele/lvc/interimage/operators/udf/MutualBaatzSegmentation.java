@@ -1,4 +1,3 @@
-package br.puc_rio.ele.lvc.interimage.operators.udf;
 /*Copyright 2014 Computer Vision Lab
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +11,8 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.*/
+
+package br.puc_rio.ele.lvc.interimage.operators.udf;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
@@ -78,7 +79,7 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 	private static double [] _wBand; //TODO:Verify wband
 	private static HashMap<Integer, Segment> _segmentList;
 	
-	public MutualBaatzSegmentation (String imageUrl, String image, String roiUrl, String scale, String wColor, String wCmpt) {
+	public MutualBaatzSegmentation (String imageUrl, String image, String roiUrl, String scale, String wColor, String wCmpt, String wBands) {
 		//_segmentSize = Double.parseDouble(segmentSize);
 		_imageUrl = imageUrl;
 		_image = image;
@@ -94,10 +95,20 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 		_imageH=0;
 		_imageW=0;
 		
-		//TODO: _wBand should be a parameter
-		_wBand = new double[8];
-		for (int i=0; i<7; i++)
-			_wBand[0]=0.33;
+		/*Reading and normalizing band weights*/
+		String[] bands = wBands.split(",");
+
+		double sum = 0.0;
+		
+		_wBand = new double[bands.length];
+		for (int i=0; i<bands.length; i++) {
+			sum = sum + Double.parseDouble(bands[i]);
+		}
+		
+		for (int i=0; i<bands.length; i++) {
+			_wBand[i] = Double.parseDouble(bands[i]) / sum;
+		}
+		
 	}
 	
 	/**
@@ -205,7 +216,7 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 						 if (aux_pixel.isBorder()){
 							//convert from pixel_id to x, y
 							int x = aux_pixel.getX(_imageW);
-							int y = aux_pixel.getY(_imageH);
+							int y = aux_pixel.getY(_imageW);
 							
 							int [] pixelNeighborhood = aux_pixel.getPixelIdFromNeighbors(_imageW, _imageH);
 							
@@ -406,10 +417,10 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
         _imageW=reader.getWidth(0);
 
         _nbands=buff.getRaster().getNumBands();
-        //TODO: Test wband with nbands
-        //if (_nbands > _wband.length){
-        //	throw new Exception("Image bands is incompatible with weight bands parameter");
-        //}
+        
+        if (_nbands != _wBand.length){
+        	throw new Exception("Image bands are incompatible with band weights parameter");
+        }
          
         int id_pixel=0;
         //for each line
