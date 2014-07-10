@@ -15,6 +15,7 @@ limitations under the License.*/
 package br.puc_rio.ele.lvc.interimage.operators.udf;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -413,15 +414,17 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 		if (buff == null)
 			throw new Exception("Could not instantiate tile image: " + imageFile.toString());
         
+		WritableRaster raster = buff.getRaster();
+		
         _imageH=reader.getHeight(0);
         _imageW=reader.getWidth(0);
 
-        _nbands=buff.getRaster().getNumBands();
+        _nbands=raster.getNumBands();
         
         if (_nbands != _wBand.length){
         	throw new Exception("Image bands are incompatible with band weights parameter");
         }
-         
+                
         int id_pixel=0;
         //for each line
         for (int row = 0; row < _imageH; row++) {          	          	
@@ -449,7 +452,7 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 				//for each band
 	        	for(int b = 0; b < _nbands; b++) {
 	        		//TODO: optimize this
-	        		int val = buff.getRaster().getSample(col, row, b);
+	        		double val = raster.getSampleDouble(col, row, b);
 	        		            		
 	        		aux_seg.avg_color[b] = val;
 	        		aux_seg.std_color[b] = 0;
@@ -614,7 +617,7 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 	public static double calc_color_stats (Segment obj, Segment neighb)
 	{
 		double[] mean = new double[_nbands];
-		int[] colorSum = new int[_nbands];
+		double[] colorSum = new double[_nbands];
 		double[] squarePixels = new double[_nbands];
 		double[] stddev = new double[_nbands];
 		double[] stddevNew = new double[_nbands];
@@ -744,7 +747,7 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 		//TODO: Encapsulate operations? 
 		//TODO: Some computation is similar to the one existing in calcSpatial and calcSpectral 
 		double[] mean = new double[_nbands];
-		int[] colorSum = new int[_nbands];
+		double[] colorSum = new double[_nbands];
 		double[] squarePixels = new double[_nbands];
 		double[] stddev = new double[_nbands];
 		double[] stddevNew = new double[_nbands];

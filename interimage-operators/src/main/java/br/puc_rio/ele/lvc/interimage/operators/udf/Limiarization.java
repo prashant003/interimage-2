@@ -15,6 +15,7 @@ limitations under the License.*/
 package br.puc_rio.ele.lvc.interimage.operators.udf;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -41,11 +42,11 @@ import org.apache.pig.data.TupleFactory;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 
 import br.puc_rio.ele.lvc.interimage.common.UUID;
-import br.puc_rio.ele.lvc.interimage.operators.LimiarSegment;
 import br.puc_rio.ele.lvc.interimage.data.imageioimpl.plugins.tiff.TIFFImageReader;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LinearRing;
 import com.vividsolutions.jts.geom.Polygon;
@@ -65,7 +66,7 @@ public class Limiarization extends EvalFunc<DataBag> {
 	//private Double _segmentSize;
 	private String _imageUrl;
 	private String _image;
-	private STRtree _roiIndex = null;
+	private static STRtree _roiIndex = null;
 	private String _roiUrl = null;
 	
 	private static int _nbands;
@@ -77,10 +78,10 @@ public class Limiarization extends EvalFunc<DataBag> {
 	private static Operation _operation;
 	private static int []  _bandsOperation;
 
-	private static HashMap<Integer, LimiarSegment> _segmentList;
-	public enum Operation {EXPRESSION, BRIGHTNESS, INDEX}
+	private static Map<String,List<Geometry>> _segmentList;
+	public enum Operation {EXPRESSION, BRIGHTNESS, INDEX, BAND}
 	
-	double [] _imageTileGeoBox;
+	private static double [] _imageTileGeoBox;
 	
 	public Limiarization (String imageUrl, String image, String roiUrl, String thresholds, String classes, String operation) throws Exception {
 		//_segmentSize = Double.parseDouble(segmentSize);
@@ -131,6 +132,11 @@ public class Limiarization extends EvalFunc<DataBag> {
 		}else if (operation.contains("Brightness")){
 			_operation= Operation.BRIGHTNESS;
 			_bandsOperation=null;
+		} else if (operation.contains("Band")){
+			String band = operation.substring(operation.indexOf("(")+1, operation.indexOf(")"));
+			_operation= Operation.BAND;
+			_bandsOperation=new int[1];
+			_bandsOperation[0]=Integer.parseInt(band);
 		} else {
 			throw new Exception("Problem with input operation");
 		}
@@ -227,18 +233,50 @@ public class Limiarization extends EvalFunc<DataBag> {
 		        	}
 		        }
 		        
-	        	_segmentList = new HashMap<Integer, LimiarSegment>();
+	        	_segmentList = new HashMap<String,List<Geometry>>();
 		        
 		        try {
-					thresholding(inputURL);
-					//initialize_segment_neihgborhood();
+		        	//TODO: filter ROI
+					thresholding(inputURL);					
+					//initialize_segment_neihgborhood();					
 				} catch (Exception e) {
 					throw new Exception("Problem with segmentation");
 				}
 		        
-		        
 		        //Here we have segments with their polygons!
 		        //TODO: Merge Polygons and write the output
+		        
+		        for (Map.Entry<String, List<Geometry>> entry : _segmentList.entrySet()) {
+		        	
+		        	List<Geometry> list = entry.getValue();
+		        	
+		        	Geometry[] geoms = new Geometry[list.size()];
+		        	
+		        	int index = 0;
+		        	for (Geometry geom : list) {
+		        		geoms[index] = geom;
+		        		index++;
+		        	}
+		        	
+		        	Geometry union = new GeometryCollection(geoms, new GeometryFactory()).buffer(0);
+		        	
+		        	Tuple t = TupleFactory.getInstance().newTuple(3);
+						
+	        		byte[] bytes = new WKBWriter().write(union);
+	        		
+	        		Map<String,Object> props = new HashMap<String,Object>(properties);
+	        		
+	        		String id = new UUID(null).random();
+	        		
+	        		props.put("iiuuid", id);
+	        		props.put("class", entry.getKey());
+	        		
+	        		t.set(0,new DataByteArray(bytes));
+	        		t.set(1,new HashMap<String,String>(data));
+	        		t.set(2,props);
+	        		bag.add(t);
+	        		
+		        }
 		        
 			} else {
 				throw new Exception("Could not retrieve image information.");
@@ -298,19 +336,21 @@ public class Limiarization extends EvalFunc<DataBag> {
         
 		if (buff == null)
 			throw new Exception("Could not instantiate tile image: " + imageFile.toString());
-        
+
+		WritableRaster raster = buff.getRaster();
+		
         _imageH=reader.getHeight(0);
         _imageW=reader.getWidth(0);
 
-        _nbands=buff.getRaster().getNumBands();
+        _nbands=raster.getNumBands();
 
         if (_operation != Operation.BRIGHTNESS){
         	if (_bandsOperation.length > _nbands){
         		throw new Exception("Image bands are incompatible with input bands operation");
         	}
         }
-
-        int id=0;
+        
+        //int id=0;
         //for each line
         for (int y = 0; y < _imageH; y++) {          	          	
           	//for each pixel
@@ -320,25 +360,28 @@ public class Limiarization extends EvalFunc<DataBag> {
           		//check the operation
           		switch(_operation){
           			case BRIGHTNESS:
-          				int sum=0;
+          				double sum=0;
           				for(int b = 0; b < _nbands; b++) {
-          					sum += buff.getRaster().getSample(x, y, b);	
+          					sum += raster.getSampleDouble(x, y, b);	
         		        }
-          				val = (double) sum/_nbands;
+          				val = sum/_nbands;
           				break;
           			case INDEX:
-          				int idx1 = buff.getRaster().getSample(x, y, _bandsOperation[0]);
-          				int idx2 = buff.getRaster().getSample(x, y, _bandsOperation[1]);
+          				double idx1 = raster.getSampleDouble(x, y, _bandsOperation[0]);
+          				double idx2 = raster.getSampleDouble(x, y, _bandsOperation[1]);
           				
-          				val = (double) (idx1 - idx2)/ (idx1 + idx2);
+          				val = (idx1 - idx2) / (idx1 + idx2);
           				break;
           			case EXPRESSION:
-          				int [] bandVal =  new int [_bandsOperation.length];
+          				double [] bandVal =  new double[_bandsOperation.length];
           				for(int b = 0; b < _bandsOperation.length; b++) {
-          					bandVal[b] = buff.getRaster().getSample(x, y, _bandsOperation[b]);
+          					bandVal[b] = raster.getSampleDouble(x, y, _bandsOperation[b]);
           					//TODO: IMPLEMENT ARITHMETIC EXPRESSION
           					val =0;
         		        }
+          				break;
+          			case BAND:
+          				val = raster.getSampleDouble(x, y, _bandsOperation[0]);
           				break;
           			default:
           				throw new Exception("operation not found");
@@ -357,40 +400,75 @@ public class Limiarization extends EvalFunc<DataBag> {
               			}
               		}
           			
-          			LimiarSegment seg = new LimiarSegment(id, _class[classId]);
-          			_segmentList.put(id, seg);
-          			    
-      				double []imgGeo = {0.0, (double)_imageH, (double)_imageW, 0.0};
+          			//LimiarSegment seg = new LimiarSegment(id);
+          			          			          			    
+      				//double []imgGeo = {0.0, (double)_imageH, (double)_imageW, 0.0};
       				double CoordX, CoordY;
       				
       				Coordinate [] linePoints = new Coordinate[5];
 					//left top corner
-      				CoordX = pic2geoX(x - 0.5, _imageW, imgGeo);
-      				CoordY = pic2geoY(y - 0.5 ,_imageH, imgGeo);
+      				CoordX = pic2geoX(x - 0.5, _imageW, _imageTileGeoBox);
+      				CoordY = pic2geoY(y - 0.5 ,_imageH, _imageTileGeoBox);
       				linePoints[0]= new Coordinate(CoordX,CoordY);
       				linePoints[4]= new Coordinate(CoordX,CoordY); //close the ring
 	                //right top corner
-      				CoordX = pic2geoX(x + 0.5, _imageW,imgGeo);
-      				CoordY = pic2geoY(y - 0.5,_imageH,imgGeo);
+      				CoordX = pic2geoX(x + 0.5, _imageW,_imageTileGeoBox);
+      				CoordY = pic2geoY(y - 0.5,_imageH,_imageTileGeoBox);
       				linePoints[1] = new Coordinate(CoordX,CoordY);
-					//left bottom corner
-					CoordX = pic2geoX(x - 0.5,_imageW,imgGeo);
-					CoordY = pic2geoY(y + 0.5,_imageH,imgGeo);
+					//right bottom corner
+					CoordX = pic2geoX(x + 0.5,_imageW,_imageTileGeoBox);
+					CoordY = pic2geoY(y + 0.5,_imageH,_imageTileGeoBox);
 					linePoints[2] = new Coordinate(CoordX,CoordY);
 					//right bottom corner
-					CoordX = pic2geoX(x + 0.5,_imageW,imgGeo);
-					CoordY = pic2geoY(y + 0.5,_imageH,imgGeo);
+					CoordX = pic2geoX(x - 0.5,_imageW,_imageTileGeoBox);
+					CoordY = pic2geoY(y + 0.5,_imageH,_imageTileGeoBox);
 					linePoints[3] = new Coordinate(CoordX,CoordY);
 					 
 					LinearRing shell = new GeometryFactory().createLinearRing(linePoints);
           			GeometryFactory fact = new GeometryFactory();
-          			Polygon poly = new Polygon(shell, null, fact);
+          			Geometry poly = new Polygon(shell, null, fact);
           			
-          			seg.setPolygon(poly);          			
+          			if (_roiIndex.size()>0) {
+          			
+	          			//seg.setPolygon(poly);          			
+	          			        
+          				@SuppressWarnings("unchecked")
+						List<Geometry> list = _roiIndex.query(poly.getEnvelopeInternal());
+						
+						for (Geometry g : list) {
+							if (g.intersects(poly)) {
+          				
+								Geometry geometry = g.intersection(poly);
+								
+			          			if (_segmentList.containsKey(_class[classId])) {
+			          				List<Geometry> list1 = _segmentList.get(_class[classId]);
+			          				list1.add(geometry);
+			          			} else {
+			          				List<Geometry> list1 = new ArrayList<Geometry>();
+			          				list1.add(geometry);
+			          				_segmentList.put(_class[classId], list1);
+			          			}
+			          			
+							}
+						}
+	          			
+          			} else {
+          				
+          				if (_segmentList.containsKey(_class[classId])) {
+	          				List<Geometry> list = _segmentList.get(_class[classId]);
+	          				list.add(poly);
+	          			} else {
+	          				List<Geometry> list = new ArrayList<Geometry>();
+	          				list.add(poly);
+	          				_segmentList.put(_class[classId], list);
+	          			}
+          				
+          			}
+          			
           		}
           		
           		
-          		id++;
+          		//id++;
           	}
       }
         
@@ -408,4 +486,5 @@ public class Limiarization extends EvalFunc<DataBag> {
 	{
 		return ((picY+0.5) * ((imgGeo[1]-imgGeo[3]) / rows)) + imgGeo[3];
 	}
+	
 }

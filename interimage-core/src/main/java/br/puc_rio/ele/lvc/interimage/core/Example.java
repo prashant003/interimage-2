@@ -140,7 +140,7 @@ public class Example {
 				
 		//EPSG:32723
 		
-		ShapefileConverter.JSONToShapefile("C:\\Users\\Rodrigo\\Desktop\\part-m-00000","C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\result6.shp", null, true, null, null);
+		ShapefileConverter.JSONToShapefile("C:\\Users\\Rodrigo\\Desktop\\part-m-00000","C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\result7.shp", null, true, null, null);
 		//ShapefileConverter.JSONToShapefile("C:\\Users\\Rodrigo\\Desktop\\part-r-00001","C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\result5.shp", null, true, null, null);
 				
 		//ShapefileConverter.WKTToShapefile("C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\tiles.wkt", "C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\tiles.shp", null, null);

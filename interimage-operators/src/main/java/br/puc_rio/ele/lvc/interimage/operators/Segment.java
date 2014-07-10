@@ -35,7 +35,7 @@ public class Segment {
 	public double[] avg_color;			// Average color
 	public double[] std_color;			// Standard Color
 	public double[]  avg_square_color;	// Average Square Color
-	public int[]  sum_color;			// Sum Color
+	public double[]  sum_color;			// Sum Color
 	
 	private double mean_x;
 	private double mean_y;
@@ -104,7 +104,7 @@ public class Segment {
 		avg_color = new double[nBands];
 		std_color = new double[nBands];
 		avg_square_color = new double[nBands];
-		sum_color = new int[nBands];
+		sum_color = new double[nBands];
 	}
 	
 	public void reset_border(int width, int height )
