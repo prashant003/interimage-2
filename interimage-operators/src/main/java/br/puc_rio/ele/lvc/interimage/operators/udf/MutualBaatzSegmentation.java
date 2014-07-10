@@ -855,12 +855,12 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 	//TODO: The following methods can be used from a geometry class
 	private static double pic2geoX(double picX, int cols, double [] imgGeo)
 	{
-	    return ((picX+0.5) * ((imgGeo[2]-imgGeo[0]) / (double)cols)) + imgGeo[0];
+	    return ((picX+0.5) * ((imgGeo[2]-imgGeo[0]) / cols)) + imgGeo[0];
 	}
 	
 	private static double pic2geoY(double picY, int rows, double [] imgGeo)
 	{
-	    return ((picY+0.5) * ((imgGeo[3]-imgGeo[1]) / (double)rows)) + imgGeo[1];
+	    return ((picY+0.5) * ((imgGeo[1]-imgGeo[3]) / rows)) + imgGeo[3];
 	}
 	
 	private static double distance(double[] p1, double[] p2)

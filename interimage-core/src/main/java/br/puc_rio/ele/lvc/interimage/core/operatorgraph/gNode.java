@@ -2,10 +2,10 @@ package br.puc_rio.ele.lvc.interimage.core.operatorgraph;
 
 public abstract class gNode {
 
-	private boolean running=false;
-	private boolean available=true;
-	private boolean executed=false;
-	private int requests=0;
+	private boolean running_=false;
+	private boolean available_=true;
+	private boolean executed_=false;
+	private int requests_=0;
 	
 	public void run(){
 		this.setRunning(true);
@@ -19,39 +19,39 @@ public abstract class gNode {
 	protected abstract int execute();
 	
 	public boolean isRunning() {
-		return running;
+		return running_;
 	}
 
 	private void setRunning(boolean running) {
-		this.running = running;
+		this.running_ = running;
 	}
 
 	public boolean isAvailable() {
-		return available;
+		return available_;
 	}
 
 	public void setAvailable(boolean available) {
-		this.available = available;
+		this.available_ = available;
 	}
 
 	public boolean isExecuted() {
-		return executed;
+		return executed_;
 	}
 
 	private void setExecuted(boolean executed) {
-		this.executed = executed;
+		this.executed_ = executed;
 	}
 
 	public int getRequests() {
-		return requests;
+		return requests_;
 	}
 
 	public void improveRequest() {
-		requests = requests +1 ;
+		requests_ = requests_ +1 ;
 	}
 	
 	public void setRequests(int requests) {
-		this.requests = requests;
+		this.requests_ = requests;
 	}
 				
 }

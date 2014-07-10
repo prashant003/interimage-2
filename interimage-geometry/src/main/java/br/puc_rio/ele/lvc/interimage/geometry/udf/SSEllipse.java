@@ -70,11 +70,11 @@ public class SSEllipse extends EvalFunc<DataByteArray> {
              double semiMinor;
              
              if (lg1>lg2) {
-            	 semiMajor = lg1/2;
-            	 semiMinor = lg2/2;
+            	 semiMajor = lg1;
+            	 semiMinor = lg2;
              } else {
-            	 semiMajor = lg2/2;
-            	 semiMinor = lg1/2;
+            	 semiMajor = lg2;
+            	 semiMinor = lg1;
              }
              
              Coordinate centre = ssRect.getCentroid().getCoordinate();
