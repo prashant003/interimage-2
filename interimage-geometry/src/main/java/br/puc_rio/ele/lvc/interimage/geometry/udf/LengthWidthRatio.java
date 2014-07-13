@@ -28,7 +28,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
 /**
- * A UDF that returns the length width ratio of a geometry.<br><br>
+ * A UDF that returns the length width ratio of a geometry based on the smallest surrounding rectangle.<br><br>
  * Example:<br>
  * 		A = load 'mydata' as (geom);<br>
  * 		B = foreach A generate LengthWidthRatio(geom);<br>
@@ -44,7 +44,7 @@ public class LengthWidthRatio extends EvalFunc<Double> {
      * @param input tuple<br>
      * first column is assumed to have a geometry
      * @exception java.io.IOException
-     * @return length width of the geometry
+     * @return length width ratio of the geometry
      */
 	@Override
 	public Double exec(Tuple input) throws IOException {

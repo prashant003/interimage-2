@@ -55,13 +55,12 @@ import com.vividsolutions.jts.index.strtree.STRtree;
 import com.vividsolutions.jts.io.WKBWriter;
 import com.vividsolutions.jts.io.WKTReader;
 
-
 //TODO: This could be a generic UDF that receives the parameters and compute a particular segmentation process.
 //TODO: Create an interface for segmentation and then each implementation
 
 public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
-	//TODO: Verify this THRESHOLD value
-	final static double THRESHOLD=0.02;
+	//Initializing threshold with default value
+	private static double THRESHOLD=0.02;
 	
 	//private final GeometryParser _geometryParser = new GeometryParser();
 	//private Double _segmentSize;
@@ -77,7 +76,7 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 	private static double _scale; //this is scale^2!!
 	private static double _wColor;
 	private static double _wCmpt;
-	private static double [] _wBand; //TODO:Verify wband
+	private static double [] _wBand;
 	private static HashMap<Integer, Segment> _segmentList;
 	
 	public MutualBaatzSegmentation (String imageUrl, String image, String roiUrl, String scale, String wColor, String wCmpt, String wBands) {
@@ -163,7 +162,7 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 			Map<String,Object> properties = DataType.toMap(input.get(2));
 			
 			DataBag bag = BagFactory.getInstance().newDefaultBag();
-			//Geometry geometry = _geometryParser.parseGeometry(objGeometry);
+			//Geometry inputGeometry = _geometryParser.parseGeometry(objGeometry);
 			String tileStr = DataType.toString(properties.get("tile"));
 			String inputURL = _imageUrl + _image + "_" + tileStr + ".tif";
 			
@@ -189,11 +188,17 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 		        
 		        double[] imageTileGeoBox = new double[4];
 		        
+		        int[] size = new int[2];
+		        
 		        String line1;
 		        int index1 = 0;
 		        while ((line1 = reader1.readLine()) != null) {
 		        	if (!line1.trim().isEmpty()) {
-		        		if (index1==3)
+		        		if (index1==1)
+		        			size[0] = Integer.parseInt(line1);
+		        		else if (index1==2)
+		        			size[1] = Integer.parseInt(line1);
+		        		else if (index1==3)
 		        			imageTileGeoBox[0] = Double.parseDouble(line1);
 		        		else if (index1==4)
 		        			imageTileGeoBox[1] = Double.parseDouble(line1);
@@ -204,6 +209,10 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 			        	index1++;
 		        	}
 		        }
+		        
+		        double resX = (imageTileGeoBox[2]-imageTileGeoBox[0])/size[0];
+		        /*Using a threshold that represents one tenth of the resolution*/
+		        THRESHOLD = resX / 10;
 		        
 			    ArrayList< ArrayList<double[]> > rings = new ArrayList< ArrayList<double[]> >();
 			    double CoordX, CoordY, CoordX2, CoordY2;
@@ -338,18 +347,25 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 							
 						} else {
 						
-			        		byte[] bytes = new WKBWriter().write(geom);
-			        		
-			        		Map<String,Object> props = new HashMap<String,Object>(properties);
-			        		
-			        		String id = new UUID(null).random();
-			        		
-			        		props.put("iiuuid", id);
-			        		
-			        		t.set(0,new DataByteArray(bytes));
-			        		t.set(1,new HashMap<String,String>(data));
-			        		t.set(2,props);
-			        		bag.add(t);
+							//Clipping according to the input geometry
+							//if (inputGeometry.intersects(geom)) {
+								
+								//geom = inputGeometry.intersection(geom);
+								
+				        		byte[] bytes = new WKBWriter().write(geom);
+				        		
+				        		Map<String,Object> props = new HashMap<String,Object>(properties);
+				        		
+				        		String id = new UUID(null).random();
+				        		
+				        		props.put("iiuuid", id);
+				        		
+				        		t.set(0,new DataByteArray(bytes));
+				        		t.set(1,new HashMap<String,String>(data));
+				        		t.set(2,props);
+				        		bag.add(t);
+								
+							//}
 			        		
 						}
 					 
@@ -566,7 +582,7 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 	}
 
 	
-	public static void find_best_neighbor(Segment obj){  
+	private static void find_best_neighbor(Segment obj){  
 
 		//TODO: Optimize finding segment neighbors (graph version??)
 		obj.resetBestNeighbor();
@@ -614,7 +630,7 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 	}
 	
 	
-	public static double calc_color_stats (Segment obj, Segment neighb)
+	private static double calc_color_stats (Segment obj, Segment neighb)
 	{
 		double[] mean = new double[_nbands];
 		double[] colorSum = new double[_nbands];
@@ -654,7 +670,7 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 	
 	
 
-	public static double calc_spatial_stats(Segment obj, Segment neighb)
+	private static double calc_spatial_stats(Segment obj, Segment neighb)
 	{
 		//int [] aux_bbox = new int[4];
 		

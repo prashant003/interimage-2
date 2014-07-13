@@ -15,6 +15,8 @@ limitations under the License.*/
 package br.puc_rio.ele.lvc.interimage.geometry.udf;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.pig.Accumulator;
 import org.apache.pig.Algebraic;
@@ -69,7 +71,7 @@ public class AggregateEnvelope extends EvalFunc<DataByteArray> implements Algebr
 	static public class Intermed extends EvalFunc<Tuple> {
 		@Override
 		public Tuple exec(Tuple input) throws IOException {
-			return TupleFactory.getInstance().newTuple(new WKBWriter().write(envelope(input)));
+			return TupleFactory.getInstance().newTuple(new DataByteArray(new WKBWriter().write(envelope(input))));
 		}
 	}
 	
@@ -87,14 +89,20 @@ public class AggregateEnvelope extends EvalFunc<DataByteArray> implements Algebr
 		if (values.size() == 0)
 			return null;
 	    
-		Geometry[] all_geoms = new Geometry[(int)values.size()];
-	    
-		int idx = 0;
+		List<Geometry> list = new ArrayList<Geometry>();
+
 		for (Tuple one_geom : values) {
 			Geometry parsedGeom = _geometryParser.parseGeometry(one_geom.get(0));
-			all_geoms[0] = parsedGeom;
-			idx = idx + 1;
+			if (parsedGeom != null) {				
+				list.add(parsedGeom);
+			}
 	    }
+	    
+		Geometry[] all_geoms = new Geometry[list.size()];
+		
+		for (int i=0; i<list.size(); i++) {
+			all_geoms[i] = list.get(i);
+		}
 	    
 		//Do a union of all_geometries in the recommended way (using buffer(0))
 	    GeometryCollection geom_collection = new GeometryCollection(all_geoms, new GeometryFactory());

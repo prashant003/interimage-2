@@ -307,8 +307,8 @@ public class Project {
 			    _ruleSet.setup(_properties);
 			    
 			    //Test			    
-			    _ruleSet.readOldFile("C:\\Users\\Rodrigo\\Desktop\\test.dt");
-			    System.out.println(_ruleSet.getPigCode());
+			    //_ruleSet.readOldFile("C:\\Users\\Rodrigo\\Desktop\\test.dt");
+			    //System.out.println(_ruleSet.getPigCode());
 			    //Test
 			    
 			    /*Sending libs to the cluster*/			    

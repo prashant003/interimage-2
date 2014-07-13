@@ -46,7 +46,6 @@ import br.puc_rio.ele.lvc.interimage.common.TileManager;
 import br.puc_rio.ele.lvc.interimage.data.imageioimpl.plugins.tiff.TIFFImageReader;
 import br.puc_rio.ele.lvc.interimage.common.GeometryParser;
 import br.puc_rio.ele.lvc.interimage.data.FeatureCalculator;
-import br.puc_rio.ele.lvc.interimage.data.Image;
 
 /**
  * A class that computes spectral features for all the input polygons. 
@@ -63,7 +62,8 @@ public class SpectralFeatures extends EvalFunc<DataBag> {
 	private List<String> _images;
 	private TileManager _tileManager;
 	private double _tileSize;
-	private Long _currentTileId;
+	private boolean _newBag;
+	//private Long _currentTileId;
 	
 	/**Constructor that takes image URL, feature list and tile size.*/
 	public SpectralFeatures(String imageUrl, String features, String tileSize) {
@@ -145,7 +145,7 @@ public class SpectralFeatures extends EvalFunc<DataBag> {
      * @exception java.io.IOException
      * @return a bag with the computed features in the properties
      */
-	@SuppressWarnings({ "unchecked", "rawtypes", "unused" })
+	@SuppressWarnings("rawtypes")
 	@Override
 	public DataBag exec(Tuple input) throws IOException {
 				
@@ -154,8 +154,10 @@ public class SpectralFeatures extends EvalFunc<DataBag> {
 			
 		try {
 		
-			DataBag bag = DataType.toBag(input.get(0));
+			_newBag = true;
 			
+			DataBag bag = DataType.toBag(input.get(0));
+						
 			DataBag output = BagFactory.getInstance().newDefaultBag();
 			
 			Iterator it = bag.iterator();
@@ -163,46 +165,47 @@ public class SpectralFeatures extends EvalFunc<DataBag> {
 	            Tuple t = (Tuple)it.next();
 	            
 	            Object objGeometry = t.get(0);
-				Map<String,String> data = (Map<String,String>)t.get(1);
+				//Map<String,String> data = (Map<String,String>)t.get(1);
 				Map<String,Object> properties = DataType.toMap(t.get(2));
-							
-				String tileStr = DataType.toString(properties.get("tile"));
-				
-				String crs = DataType.toString(properties.get("crs"));
-				
-				long tileId = Long.parseLong(tileStr.substring(1));
-				
+								
 				Geometry geometry = _geometryParser.parseGeometry(objGeometry);
 				
 				//TODO: maybe it's not necessary to compute the tiles
 				//List<String> tiles = _tileManager.getTiles(new double[] {geometry.getEnvelopeInternal().getMinX(), geometry.getEnvelopeInternal().getMinY(), geometry.getEnvelopeInternal().getMaxX(), geometry.getEnvelopeInternal().getMaxY()});
 				
 				if (_featureMap == null) {
+					String crs = DataType.toString(properties.get("crs"));
 					parseFeatures();
 					_tileManager = new TileManager(_tileSize, crs);
 				}
 				
-				List<String> tiles = new ArrayList<String>();
-				//TODO: Some intelligence here can help to define the tiles to be considered
-				tiles.add("T" + tileId);
-				tiles.add("T" + (tileId+1));
-				tiles.add("T" + (tileId+_tileManager.getNumTilesX()));
-				tiles.add("T" + (tileId+_tileManager.getNumTilesX()+1));
+				if (_newBag) {
+				
+					String tileStr = DataType.toString(properties.get("tile"));
+					
+					long tileId = Long.parseLong(tileStr.substring(1));
+					
+					List<String> tiles = new ArrayList<String>();
+					//TODO: Some intelligence here can help to define the tiles to be considered
+					tiles.add("T" + tileId);
+					tiles.add("T" + (tileId+1));
+					tiles.add("T" + (tileId+_tileManager.getNumTilesX()));
+					tiles.add("T" + (tileId+_tileManager.getNumTilesX()+1));
 				
 				//TODO: Think about multiple assignment, works for single 
 								
 				//Map<String,Image> imageObjects = new HashMap<String,Image>();
 				
-				if (_currentTileId == null)
-					_currentTileId = (long)-1;
+				//if (_currentTileId == null)
+				//	_currentTileId = (long)-1;
 				
-				if (_currentTileId != tileId) {
+				//if (_currentTileId != tileId) {
 									
 					_imageMap = new HashMap<String, Map<String, Map<String, Object>>>();
 					
 					for (String img : _images) {
 						
-						Image imageObj = new Image();
+						//Image imageObj = new Image();
 
 						if (!_imageMap.containsKey(img)) {
 							_imageMap.put(img, new HashMap<String, Map<String, Object>>());
@@ -384,11 +387,15 @@ public class SpectralFeatures extends EvalFunc<DataBag> {
 				        
 					}
 				
-					_currentTileId = tileId;
+					//_currentTileId = tileId;
+					
+				//}
+						
+					_newBag = false;
 					
 				}
-								
-				Map<String, Double> features = new HashMap<String, Double>();
+					
+				Map<String, Double> features = null;
 				
 				//String iiuuid = DataType.toString(properties.get("iiuuid"));
 				

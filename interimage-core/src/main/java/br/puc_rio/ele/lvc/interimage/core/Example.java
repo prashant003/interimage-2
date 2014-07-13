@@ -140,10 +140,11 @@ public class Example {
 				
 		//EPSG:32723
 		
-		ShapefileConverter.JSONToShapefile("C:\\Users\\Rodrigo\\Desktop\\part-m-00000","C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\result7.shp", null, true, null, null);
+		//ShapefileConverter.JSONToShapefile("C:\\Users\\Rodrigo\\Desktop\\part-r-00000","C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\result9.shp", null, true, null, null);
 		//ShapefileConverter.JSONToShapefile("C:\\Users\\Rodrigo\\Desktop\\part-r-00001","C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\result5.shp", null, true, null, null);
 				
 		//ShapefileConverter.WKTToShapefile("C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\tiles.wkt", "C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\tiles.shp", null, null);
+		ShapefileConverter.WKTToShapefile("C:\\Users\\Rodrigo\\Desktop\\Water.wkt", "C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\Water.shp", null, null);		
 		
 		//System.out.println(project.getProject());
 		//System.out.println(project.getImageList().size());

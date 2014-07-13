@@ -12,7 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.*/
 
-package br.puc_rio.ele.lvc.interimage.common.udf;
+package br.puc_rio.ele.lvc.interimage.geometry.udf;
 
 import java.io.IOException;
 
@@ -21,41 +21,38 @@ import org.apache.pig.data.DataType;
 import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 
+import br.puc_rio.ele.lvc.interimage.common.GeometryParser;
+
+import com.vividsolutions.jts.geom.Geometry;
+
 /**
- * A UDF that computes the mean of n numbers.<br><br>
+ * A UDF that returns the perimeter of a geometry.<br><br>
  * Example:<br>
- * 		A = load 'mydata' as (attrib1, ..., attribn);<br>
- * 		B = foreach A generate Mean(attrib1, ..., attribn);
+ * 		A = load 'mydata' as (geom);<br>
+ * 		B = foreach A generate Perimeter(geom);<br>
  * @author Rodrigo Ferreira
  *
  */
-public class Mean extends EvalFunc<Double> {
+public class Perimeter extends EvalFunc<Double> {
+	
+	private final GeometryParser _geometryParser = new GeometryParser();
 	
 	/**
      * Method invoked on every tuple during foreach evaluation.
      * @param input tuple<br>
-     * the columns are assumed to have numbers
+     * first column is assumed to have a geometry
      * @exception java.io.IOException
-     * @return mean value
+     * @return perimeter of the geometry
      */
 	@Override
 	public Double exec(Tuple input) throws IOException {
-		if (input == null || input.size() < 2)
+		if (input == null || input.size() == 0)
             return null;
         
 		try {
-			
-			int size = input.size();
-			
-			double sum = 0.0;
-			
-			for (int i=0; i<size; i++) {
-				Double value = DataType.toDouble(input.get(i));
-				sum = sum + value;
-			}
-			
-			return sum/size;
-			
+			Object objGeometry = input.get(0);
+			Geometry geometry = _geometryParser.parseGeometry(objGeometry);
+			return geometry.getLength();
 		} catch (Exception e) {
 			throw new IOException("Caught exception processing input row ", e);
 		}

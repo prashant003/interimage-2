@@ -54,40 +54,31 @@ public class AWSSource implements Source {
 			AWSCredentials credentials = new BasicAWSCredentials(_accessKey, _secretKey);
 			AmazonS3 conn = new AmazonS3Client(credentials);
 			conn.setEndpoint("https://s3.amazonaws.com");
-								
-			//conn.setBucketAcl(_bucket, CannedAccessControlList.PublicRead);
 			
-			//FileInputStream stream = new FileInputStream(from);
 			File file = new File(from);
-			
-			//conn.putObject(_bucket, to, stream, new ObjectMetadata());
-				
+							
 			PutObjectRequest putObjectRequest = new PutObjectRequest(_bucket, to, file);
-			putObjectRequest.withCannedAcl(CannedAccessControlList.PublicRead); // public for all
+			
+			if (resource instanceof SplittableResource) {
+				SplittableResource rsrc = (SplittableResource)resource;
+				if (rsrc.getType() == SplittableResource.IMAGE) {
+					putObjectRequest.withCannedAcl(CannedAccessControlList.PublicRead); // public for all
+				}
+			} else if (resource instanceof DefaultResource) {
+				DefaultResource rsrc = (DefaultResource)resource;
+				if (rsrc.getType() == DefaultResource.TILE) {
+					putObjectRequest.withCannedAcl(CannedAccessControlList.PublicRead); // public for all
+				} else if (rsrc.getType() == DefaultResource.FUZZY_SET) {
+					putObjectRequest.withCannedAcl(CannedAccessControlList.PublicRead); // public for all
+				} else if (rsrc.getType() == DefaultResource.SHAPE) {
+					putObjectRequest.withCannedAcl(CannedAccessControlList.PublicRead); // public for all
+				}
+			}
 			
 			//TransferManager tx = new TransferManager(credentials);
 			//Upload myUpload = tx.upload(putObjectRequest);
 			
-			/*ObjectMetadata data = new ObjectMetadata();
-			data.setContentType("application/octet-stream");
-			putObjectRequest.setMetadata(data);*/
-			
-			/*if (resource instanceof SplittableResource) {
-				SplittableResource rsrc = (SplittableResource)resource;
-				if (rsrc.getType() == SplittableResource.IMAGE) {
-					Image image = (Image)rsrc.getObject();
-					//TODO: support other formats
-					if ((image.getURL().endsWith(".tif")) || (image.getURL().endsWith(".tiff"))) {
-						ObjectMetadata data = new ObjectMetadata();
-						data.setContentType("image/tiff");
-						putObjectRequest.setMetadata(data);
-					}
-				}
-			}*/
-			
-			//conn.putObject(putObjectRequest);
-			
-			//System.out.println("Should upload this file: " + to);
+			System.out.println("AWSSource: Uploaded file - " + to);
 			
 		} catch (Exception e) {
 			System.err.println("Source put failed: " + e.getMessage());			

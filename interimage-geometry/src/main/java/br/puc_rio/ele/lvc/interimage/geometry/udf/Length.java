@@ -22,11 +22,13 @@ import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 
 import br.puc_rio.ele.lvc.interimage.common.GeometryParser;
+import br.puc_rio.ele.lvc.interimage.geometry.SmallestSurroundingRectangle;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
 /**
- * A UDF that returns the length of a geometry.<br><br>
+ * A UDF that returns the length of a geometry (longest side) based on the smallest surrounding rectangle.<br><br>
  * Example:<br>
  * 		A = load 'mydata' as (geom);<br>
  * 		B = foreach A generate Length(geom);<br>
@@ -52,7 +54,18 @@ public class Length extends EvalFunc<Double> {
 		try {
 			Object objGeometry = input.get(0);
 			Geometry geometry = _geometryParser.parseGeometry(objGeometry);
-			return geometry.getLength();
+
+			Geometry ssRect = SmallestSurroundingRectangle.get(geometry);
+			
+			Coordinate[] coords = ssRect.getCoordinates();
+			double lg1 = coords[0].distance(coords[1]);
+			double lg2 = coords[1].distance(coords[2]);
+			
+			if (lg1>lg2)
+				return lg1;
+			else
+				return lg2;
+			
 		} catch (Exception e) {
 			throw new IOException("Caught exception processing input row ", e);
 		}

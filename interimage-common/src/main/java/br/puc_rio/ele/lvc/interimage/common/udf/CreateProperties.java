@@ -15,46 +15,65 @@ limitations under the License.*/
 package br.puc_rio.ele.lvc.interimage.common.udf;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.pig.EvalFunc;
 import org.apache.pig.data.DataType;
 import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 
+import br.puc_rio.ele.lvc.interimage.common.UUID;
+
 /**
- * A UDF that computes the mean of n numbers.<br><br>
+ * A UDF that creates a new properties map.<br><br>
  * Example:<br>
- * 		A = load 'mydata' as (attrib1, ..., attribn);<br>
- * 		B = foreach A generate Mean(attrib1, ..., attribn);
+ * 		A = load 'mydata';<br>
+ * 		B = foreach A generate CreateProperties('class=None;crs=EPSG:4326');
  * @author Rodrigo Ferreira
  *
  */
-public class Mean extends EvalFunc<Double> {
+public class CreateProperties extends EvalFunc<Map<String,Object>> {
 	
 	/**
      * Method invoked on every tuple during foreach evaluation.
      * @param input tuple<br>
-     * the columns are assumed to have numbers
+     * first column is assumed to have the field/value pairs
      * @exception java.io.IOException
-     * @return mean value
+     * @return new map
      */
 	@Override
-	public Double exec(Tuple input) throws IOException {
-		if (input == null || input.size() < 2)
+	public Map<String,Object> exec(Tuple input) throws IOException {
+		if (input == null || input.size() < 1)
             return null;
         
 		try {
 			
 			int size = input.size();
-			
-			double sum = 0.0;
+						
+			Map<String,Object> props = new HashMap<String,Object>(); 
 			
 			for (int i=0; i<size; i++) {
-				Double value = DataType.toDouble(input.get(i));
-				sum = sum + value;
+				
+				String str = DataType.toString(input.get(i));
+				
+				String[] pair = str.split("=");
+				
+				if (pair[0].equals("iiuuid")) {
+					String id = new UUID(null).random();
+					props.put(pair[0], id);
+				} else if (pair[0].equals("tile")) {
+					if (pair.length==1)
+						props.put(pair[0], "");
+					else
+						props.put(pair[0], pair[1]);
+				} else {
+					props.put(pair[0], pair[1]);	
+				}
+				
 			}
 			
-			return sum/size;
+			return props;
 			
 		} catch (Exception e) {
 			throw new IOException("Caught exception processing input row ", e);
@@ -63,7 +82,7 @@ public class Mean extends EvalFunc<Double> {
 	
 	@Override
     public Schema outputSchema(Schema input) {
-        return new Schema(new Schema.FieldSchema(null, DataType.DOUBLE));
+        return new Schema(new Schema.FieldSchema(null, DataType.MAP));
     }
 	
 }

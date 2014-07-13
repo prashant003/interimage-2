@@ -15,6 +15,8 @@ limitations under the License.*/
 package br.puc_rio.ele.lvc.interimage.common.udf;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.pig.EvalFunc;
 import org.apache.pig.data.DataType;
@@ -22,39 +24,33 @@ import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 
 /**
- * A UDF that computes the mean of n numbers.<br><br>
+ * A UDF that creates a new data map.<br><br>
  * Example:<br>
- * 		A = load 'mydata' as (attrib1, ..., attribn);<br>
- * 		B = foreach A generate Mean(attrib1, ..., attribn);
+ * 		A = load 'mydata';<br>
+ * 		B = foreach A generate CreateData('');
  * @author Rodrigo Ferreira
  *
  */
-public class Mean extends EvalFunc<Double> {
+public class CreateData extends EvalFunc<Map<String,Object>> {
 	
 	/**
      * Method invoked on every tuple during foreach evaluation.
      * @param input tuple<br>
-     * the columns are assumed to have numbers
+     * first column is assumed to have the data values
      * @exception java.io.IOException
-     * @return mean value
+     * @return new map
+     * //TODO: implement this UDF properly
      */
 	@Override
-	public Double exec(Tuple input) throws IOException {
-		if (input == null || input.size() < 2)
+	public Map<String,Object> exec(Tuple input) throws IOException {
+		if (input == null || input.size() < 1)
             return null;
         
 		try {
 			
-			int size = input.size();
-			
-			double sum = 0.0;
-			
-			for (int i=0; i<size; i++) {
-				Double value = DataType.toDouble(input.get(i));
-				sum = sum + value;
-			}
-			
-			return sum/size;
+			Map<String,Object> props = new HashMap<String,Object>();
+			props.put("0", "");
+			return props;
 			
 		} catch (Exception e) {
 			throw new IOException("Caught exception processing input row ", e);
@@ -63,7 +59,7 @@ public class Mean extends EvalFunc<Double> {
 	
 	@Override
     public Schema outputSchema(Schema input) {
-        return new Schema(new Schema.FieldSchema(null, DataType.DOUBLE));
+        return new Schema(new Schema.FieldSchema(null, DataType.MAP));
     }
 	
 }

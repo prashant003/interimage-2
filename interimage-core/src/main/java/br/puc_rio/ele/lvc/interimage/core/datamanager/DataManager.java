@@ -139,6 +139,8 @@ public class DataManager {
 				    
 				    bw.close();
 				    
+				    ShapefileConverter.WKTToShapefile(projectPath + "tiles.wkt", projectPath + "tiles.shp", null, null);
+				    
 				    File folder = new File(projectPath + "tiles/");
 					
 					for (final File fileEntry : folder.listFiles()) {

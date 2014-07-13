@@ -1,4 +1,3 @@
-package br.puc_rio.ele.lvc.interimage.operators.udf;
 /*Copyright 2014 Computer Vision Lab
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +11,8 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.*/
+
+package br.puc_rio.ele.lvc.interimage.operators.udf;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,7 +35,11 @@ import org.apache.pig.impl.logicalLayer.schema.Schema;
 
 import br.puc_rio.ele.lvc.interimage.common.UUID;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.LinearRing;
+import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.index.strtree.STRtree;
 import com.vividsolutions.jts.io.WKBWriter;
 import com.vividsolutions.jts.io.WKTReader;
@@ -107,7 +112,7 @@ public class ChessboardSegmentation extends EvalFunc<DataBag> {
 			
 			DataBag bag = BagFactory.getInstance().newDefaultBag();
 			
-			//Geometry geometry = _geometryParser.parseGeometry(objGeometry);
+			//Geometry inputGeometry = _geometryParser.parseGeometry(objGeometry);
 			
 			String tileStr = DataType.toString(properties.get("tile"));
 			
@@ -152,7 +157,22 @@ public class ChessboardSegmentation extends EvalFunc<DataBag> {
 		        		double geoX = i*_segmentSize + imageTileGeoBox[0];
 						double geoY = j*_segmentSize + imageTileGeoBox[1];
 						
-						Geometry geom = new WKTReader().read(String.format("POLYGON ((%f %f, %f %f, %f %f, %f %f, %f %f))", geoX, geoY, Math.min(geoX + _segmentSize, imageTileGeoBox[2]), geoY, Math.min(geoX + _segmentSize, imageTileGeoBox[2]), Math.min(geoY + _segmentSize, imageTileGeoBox[3]), geoX, Math.min(geoY + _segmentSize, imageTileGeoBox[3]), geoX, geoY));
+						Coordinate [] linePoints = new Coordinate[5];
+						
+						linePoints[0]= new Coordinate(geoX,geoY);
+	      				linePoints[4]= new Coordinate(geoX,geoY);
+	      				
+	      				linePoints[1]= new Coordinate(Math.min(geoX + _segmentSize, imageTileGeoBox[2]),geoY);
+	      				
+	      				linePoints[2]= new Coordinate(Math.min(geoX + _segmentSize, imageTileGeoBox[2]), Math.min(geoY + _segmentSize, imageTileGeoBox[3]));
+	      				
+	      				linePoints[3]= new Coordinate(geoX, Math.min(geoY + _segmentSize, imageTileGeoBox[3]));
+	      				
+	      				LinearRing shell = new GeometryFactory().createLinearRing(linePoints);
+	          			GeometryFactory fact = new GeometryFactory();
+	          			Geometry geom = new Polygon(shell, null, fact);
+	      				
+						//Geometry geom = new WKTReader().read(String.format("POLYGON ((%f %f, %f %f, %f %f, %f %f, %f %f))", geoX, geoY, Math.min(geoX + _segmentSize, imageTileGeoBox[2]), geoY, Math.min(geoX + _segmentSize, imageTileGeoBox[2]), Math.min(geoY + _segmentSize, imageTileGeoBox[3]), geoX, Math.min(geoY + _segmentSize, imageTileGeoBox[3]), geoX, geoY));
 		        		
 						if (_roiIndex.size()>0) {
 						
@@ -181,18 +201,25 @@ public class ChessboardSegmentation extends EvalFunc<DataBag> {
 							
 						} else {
 						
-			        		byte[] bytes = new WKBWriter().write(geom);
-			        		
-			        		Map<String,Object> props = new HashMap<String,Object>(properties);
-			        		
-			        		String id = new UUID(null).random();
-			        		
-			        		props.put("iiuuid", id);
-			        		
-			        		t.set(0,new DataByteArray(bytes));
-			        		t.set(1,new HashMap<String,String>(data));
-			        		t.set(2,props);
-			        		bag.add(t);
+							//Clipping according to the input geometry
+							//if (inputGeometry.intersects(geom)) {
+								
+								//geom = inputGeometry.intersection(geom);
+							
+				        		byte[] bytes = new WKBWriter().write(geom);
+				        		
+				        		Map<String,Object> props = new HashMap<String,Object>(properties);
+				        		
+				        		String id = new UUID(null).random();
+				        		
+				        		props.put("iiuuid", id);
+				        		
+				        		t.set(0,new DataByteArray(bytes));
+				        		t.set(1,new HashMap<String,String>(data));
+				        		t.set(2,props);
+				        		bag.add(t);
+				        		
+							//}
 			        		
 						}
 		        		

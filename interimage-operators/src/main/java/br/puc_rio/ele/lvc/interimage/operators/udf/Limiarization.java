@@ -54,13 +54,10 @@ import com.vividsolutions.jts.index.strtree.STRtree;
 import com.vividsolutions.jts.io.WKBWriter;
 import com.vividsolutions.jts.io.WKTReader;
 
-
 //TODO: This could be a generic UDF that receives the parameters and compute a particular segmentation process.
 //TODO: Create an interface for segmentation and then each implementation
 
 public class Limiarization extends EvalFunc<DataBag> {
-	//TODO: Verify this THRESHOLD value
-	final static double THRESHOLD=0.02;
 	
 	//private final GeometryParser _geometryParser = new GeometryParser();
 	//private Double _segmentSize;
@@ -201,7 +198,7 @@ public class Limiarization extends EvalFunc<DataBag> {
 			Map<String,Object> properties = DataType.toMap(input.get(2));
 			
 			DataBag bag = BagFactory.getInstance().newDefaultBag();
-			//Geometry geometry = _geometryParser.parseGeometry(objGeometry);
+			//Geometry inputGeometry = _geometryParser.parseGeometry(objGeometry);
 			String tileStr = DataType.toString(properties.get("tile"));
 			String inputURL = _imageUrl + _image + "_" + tileStr + ".tif";
 			
@@ -235,17 +232,12 @@ public class Limiarization extends EvalFunc<DataBag> {
 		        
 	        	_segmentList = new HashMap<String,List<Geometry>>();
 		        
-		        try {
-		        	//TODO: filter ROI
-					thresholding(inputURL);					
-					//initialize_segment_neihgborhood();					
+		        try {		        	
+					thresholding(inputURL);
 				} catch (Exception e) {
 					throw new Exception("Problem with segmentation");
 				}
-		        
-		        //Here we have segments with their polygons!
-		        //TODO: Merge Polygons and write the output
-		        
+		        		        
 		        for (Map.Entry<String, List<Geometry>> entry : _segmentList.entrySet()) {
 		        	
 		        	List<Geometry> list = entry.getValue();
@@ -454,14 +446,21 @@ public class Limiarization extends EvalFunc<DataBag> {
 	          			
           			} else {
           				
-          				if (_segmentList.containsKey(_class[classId])) {
-	          				List<Geometry> list = _segmentList.get(_class[classId]);
-	          				list.add(poly);
-	          			} else {
-	          				List<Geometry> list = new ArrayList<Geometry>();
-	          				list.add(poly);
-	          				_segmentList.put(_class[classId], list);
-	          			}
+          				//Clipping according to the input geometry
+						//if (inputGeometry.intersects(poly)) {
+							
+							//poly = inputGeometry.intersection(poly);
+          				
+	          				if (_segmentList.containsKey(_class[classId])) {
+		          				List<Geometry> list = _segmentList.get(_class[classId]);
+		          				list.add(poly);
+		          			} else {
+		          				List<Geometry> list = new ArrayList<Geometry>();
+		          				list.add(poly);
+		          				_segmentList.put(_class[classId], list);
+		          			}
+	          				
+						//}
           				
           			}
           			
