@@ -40,9 +40,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LinearRing;
 import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.index.strtree.STRtree;
 import com.vividsolutions.jts.io.WKBWriter;
-import com.vividsolutions.jts.io.WKTReader;
 
 public class ChessboardSegmentation extends EvalFunc<DataBag> {
 
@@ -50,15 +48,15 @@ public class ChessboardSegmentation extends EvalFunc<DataBag> {
 	private Double _segmentSize;
 	private String _imageUrl;
 	private String _image;
-	private STRtree _roiIndex = null;
+	//private STRtree _roiIndex = null;
 	
-	private String _roiUrl = null;
+	//private String _roiUrl = null;
 	
-	public ChessboardSegmentation(String imageUrl, String image, String segmentSize, String roiUrl) {
+	public ChessboardSegmentation(String imageUrl, String image, String segmentSize) {
 		_segmentSize = Double.parseDouble(segmentSize);
 		_imageUrl = imageUrl;
 		_image = image;
-		_roiUrl = roiUrl;
+		//_roiUrl = roiUrl;
 	}
 	
 	/**
@@ -77,7 +75,7 @@ public class ChessboardSegmentation extends EvalFunc<DataBag> {
             return null;
         
 		//executes initialization
-		if (_roiIndex == null) {
+		/*if (_roiIndex == null) {
 			_roiIndex = new STRtree();
 						        
 	        //Creates index for the ROIs
@@ -102,7 +100,7 @@ public class ChessboardSegmentation extends EvalFunc<DataBag> {
 				throw new IOException("Caught exception reading ROI file ", e);
 			}
 	        
-		}
+		}*/
 		
 		try {
 						
@@ -174,7 +172,7 @@ public class ChessboardSegmentation extends EvalFunc<DataBag> {
 	      				
 						//Geometry geom = new WKTReader().read(String.format("POLYGON ((%f %f, %f %f, %f %f, %f %f, %f %f))", geoX, geoY, Math.min(geoX + _segmentSize, imageTileGeoBox[2]), geoY, Math.min(geoX + _segmentSize, imageTileGeoBox[2]), Math.min(geoY + _segmentSize, imageTileGeoBox[3]), geoX, Math.min(geoY + _segmentSize, imageTileGeoBox[3]), geoX, geoY));
 		        		
-						if (_roiIndex.size()>0) {
+						/*if (_roiIndex.size()>0) {
 						
 							//Clipping according to the ROI
 							List<Geometry> list = _roiIndex.query(geom.getEnvelopeInternal());
@@ -199,7 +197,7 @@ public class ChessboardSegmentation extends EvalFunc<DataBag> {
 								}
 							}
 							
-						} else {
+						} else {*/
 						
 							//Clipping according to the input geometry
 							//if (inputGeometry.intersects(geom)) {
@@ -221,7 +219,7 @@ public class ChessboardSegmentation extends EvalFunc<DataBag> {
 				        		
 							//}
 			        		
-						}
+						//}
 		        		
 		        	}
 		        }

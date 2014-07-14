@@ -51,9 +51,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LinearRing;
 import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.index.strtree.STRtree;
 import com.vividsolutions.jts.io.WKBWriter;
-import com.vividsolutions.jts.io.WKTReader;
 
 //TODO: This could be a generic UDF that receives the parameters and compute a particular segmentation process.
 //TODO: Create an interface for segmentation and then each implementation
@@ -66,8 +64,8 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 	//private Double _segmentSize;
 	private String _imageUrl;
 	private String _image;
-	private STRtree _roiIndex = null;
-	private String _roiUrl = null;
+	//private STRtree _roiIndex = null;
+	//private String _roiUrl = null;
 	
 	private static int _nbands;
 	private static int _imageH;
@@ -79,11 +77,11 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 	private static double [] _wBand;
 	private static HashMap<Integer, Segment> _segmentList;
 	
-	public MutualBaatzSegmentation (String imageUrl, String image, String roiUrl, String scale, String wColor, String wCmpt, String wBands) {
+	public MutualBaatzSegmentation (String imageUrl, String image, String scale, String wColor, String wCmpt, String wBands) {
 		//_segmentSize = Double.parseDouble(segmentSize);
 		_imageUrl = imageUrl;
 		_image = image;
-		_roiUrl = roiUrl;
+		//_roiUrl = roiUrl;
 		
 		_scale = Math.pow(Double.parseDouble(scale),2);
 		_wColor = Double.parseDouble(wColor);
@@ -127,7 +125,7 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
             return null;
         
 		//executes initialization
-		if (_roiIndex == null) {
+		/*if (_roiIndex == null) {
 			_roiIndex = new STRtree();
 						        
 	        //Creates index for the ROIs
@@ -152,7 +150,7 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 				throw new IOException("Caught exception reading ROI file ", e);
 			}
 	        
-		}
+		}*/
 		
 		try {
 						
@@ -188,17 +186,11 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 		        
 		        double[] imageTileGeoBox = new double[4];
 		        
-		        int[] size = new int[2];
-		        
 		        String line1;
 		        int index1 = 0;
 		        while ((line1 = reader1.readLine()) != null) {
 		        	if (!line1.trim().isEmpty()) {
-		        		if (index1==1)
-		        			size[0] = Integer.parseInt(line1);
-		        		else if (index1==2)
-		        			size[1] = Integer.parseInt(line1);
-		        		else if (index1==3)
+		        		if (index1==3)
 		        			imageTileGeoBox[0] = Double.parseDouble(line1);
 		        		else if (index1==4)
 		        			imageTileGeoBox[1] = Double.parseDouble(line1);
@@ -210,7 +202,7 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 		        	}
 		        }
 		        
-		        double resX = (imageTileGeoBox[2]-imageTileGeoBox[0])/size[0];
+		        double resX = (imageTileGeoBox[2]-imageTileGeoBox[0])/_imageW;
 		        /*Using a threshold that represents one tenth of the resolution*/
 		        THRESHOLD = resX / 10;
 		        
@@ -320,38 +312,60 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 					 }
 					 
 					 Geometry geom = pol;
-					 
-					 Tuple t = TupleFactory.getInstance().newTuple(3);
-					 
-					 if (_roiIndex.size()>0) {
+					 					 
+					 /*if (_roiIndex.size()>0) {
 							//Clipping according to the ROI
 							List<Geometry> list = _roiIndex.query(geom.getEnvelopeInternal());
 							
 							for (Geometry g : list) {
 								if (g.intersects(geom)) {
+									
 									Geometry geometry = g.intersection(geom);
-									byte[] bytes = new WKBWriter().write(geometry);
-					        		
-					        		Map<String,Object> props = new HashMap<String,Object>(properties);
-					        		
-					        		String id = new UUID(null).random();
-					        		props.put("iiuuid", id);
-					        		
-					        		t.set(0,new DataByteArray(bytes));
-					        		t.set(1,new HashMap<String,String>(data));
-					        		t.set(2,props);
-					        		bag.add(t);
+									
+									if (geometry.getNumGeometries()>1) {// if it's a geometry collection
+										geometry = FilterGeometryCollection.filter(geometry);	//keeping only polygons
+										
+										if (geometry.isEmpty())
+											continue;
+																				
+										//geometry = geometry.buffer(0);
+									} else if (geometry.getNumGeometries()==1) {
+										if (!(geometry instanceof Polygon))
+											continue;										
+									} //else if (geometry.isEmpty()) {
+										//continue;
+									//}
+									
+									for (int k=0; k<geometry.getNumGeometries(); k++) {//separating polygons in different records
+										
+										Tuple t = TupleFactory.getInstance().newTuple(3);
+										
+										byte[] bytes = new WKBWriter().write(geometry.getGeometryN(k));
+						        		
+						        		Map<String,Object> props = new HashMap<String,Object>(properties);
+						        		
+						        		String id = new UUID(null).random();
+						        		props.put("iiuuid", id);
+						        		
+						        		t.set(0,new DataByteArray(bytes));
+						        		t.set(1,new HashMap<String,String>(data));
+						        		t.set(2,props);
+						        		bag.add(t);
+						        		
+									}
 									
 								}
 							}
 							
-						} else {
+						} else {*/
 						
 							//Clipping according to the input geometry
 							//if (inputGeometry.intersects(geom)) {
 								
 								//geom = inputGeometry.intersection(geom);
 								
+								Tuple t = TupleFactory.getInstance().newTuple(3);
+							
 				        		byte[] bytes = new WKBWriter().write(geom);
 				        		
 				        		Map<String,Object> props = new HashMap<String,Object>(properties);
@@ -367,7 +381,7 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 								
 							//}
 			        		
-						}
+						//}
 					 
 			    }
 		        _segmentList.clear();

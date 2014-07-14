@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.pig.EvalFunc;
 import org.apache.pig.data.BagFactory;
@@ -230,29 +229,14 @@ public class SpatialJoin extends EvalFunc<DataBag> {
 			int size = bagList.size();
 			
 			SpatialIndex[] index = new SpatialIndex[size];
-			Long currentTileId = null;
 			
 			Iterator it = bag1.iterator();
 	        while (it.hasNext()) {
 	            Tuple t1 = (Tuple)it.next();
 	        	Geometry geometry = _geometryParser.parseGeometry(t1.get(0));
-	            
-	        	Map<String,Object> properties = DataType.toMap(t1.get(2));
-	        	
-	        	String tileStr = DataType.toString(properties.get("tile"));
-								
-				long tileId = Long.parseLong(tileStr.substring(1));
-	        	
-				if (currentTileId == null)
-					currentTileId = (long)-1;
-				
-				if (currentTileId != tileId) {
 					
-					for (int k=0; k<size; k++)
-						index[k] = createIndex(bagList.get(k), tileId);
-					
-					currentTileId = tileId;
-				}
+				for (int k=0; k<size; k++)
+					index[k] = createIndex(bagList.get(k));					
 	        	
 				List<Tuple> list = new ArrayList<Tuple>();
 	        	
@@ -290,37 +274,19 @@ public class SpatialJoin extends EvalFunc<DataBag> {
 	
 	/**This method creates an STR-Tree index for the input bag and returns it.*/
 	@SuppressWarnings("rawtypes")
-	private SpatialIndex createIndex(DataBag bag, long tileId) {
+	private SpatialIndex createIndex(DataBag bag) {
 		
 		SpatialIndex index = null;
 		
 		try {
 		
 			index = new SpatialIndex();
-					
-			Long currentTileId = null;
-			
+
 			Iterator it = bag.iterator();
 	        while (it.hasNext()) {
 	            Tuple t = (Tuple)it.next();
-            	Geometry geometry = _geometryParser.parseGeometry(t.get(0));
-            	
-            	Map<String,Object> properties = DataType.toMap(t.get(2));
-            	
-            	String tileStr = DataType.toString(properties.get("tile"));
-				
-				long id = Long.parseLong(tileStr.substring(1));
-				
-				if (currentTileId == null)
-					currentTileId = id;
-				
-				/* As polygons are ordered by tile id, we don't have to go through all polygons. */
-				if ((id != currentTileId) && (currentTileId == tileId))
-					break;					
-				
-				if (id == tileId)
-					index.insert(geometry.getEnvelopeInternal(),t);
-					
+            	Geometry geometry = _geometryParser.parseGeometry(t.get(0));            	            	
+				index.insert(geometry.getEnvelopeInternal(),t);					
 	        }
 		} catch (Exception e) {
 			System.err.println("Failed to index bag; error - " + e.getMessage());

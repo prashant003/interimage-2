@@ -41,6 +41,13 @@
 	</dependency>
 		
 	<dependency>
+  		<groupId>br.puc_rio.ele.lvc</groupId>
+  		<artifactId>interimage-geometry</artifactId>
+  		<version>0.0.1-SNAPSHOT</version>
+  		<scope>provided</scope>
+  	</dependency>
+		
+	<dependency>
 		<groupId>junit</groupId>
 		<artifactId>junit</artifactId>
 		<version>4.11</version>

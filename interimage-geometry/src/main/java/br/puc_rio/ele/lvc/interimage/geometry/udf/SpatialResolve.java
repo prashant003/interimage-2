@@ -57,7 +57,6 @@ public class SpatialResolve extends EvalFunc<DataBag> {
 			int size = bagList.size();
 			
 			SpatialIndex[] index = new SpatialIndex[size];
-			Long currentTileId = null;
 			
 			Iterator it = bag1.iterator();
 	        while (it.hasNext()) {
@@ -67,23 +66,11 @@ public class SpatialResolve extends EvalFunc<DataBag> {
 	        	geom1 = _geometryParser.parseGeometry(t1.get(0));
 	        	
 	        	Map<String,Object> props1 = DataType.toMap(t1.get(2));
-	        	
-	        	String tileStr = DataType.toString(props1.get("tile"));
-								
-				long tileId = Long.parseLong(tileStr.substring(1));
 				
 				double membership1 = DataType.toDouble(props1.get("membership"));
-	        	
-				if (currentTileId == null)
-					currentTileId = (long)-1;
-				
-				if (currentTileId != tileId) {
 					
-					for (int k=0; k<size; k++)
-						index[k] = createIndex(bagList.get(k), tileId);
-					
-					currentTileId = tileId;
-				}
+				for (int k=0; k<size; k++)
+					index[k] = createIndex(bagList.get(k));
 				
 	        	List<Tuple> list = new ArrayList<Tuple>();
 	        	
@@ -128,37 +115,19 @@ public class SpatialResolve extends EvalFunc<DataBag> {
 	
 	/**This method creates an STR-Tree index for the input bag and returns it.*/
 	@SuppressWarnings("rawtypes")
-	private SpatialIndex createIndex(DataBag bag, long tileId) {
+	private SpatialIndex createIndex(DataBag bag) {
 		
 		SpatialIndex index = null;
 		
 		try {
 		
 			index = new SpatialIndex();
-					
-			Long currentTileId = null;
 			
 			Iterator it = bag.iterator();
 	        while (it.hasNext()) {
 	            Tuple t = (Tuple)it.next();
             	Geometry geometry = _geometryParser.parseGeometry(t.get(0));
-            	            	
-            	Map<String,Object> properties = DataType.toMap(t.get(2));
-            	
-            	String tileStr = DataType.toString(properties.get("tile"));
-				
-				long id = Long.parseLong(tileStr.substring(1));
-				
-				if (currentTileId == null)
-					currentTileId = id;
-				
-				/* As polygons are ordered by tile id, we don't have to go through all polygons. */
-				if ((id != currentTileId) && (currentTileId == tileId))
-					break;					
-				
-				if (id == tileId)
-					index.insert(geometry.getEnvelopeInternal(),t);
-				
+				index.insert(geometry.getEnvelopeInternal(),t);				
 	        }
 		} catch (Exception e) {
 			System.err.println("Failed to index bag; error - " + e.getMessage());

@@ -50,9 +50,7 @@ import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LinearRing;
 import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.index.strtree.STRtree;
 import com.vividsolutions.jts.io.WKBWriter;
-import com.vividsolutions.jts.io.WKTReader;
 
 //TODO: This could be a generic UDF that receives the parameters and compute a particular segmentation process.
 //TODO: Create an interface for segmentation and then each implementation
@@ -63,8 +61,8 @@ public class Limiarization extends EvalFunc<DataBag> {
 	//private Double _segmentSize;
 	private String _imageUrl;
 	private String _image;
-	private static STRtree _roiIndex = null;
-	private String _roiUrl = null;
+	//private static STRtree _roiIndex = null;
+	//private String _roiUrl = null;
 	
 	private static int _nbands;
 	private static int _imageH;
@@ -80,11 +78,11 @@ public class Limiarization extends EvalFunc<DataBag> {
 	
 	private static double [] _imageTileGeoBox;
 	
-	public Limiarization (String imageUrl, String image, String roiUrl, String thresholds, String classes, String operation) throws Exception {
+	public Limiarization (String imageUrl, String image, String thresholds, String classes, String operation) throws Exception {
 		//_segmentSize = Double.parseDouble(segmentSize);
 		_imageUrl = imageUrl;
 		_image = image;
-		_roiUrl = roiUrl;
+		//_roiUrl = roiUrl;
 		
 		//thresholds
 		String[] tr = thresholds.split(",");
@@ -163,7 +161,7 @@ public class Limiarization extends EvalFunc<DataBag> {
             return null;
         
 		//executes initialization
-		if (_roiIndex == null) {
+		/*if (_roiIndex == null) {
 			_roiIndex = new STRtree();
 						        
 	        //Creates index for the ROIs
@@ -188,7 +186,7 @@ public class Limiarization extends EvalFunc<DataBag> {
 				throw new IOException("Caught exception reading ROI file ", e);
 			}
 	        
-		}
+		}*/
 		
 		try {
 						
@@ -420,7 +418,7 @@ public class Limiarization extends EvalFunc<DataBag> {
           			GeometryFactory fact = new GeometryFactory();
           			Geometry poly = new Polygon(shell, null, fact);
           			
-          			if (_roiIndex.size()>0) {
+          			/*if (_roiIndex.size()>0) {
           			
 	          			//seg.setPolygon(poly);          			
 	          			        
@@ -444,7 +442,7 @@ public class Limiarization extends EvalFunc<DataBag> {
 							}
 						}
 	          			
-          			} else {
+          			} else {*/
           				
           				//Clipping according to the input geometry
 						//if (inputGeometry.intersects(poly)) {
@@ -462,7 +460,7 @@ public class Limiarization extends EvalFunc<DataBag> {
 	          				
 						//}
           				
-          			}
+          			//}
           			
           		}
           		

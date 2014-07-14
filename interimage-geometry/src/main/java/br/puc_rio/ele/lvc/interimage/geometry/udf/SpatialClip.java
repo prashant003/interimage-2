@@ -39,8 +39,10 @@ import org.apache.pig.impl.logicalLayer.schema.Schema;
 import br.puc_rio.ele.lvc.interimage.common.GeometryParser;
 import br.puc_rio.ele.lvc.interimage.common.Tile;
 import br.puc_rio.ele.lvc.interimage.common.UUID;
+import br.puc_rio.ele.lvc.interimage.geometry.FilterGeometryCollection;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.index.strtree.STRtree;
 import com.vividsolutions.jts.io.WKBWriter;
 import com.vividsolutions.jts.io.WKTReader;
@@ -171,22 +173,38 @@ public class SpatialClip extends EvalFunc<DataBag> {
 	        		List<Geometry> list = _roiIndex.query(geometry.getEnvelopeInternal());
 	  	        		
 		        	for (Geometry geom : list) {
-
-		        		//TODO: duplicate properties
+		        		
 		        		if (geom.intersects(geometry)) {
 		        			Geometry g = geom.intersection(geometry);
 		        			
-		        			byte[] bytes = new WKBWriter().write(g);
+		        			if (g.getNumGeometries()>1) {// if it's a geometry collection
+								g = FilterGeometryCollection.filter(g);	//keeping only polygons
+								
+								if (g.isEmpty())
+									continue;							
+								
+							} else if (g.getNumGeometries()==1) {
+								if (!(g instanceof Polygon))
+									continue;										
+							} /*else if (geometry.isEmpty()) {
+								continue;
+							}*/
 		        			
-		        			Tuple t = TupleFactory.getInstance().newTuple(3);
-		        			t.set(0,new DataByteArray(bytes));
-		        			t.set(1,new HashMap<String,String>(data));
+		        			for (int k=0; k<g.getNumGeometries(); k++) {//separating polygons in different records
 		        			
-		        			HashMap<String,Object> props = new HashMap<String,Object>(properties);
-		        			props.put("iiuuid",new UUID(null).random());		        			
-		        			t.set(2,props);
-		        			
-		        			bag.add(t);
+			        			byte[] bytes = new WKBWriter().write(g.getGeometryN(k));
+			        			
+			        			Tuple t = TupleFactory.getInstance().newTuple(3);
+			        			t.set(0,new DataByteArray(bytes));
+			        			t.set(1,new HashMap<String,String>(data));
+			        			
+			        			HashMap<String,Object> props = new HashMap<String,Object>(properties);
+			        			props.put("iiuuid",new UUID(null).random());		        			
+			        			t.set(2,props);
+			        			
+			        			bag.add(t);
+			        			
+		        			}
 		        					        			
 		        		}
 		        		
