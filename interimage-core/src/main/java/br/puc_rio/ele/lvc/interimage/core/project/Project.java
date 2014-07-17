@@ -55,7 +55,8 @@ import com.vividsolutions.jts.geom.Point;
  */
 public class Project {
 
-	private String _project;
+	private String _projectPath;
+	private String _projectName;
 	private SemanticNetwork _semanticNet;
 	private ImageList _imageList;
 	private ShapeList _shapeList;
@@ -80,8 +81,8 @@ public class Project {
 		_ruleSet = new RuleSet();
 	}
 	
-	public String getProject() {
-		return _project;
+	public String getProjectPath() {
+		return _projectPath;
 	}
 	
 	public SemanticNetwork getSemanticNetwork() {
@@ -109,7 +110,9 @@ public class Project {
 	        	}
 	        }
 						
-			_project = url;
+			_projectPath = url;
+			
+			_projectName = URL.getFileNameWithoutExtension(url);
 			
 			/*Reading properties file*/
 			InputStream input = new FileInputStream("interimage.properties");
@@ -239,7 +242,7 @@ public class Project {
 			    	_dataManager.updateGeoBBox(new double[] {_imageList.getGeoWest(), _imageList.getGeoSouth(), _imageList.getGeoEast(), _imageList.getGeoNorth()}); 
 			    	
 			    	for (Map.Entry<String, Image> entry : _imageList.getImages().entrySet()) {
-			    		_dataManager.setupResource(new SplittableResource(entry.getValue(),SplittableResource.IMAGE), _tileManager, URL.getPath(_project));
+			    		_dataManager.setupResource(new SplittableResource(entry.getValue(),SplittableResource.IMAGE), _tileManager, _projectName, URL.getPath(_projectPath));
 			    	}
 			    				    	
 			    } else {
@@ -267,9 +270,9 @@ public class Project {
 				    	_shapeList.add(key, shp);
 				    	
 				    	if (splittable) {
-				    		_dataManager.setupResource(new SplittableResource(shp,SplittableResource.SHAPE), _tileManager, null);
+				    		_dataManager.setupResource(new SplittableResource(shp,SplittableResource.SHAPE), _tileManager, _projectName, null);
 				    	} else {
-				    		_dataManager.setupResource(new DefaultResource(shp,DefaultResource.SHAPE), null, null);
+				    		_dataManager.setupResource(new DefaultResource(shp,DefaultResource.SHAPE), null, _projectName, null);
 				    	}
 			    	}
 			    				    	
@@ -282,7 +285,7 @@ public class Project {
 			    
 			    String tileUrl = null;
 			    
-			    tileUrl = _dataManager.setupResource(new DefaultResource(_tileManager.getTiles(), DefaultResource.TILE), _tileManager, URL.getPath(_project));
+			    tileUrl = _dataManager.setupResource(new DefaultResource(_tileManager.getTiles(), DefaultResource.TILE), _tileManager, _projectName, URL.getPath(_projectPath));
 			    		
 			    _properties.setProperty("interimage.tileUrl", tileUrl);
 			    
@@ -296,7 +299,7 @@ public class Project {
 			    	_fuzzySetList.readOldFile(fuzzySet.getAttribute("file"));
 
 			    	if (_fuzzySetList.size()>0)
-			    		fuzzyUrl = _dataManager.setupResource(new DefaultResource(new ArrayList<FuzzySet>(_fuzzySetList.getFuzzySets().values()), DefaultResource.FUZZY_SET), null, URL.getPath(_project));			    	
+			    		fuzzyUrl = _dataManager.setupResource(new DefaultResource(new ArrayList<FuzzySet>(_fuzzySetList.getFuzzySets().values()), DefaultResource.FUZZY_SET), null, _projectName, URL.getPath(_projectPath));			    	
 			    	
 			    } else {
 			    	System.out.println("Warning: No fuzzysets tag defined in your project file.");
@@ -318,12 +321,12 @@ public class Project {
 			        if (fileEntry.isDirectory()) {
 			        	//ignore
 			        } else {
-			        	_dataManager.setupResource(new DefaultResource(new String("lib/" + fileEntry.getName()), DefaultResource.FILE), null, null);	
+			        	_dataManager.setupResource(new DefaultResource(new String("lib/" + fileEntry.getName()), DefaultResource.FILE), null, _projectName, null);	
 			        }
 			    }
 			    
 			    /*Sending import file to the cluster*/
-			    _dataManager.setupResource(new DefaultResource(new String("interimage-import.pig"), DefaultResource.FILE), null, null);
+			    _dataManager.setupResource(new DefaultResource(new String("interimage-import.pig"), DefaultResource.FILE), null, _projectName, null);
 			    
 			    
 		    } else {

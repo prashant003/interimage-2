@@ -49,7 +49,7 @@ import br.puc_rio.ele.lvc.interimage.common.TileManager;
 
 public class ImageConverter {
 	
-	public static void ImageToJSON(Image imageObj, String projectPath, List<String> list, boolean keep, TileManager tileManager) {
+	public static void ImageToJSON(Image imageObj, String imagePath, List<String> list, boolean keep, TileManager tileManager) {
 		
 		try {
 			
@@ -155,7 +155,7 @@ public class ImageConverter {
     		BufferedImage img=null;
     		            
             /*deleting previous files*/
-            File dir = new File(projectPath);
+            File dir = new File(imagePath);
             
             dir.mkdirs();
             
@@ -233,11 +233,12 @@ public class ImageConverter {
 	                img = reader.read(0, param);
 	             	                
 	                /*Write tiff file*/
-	                File outputfile = new File(projectPath + imageObj.getKey() + "_T" + id + extension);
+	                File outputfile = new File(imagePath + "T" + id + extension);
 	                
 	                ImageIO.write(img, formatName, outputfile);
 	                	                
-	                OutputStream out = new FileOutputStream(projectPath + imageObj.getKey() + "_T" + id + extension + "w");
+	                /*tfw file just for test purposes*/
+	                OutputStream out = new FileOutputStream(imagePath + "T" + id + extension + "w");
 	                
 	                double[] newGeo = Image.geoBBox(imgBBox, geoBBox, new int[] {imgW, imgH});
 	                
@@ -262,7 +263,7 @@ public class ImageConverter {
 	                
 	                out.close();
 	                
-	                OutputStream out3 = new FileOutputStream(projectPath + imageObj.getKey() + "_T" + id + ".meta");
+	                OutputStream out3 = new FileOutputStream(imagePath + "T" + id + ".meta");
 	                
 	                str = imageObj.getBands() + "\n";
 	                str = str + (imgBBox[2]-imgBBox[0]+1) + "\n";

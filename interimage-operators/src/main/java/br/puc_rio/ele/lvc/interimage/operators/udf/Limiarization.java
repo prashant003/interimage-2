@@ -42,6 +42,7 @@ import org.apache.pig.data.TupleFactory;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 
 import br.puc_rio.ele.lvc.interimage.common.UUID;
+import br.puc_rio.ele.lvc.interimage.data.Image;
 import br.puc_rio.ele.lvc.interimage.data.imageioimpl.plugins.tiff.TIFFImageReader;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -54,6 +55,8 @@ import com.vividsolutions.jts.io.WKBWriter;
 
 //TODO: This could be a generic UDF that receives the parameters and compute a particular segmentation process.
 //TODO: Create an interface for segmentation and then each implementation
+//TODO: Allow the computation on more than one image
+//TODO: Implement the operation EXPRESSION
 
 public class Limiarization extends EvalFunc<DataBag> {
 	
@@ -198,13 +201,13 @@ public class Limiarization extends EvalFunc<DataBag> {
 			DataBag bag = BagFactory.getInstance().newDefaultBag();
 			//Geometry inputGeometry = _geometryParser.parseGeometry(objGeometry);
 			String tileStr = DataType.toString(properties.get("tile"));
-			String inputURL = _imageUrl + _image + "_" + tileStr + ".tif";
+			String inputURL = _imageUrl + _image + "/" + tileStr + ".tif";
 			
 			//double box[] = new double[] {geometry.getEnvelopeInternal().getMinX(), geometry.getEnvelopeInternal().getMinY(), geometry.getEnvelopeInternal().getMaxX(), geometry.getEnvelopeInternal().getMaxY()};
 	        if (br.puc_rio.ele.lvc.interimage.common.URL.exists(inputURL)) {	//if tile doesn't exist (???)
 				        	
 	        	//Get Geocoordinates
-	        	URL worldFile1 = new URL(_imageUrl + _image + "_" + tileStr + ".meta");
+	        	URL worldFile1 = new URL(_imageUrl + _image + "/" + tileStr + ".meta");
 				URLConnection urlConn1 = worldFile1.openConnection();
                 urlConn1.connect();
 				InputStreamReader inStream1 = new InputStreamReader(urlConn1.getInputStream());
@@ -397,21 +400,21 @@ public class Limiarization extends EvalFunc<DataBag> {
       				
       				Coordinate [] linePoints = new Coordinate[5];
 					//left top corner
-      				CoordX = pic2geoX(x - 0.5, _imageW, _imageTileGeoBox);
-      				CoordY = pic2geoY(y - 0.5 ,_imageH, _imageTileGeoBox);
+      				CoordX = Image.imgToGeoX(x - 0.5, _imageW, _imageTileGeoBox);
+      				CoordY = Image.imgToGeoY(y - 0.5 ,_imageH, _imageTileGeoBox);
       				linePoints[0]= new Coordinate(CoordX,CoordY);
       				linePoints[4]= new Coordinate(CoordX,CoordY); //close the ring
 	                //right top corner
-      				CoordX = pic2geoX(x + 0.5, _imageW,_imageTileGeoBox);
-      				CoordY = pic2geoY(y - 0.5,_imageH,_imageTileGeoBox);
+      				CoordX = Image.imgToGeoX(x + 0.5, _imageW,_imageTileGeoBox);
+      				CoordY = Image.imgToGeoY(y - 0.5,_imageH,_imageTileGeoBox);
       				linePoints[1] = new Coordinate(CoordX,CoordY);
 					//right bottom corner
-					CoordX = pic2geoX(x + 0.5,_imageW,_imageTileGeoBox);
-					CoordY = pic2geoY(y + 0.5,_imageH,_imageTileGeoBox);
+					CoordX = Image.imgToGeoX(x + 0.5,_imageW,_imageTileGeoBox);
+					CoordY = Image.imgToGeoY(y + 0.5,_imageH,_imageTileGeoBox);
 					linePoints[2] = new Coordinate(CoordX,CoordY);
 					//right bottom corner
-					CoordX = pic2geoX(x - 0.5,_imageW,_imageTileGeoBox);
-					CoordY = pic2geoY(y + 0.5,_imageH,_imageTileGeoBox);
+					CoordX = Image.imgToGeoX(x - 0.5,_imageW,_imageTileGeoBox);
+					CoordY = Image.imgToGeoY(y + 0.5,_imageH,_imageTileGeoBox);
 					linePoints[3] = new Coordinate(CoordX,CoordY);
 					 
 					LinearRing shell = new GeometryFactory().createLinearRing(linePoints);
@@ -471,17 +474,6 @@ public class Limiarization extends EvalFunc<DataBag> {
         
                 
       stream.close(); 
-	}
-	
-	//TODO: The following methods can be used from a geometry class
-	private static double pic2geoX(double picX, int cols, double [] imgGeo)
-	{
-	    return ((picX+0.5) * ((imgGeo[2]-imgGeo[0]) / cols)) + imgGeo[0];
-	}
-	
-	private static double pic2geoY(double picY, int rows, double [] imgGeo)
-	{
-		return ((picY+0.5) * ((imgGeo[1]-imgGeo[3]) / rows)) + imgGeo[3];
 	}
 	
 }

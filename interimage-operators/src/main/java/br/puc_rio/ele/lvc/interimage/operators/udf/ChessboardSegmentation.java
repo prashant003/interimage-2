@@ -116,10 +116,10 @@ public class ChessboardSegmentation extends EvalFunc<DataBag> {
 			
 			//double box[] = new double[] {geometry.getEnvelopeInternal().getMinX(), geometry.getEnvelopeInternal().getMinY(), geometry.getEnvelopeInternal().getMaxX(), geometry.getEnvelopeInternal().getMaxY()};
 	        
-	        if (br.puc_rio.ele.lvc.interimage.common.URL.exists(_imageUrl + _image + "_" + tileStr + ".tif")) {	//if tile doesn't exist
+	        if (br.puc_rio.ele.lvc.interimage.common.URL.exists(_imageUrl + _image + "/" + tileStr + ".tif")) {	//if tile doesn't exist
 				
 	        	/*Getting width and height*/
-	        	URL worldFile1 = new URL(_imageUrl + _image + "_" + tileStr + ".meta");
+	        	URL worldFile1 = new URL(_imageUrl + _image + "/" + tileStr + ".meta");
 				URLConnection urlConn1 = worldFile1.openConnection();
                 urlConn1.connect();
 				InputStreamReader inStream1 = new InputStreamReader(urlConn1.getInputStream());

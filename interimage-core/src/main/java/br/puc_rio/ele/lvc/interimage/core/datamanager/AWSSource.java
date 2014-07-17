@@ -86,6 +86,10 @@ public class AWSSource implements Source {
 		
 	}
 	
+	public String getSpecificURL() {
+		return "s3n://" + _bucket + "/";
+	}
+	
 	public String getURL() {
 		return "https://s3.amazonaws.com/" + _bucket + "/";
 	}

@@ -80,7 +80,7 @@ public class DataManager {
 				
 	}
 		
-	public String setupResource(Resource resource, TileManager tileManager, String projectPath) {
+	public String setupResource(Resource resource, TileManager tileManager, String projectName, String projectPath) {
 		
 		String returnUrl = null;
 		
@@ -147,11 +147,11 @@ public class DataManager {
 				        if (fileEntry.isDirectory()) {
 				        	//ignore
 				        } else {
-				        	_source.put(projectPath + "tiles/" + fileEntry.getName(), "resources/tiles/" + fileEntry.getName(), rsrc);
+				        	_source.put(projectPath + "tiles/" + fileEntry.getName(), "interimage/" + projectName + "/resources/tiles/" + fileEntry.getName(), rsrc);
 				        }
 				    }
 				    
-				    String to = "resources/tiles.ser";
+				    String to = "interimage/" + projectName + "/resources/tiles.ser";
 				    
 				    _source.put(projectPath + "tiles.ser", to, rsrc);
 				    			
@@ -176,7 +176,7 @@ public class DataManager {
 				    
 				    out.close();
 				    
-				    String to = "resources/fuzzysets.ser";
+				    String to = "interimage/" + projectName + "/resources/fuzzysets.ser";
 				    
 				    _source.put(projectPath + "fuzzysets.ser", to, rsrc);
 				    
@@ -191,20 +191,20 @@ public class DataManager {
 				Shape shp = (Shape)rsrc.getObject();
 				
 				String url = shp.getURL();
-								
+				
 				if (url.contains(".csv")) {
-										
-					String to = "resources/" + shp.getKey() + ".csv";
+				
+					//TODO: This shouldn't be here
+					
+					String to = "interimage/" + projectName + "/resources/" + shp.getKey() + ".csv";
 					
 					_source.put(url, to, rsrc);
 					
 					returnUrl = _source.getURL() + to;
 					
 				} else if (url.contains(".wkt")) {
-				
-					//TODO: Convert to internal CRS					
 					
-					String to = "resources/shapes/" + shp.getKey() + ".wkt";
+					String to = "interimage/" + projectName + "/resources/shapes/" + shp.getKey() + ".wkt";
 					
 					_source.put(url, to, rsrc);
 					
@@ -215,7 +215,7 @@ public class DataManager {
 					String wkt = URL.getPath(url) + URL.getFileNameWithoutExtension(url) + ".wkt";
 					ShapefileConverter.shapefileToWKT(url, wkt, shp.getCRS(), shp.getCRS());
 					
-					String to = "resources/shapes/" + shp.getKey() + ".wkt";
+					String to = "interimage/" + projectName + "/resources/shapes/" + shp.getKey() + ".wkt";
 					
 					_source.put(wkt, to, rsrc);
 					
@@ -260,11 +260,11 @@ public class DataManager {
 				
 				if (url.contains(".pig")) {
 				
-					_source.put(path + name, "resources/scripts/" + name, rsrc);
+					_source.put(path + name, "interimage/scripts/" + name, rsrc);
 					
 				} else if (url.contains(".jar")) {
 					
-					_source.put(path + name, "resources/libs/" + name, rsrc);
+					_source.put(path + name, "interimage/libs/" + name, rsrc);
 					
 				}
 				
@@ -287,14 +287,14 @@ public class DataManager {
 										
 					ImageConverter.ImageToJSON(img, projectPath + "images/" + key + "/", null, true, tileManager);
 					
-					File folder = new File(projectPath + "images/" + key + "/");
+					File folder = new File(projectPath + "images/" + key);
 					
 					for (final File fileEntry : folder.listFiles()) {
 				        if (fileEntry.isDirectory()) {
 				        	//ignore
 				        } else {
 				        	if (!fileEntry.getName().endsWith("w"))
-				        		_source.put(projectPath + "images/" + key + "/" + fileEntry.getName(), "resources/images/" + fileEntry.getName(), rsrc);
+				        		_source.put(projectPath + "images/" + key + "/" + fileEntry.getName(), "interimage/" + projectName + "/resources/images/" + key + "/" + fileEntry.getName(), rsrc);
 				        }
 				    }
 					
@@ -328,7 +328,7 @@ public class DataManager {
 					String json = URL.getPath(url) + URL.getFileNameWithoutExtension(url) + ".json";
 					ShapefileConverter.shapefileToJSON(url, json, list, false, shp.getCRS(), shp.getCRS(), gbox, tileManager);
 					//ShapefileConverter.JSONToShapefile(json, "C:\\Users\\Rodrigo\\Desktop\\test.shp", list, false, shp.getCRS(), shp.getCRS());
-					String to = "resources/shapes/" + shp.getKey() + ".json";
+					String to = "interimage/" + projectName + "/resources/shapes/" + shp.getKey() + ".json";
 					
 					_source.put(json, to, rsrc);
 					
@@ -362,6 +362,10 @@ public class DataManager {
 	
 	public double[] getGeoBBox() {
 		return _geoBBox;
+	}
+	
+	public String getSourceSpecificURL() {
+		return _source.getSpecificURL();
 	}
 	
 	public String getSourceURL() {

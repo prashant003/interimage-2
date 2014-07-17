@@ -44,6 +44,7 @@ import org.apache.pig.impl.logicalLayer.schema.Schema;
 import br.puc_rio.ele.lvc.interimage.common.UUID;
 import br.puc_rio.ele.lvc.interimage.operators.Pixel;
 import br.puc_rio.ele.lvc.interimage.operators.Segment;
+import br.puc_rio.ele.lvc.interimage.data.Image;
 import br.puc_rio.ele.lvc.interimage.data.imageioimpl.plugins.tiff.TIFFImageReader;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -162,7 +163,7 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 			DataBag bag = BagFactory.getInstance().newDefaultBag();
 			//Geometry inputGeometry = _geometryParser.parseGeometry(objGeometry);
 			String tileStr = DataType.toString(properties.get("tile"));
-			String inputURL = _imageUrl + _image + "_" + tileStr + ".tif";
+			String inputURL = _imageUrl + _image + "/" + tileStr + ".tif";
 			
 			//double box[] = new double[] {geometry.getEnvelopeInternal().getMinX(), geometry.getEnvelopeInternal().getMinY(), geometry.getEnvelopeInternal().getMaxX(), geometry.getEnvelopeInternal().getMaxY()};
 	        if (br.puc_rio.ele.lvc.interimage.common.URL.exists(inputURL)) {	//if tile doesn't exist (???)
@@ -178,7 +179,7 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 	        	//Write Results
 	        	
 	        	//Get Geocoordinates
-	        	URL worldFile1 = new URL(_imageUrl + _image + "_" + tileStr + ".meta");
+	        	URL worldFile1 = new URL(_imageUrl + _image + "/" + tileStr + ".meta");
 				URLConnection urlConn1 = worldFile1.openConnection();
                 urlConn1.connect();
 				InputStreamReader inStream1 = new InputStreamReader(urlConn1.getInputStream());
@@ -225,10 +226,10 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 							//North
 							if (!aux_segment.getPixelList().containsKey(pixelNeighborhood[0])){
 								//left top corner
-								CoordX = pic2geoX(x - 0.5, _imageW, imageTileGeoBox);
-								CoordY = pic2geoY(y - 0.5 ,_imageH, imageTileGeoBox);
+								CoordX = Image.imgToGeoX(x - 0.5, _imageW, imageTileGeoBox);
+								CoordY = Image.imgToGeoY(y - 0.5 ,_imageH, imageTileGeoBox);
 				                //right top corner
-								CoordX2 = pic2geoX(x + 0.5, _imageW,imageTileGeoBox);
+								CoordX2 = Image.imgToGeoX(x + 0.5, _imageW,imageTileGeoBox);
 								CoordY2 = CoordY;
 								
 								checkEdge(rings,outterRing,CoordX,CoordY,CoordX2,CoordY2);
@@ -237,11 +238,11 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 							//West
 							if (!aux_segment.getPixelList().containsKey(pixelNeighborhood[1])){
 								//bottom left corner
-								CoordX = pic2geoX(x - 0.5,_imageW,imageTileGeoBox);
-								CoordY = pic2geoY(y + 0.5,_imageH,imageTileGeoBox);
+								CoordX = Image.imgToGeoX(x - 0.5,_imageW,imageTileGeoBox);
+								CoordY = Image.imgToGeoY(y + 0.5,_imageH,imageTileGeoBox);
 				                //top left corner
 								CoordX2 = CoordX;
-				                CoordY2 = pic2geoY(y - 0.5,_imageH,imageTileGeoBox);
+				                CoordY2 = Image.imgToGeoY(y - 0.5,_imageH,imageTileGeoBox);
 				                
 				                checkEdge(rings,outterRing,CoordX,CoordY,CoordX2,CoordY2);
 							}
@@ -249,10 +250,10 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 							//South
 							if (!aux_segment.getPixelList().containsKey(pixelNeighborhood[2])){
 								//bottom right corner
-								CoordX = pic2geoX(x + 0.5,_imageW,imageTileGeoBox);
-								CoordY = pic2geoY(y + 0.5,_imageH,imageTileGeoBox);
+								CoordX = Image.imgToGeoX(x + 0.5,_imageW,imageTileGeoBox);
+								CoordY = Image.imgToGeoY(y + 0.5,_imageH,imageTileGeoBox);
 				                //bottom left corner
-								CoordX2 = pic2geoX(x - 0.5,_imageW,imageTileGeoBox);
+								CoordX2 = Image.imgToGeoX(x - 0.5,_imageW,imageTileGeoBox);
 				                CoordY2 = CoordY;
 				                
 				                checkEdge(rings,outterRing,CoordX,CoordY,CoordX2,CoordY2);
@@ -261,11 +262,11 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 							//East
 							if (!aux_segment.getPixelList().containsKey(pixelNeighborhood[3])){					
 								//right top corner
-								CoordX = pic2geoX(x + 0.5,_imageW,imageTileGeoBox);
-								CoordY = pic2geoY(y - 0.5,_imageH,imageTileGeoBox);
+								CoordX = Image.imgToGeoX(x + 0.5,_imageW,imageTileGeoBox);
+								CoordY = Image.imgToGeoY(y - 0.5,_imageH,imageTileGeoBox);
 				                //right bottom corner
 								CoordX2 = CoordX;
-								CoordY2 = pic2geoY(y + 0.5,_imageH,imageTileGeoBox);
+								CoordY2 = Image.imgToGeoY(y + 0.5,_imageH,imageTileGeoBox);
 
 								checkEdge(rings,outterRing,CoordX,CoordY,CoordX2,CoordY2);
 							}
@@ -882,18 +883,6 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 		
 		//TODO:Do I need to know if it is a border now or just in the end?
 		obj.reset_border(_imageW, _imageH);
-	}
-	
-	
-	//TODO: The following methods can be used from a geometry class
-	private static double pic2geoX(double picX, int cols, double [] imgGeo)
-	{
-	    return ((picX+0.5) * ((imgGeo[2]-imgGeo[0]) / cols)) + imgGeo[0];
-	}
-	
-	private static double pic2geoY(double picY, int rows, double [] imgGeo)
-	{
-	    return ((picY+0.5) * ((imgGeo[1]-imgGeo[3]) / rows)) + imgGeo[3];
 	}
 	
 	private static double distance(double[] p1, double[] p2)

@@ -23,4 +23,7 @@ public interface Source {
 	public void put(String from, String to, Resource resource);
 	
 	public String getURL();
+	
+	public String getSpecificURL();
+	
 }

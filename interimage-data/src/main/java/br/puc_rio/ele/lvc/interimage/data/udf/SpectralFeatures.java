@@ -225,7 +225,7 @@ public class SpectralFeatures extends EvalFunc<DataBag> {
 								BufferedImage buff = null;
 								//Img< DoubleType > buff = null;
 								
-								if (br.puc_rio.ele.lvc.interimage.common.URL.exists(_imageUrl + img + "_" + tile + ".tif")) {	//if tile doesn't exist
+								if (br.puc_rio.ele.lvc.interimage.common.URL.exists(_imageUrl + img + "/" + tile + ".tif")) {	//if tile doesn't exist
 								
 									//System.out.println("tile exists");
 
@@ -234,7 +234,7 @@ public class SpectralFeatures extends EvalFunc<DataBag> {
 									//buff = (Img< DoubleType >) imgOpener.openImg( _imageUrl + img + "_" + tile + ".tif");
 									
 									//TODO: treat other formats
-									URL imageFile  = new URL(_imageUrl + img + "_" + tile + ".tif");	        		
+									URL imageFile  = new URL(_imageUrl + img + "/" + tile + ".tif");	        		
 									
 									URLConnection urlConn2 = imageFile.openConnection();
 																		
@@ -306,7 +306,7 @@ public class SpectralFeatures extends EvalFunc<DataBag> {
 									tileGeoBox[3] = origin[1];*/
 									
 									/*Getting width and height*/
-						        	URL worldFile1 = new URL(_imageUrl + img + "_" + tile + ".meta");
+						        	URL worldFile1 = new URL(_imageUrl + img + "/" + tile + ".meta");
 									URLConnection urlConn1 = worldFile1.openConnection();
 					                urlConn1.connect();
 									InputStreamReader inStream1 = new InputStreamReader(urlConn1.getInputStream());
