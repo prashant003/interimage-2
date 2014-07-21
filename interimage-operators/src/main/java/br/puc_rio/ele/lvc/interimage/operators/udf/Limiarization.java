@@ -58,6 +58,11 @@ import com.vividsolutions.jts.io.WKBWriter;
 //TODO: Allow the computation on more than one image
 //TODO: Implement the operation EXPRESSION
 
+/**
+ * UDF for limiarization.
+ * @author Patrick Happ, Rodrigo Ferreira
+ */
+
 public class Limiarization extends EvalFunc<DataBag> {
 	
 	//private final GeometryParser _geometryParser = new GeometryParser();

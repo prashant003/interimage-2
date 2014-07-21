@@ -131,6 +131,7 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 
 	        	}
 	        } catch (Exception e) {
+	        	e.printStackTrace();
 				throw new IOException("Caught exception reading ROI file ", e);
 			}
 	        

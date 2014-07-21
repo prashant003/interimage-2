@@ -75,8 +75,8 @@ public class AWSSource implements Source {
 				}
 			}
 			
-			//TransferManager tx = new TransferManager(credentials);
-			//Upload myUpload = tx.upload(putObjectRequest);
+			TransferManager tx = new TransferManager(credentials);
+			Upload myUpload = tx.upload(putObjectRequest);
 			
 			System.out.println("AWSSource: Uploaded file - " + to);
 			

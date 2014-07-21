@@ -147,7 +147,7 @@ public class DataManager {
 				        if (fileEntry.isDirectory()) {
 				        	//ignore
 				        } else {
-				        	_source.put(projectPath + "tiles/" + fileEntry.getName(), "interimage/" + projectName + "/resources/tiles/" + fileEntry.getName(), rsrc);
+				        	_source.put(projectPath + "tiles/" + fileEntry.getName(), "interimage/" + projectName + "/tiles/" + fileEntry.getName(), rsrc);
 				        }
 				    }
 				    

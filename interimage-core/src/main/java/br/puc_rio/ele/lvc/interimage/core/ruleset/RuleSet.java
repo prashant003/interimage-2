@@ -14,16 +14,10 @@ limitations under the License.*/
 
 package br.puc_rio.ele.lvc.interimage.core.ruleset;
 
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -45,26 +39,26 @@ public class RuleSet {
 	private String _url;
 	private Rule _root;
 	
-	private String _lastRelation;
-	private String _lastClassRelation;
-	private Map<String,Integer> _counts;
+	//private String _lastRelation;
+	//private String _lastClassRelation;
+	//private Map<String,Integer> _counts;
 	private List<String> _spectralCalculations;
 	private boolean _firstClass = true;
-	private Properties _properties;
+	//private Properties _properties;
 	private UDFSet _udfSet;
 	
 	//TODO: Must become parameters
-	private int _parallel;
-	
+	//private int _parallel;
+		
 	public RuleSet() {
-		_counts = new HashMap<String,Integer>();
-		_counts.put("projection", 0);
-		_counts.put("filter", 0);
-		_counts.put("group", 0);
-		_counts.put("load", 0);
-		_counts.put("union", 0);
+		/*_counts = new HashMap<String,Integer>();
+		_counts.put("projection", 1);
+		_counts.put("selection", 1);
+		_counts.put("group", 1);
+		_counts.put("load", 1);
+		_counts.put("union", 1);
 		_lastRelation = "undefined";
-		_lastClassRelation = "undefined";
+		_lastClassRelation = "undefined";*/
 		
 		_spectralCalculations = new ArrayList<String>();
 				
@@ -73,10 +67,22 @@ public class RuleSet {
 		
 	}
 	
-	public void setup(Properties properties) {
+	/*public void setup(Properties properties) {
 		_properties = properties;
-		_parallel = Integer.parseInt(_properties.getProperty("interimage.parallel"));
+		//_parallel = Integer.parseInt(_properties.getProperty("interimage.parallel"));		
+	}*/
+	
+	/*public void setLastRelation(String relation) {
+		String[] terms = relation.split("_");
+		_lastRelation = terms[0] + "_" + (Integer.parseInt(terms[1]) + 1);
 	}
+		
+	public void setCounts(Map<String, List<String>> relationMap) {
+		for (Map.Entry<String, List<String>> entry : relationMap.entrySet()) {			
+			List<String> list = (List<String>)entry.getValue();
+			_counts.put(entry.getKey(), list.size()+1);
+		}
+	}*/
 	
 	public void setRootRule(Rule rule) {
 		_root = rule;
@@ -164,12 +170,12 @@ public class RuleSet {
 		
 	}
 	
-	private String nextRelation(String type) {
+	/*private String nextRelation(String type) {
 		int count = _counts.get(type);
 		_counts.put(type,count+1);
 		String result = type + "_" + count;		
 		return result;
-	}
+	}*/
 		
 	public String parseExpression(String expression) {
 		String result = null;
@@ -237,10 +243,10 @@ public class RuleSet {
 			}
 			
 			//TODO: Maybe a parameter could define the way spectral features will be considered
-			String relation = nextRelation("group");
-			code.append("DEFINE SpectralFeatures br.puc_rio.ele.lvc.interimage.data.udf.SpectralFeatures('" + _properties.getProperty("sourceURL") + "resources/images/','" + list + "','" + _properties.getProperty("interimage.tileSizeMeters") + "');\n");
-			code.append(relation + " = II_SpectralFeatures(" + _lastRelation + "," + _parallel + ");\n");			
-			_lastRelation = relation;
+			//String relation = nextRelation("group");
+			code.append("DEFINE SpectralFeatures br.puc_rio.ele.lvc.interimage.data.udf.SpectralFeatures('$IMAGES_PATH','" + list + "','$TILE_SIZE_METERS');\n");
+			code.append("group = II_SpectralFeatures($LAST_RELATION, $PARALLEL);\n");			
+			//_lastRelation = relation;
 						
 		}
 		
@@ -260,11 +266,11 @@ public class RuleSet {
 				
 				if (first) {					
 					evaluateRule(rule.getChildren().get(k), code);
-					loads.add(_lastRelation);
+					//loads.add(_lastRelation);
 					first = false;
 				} else {					
 					evaluateRule(rule.getChildren().get(k), code);
-					loads.add(_lastRelation);					
+					//loads.add(_lastRelation);					
 				}
 							
 			}
@@ -289,8 +295,8 @@ public class RuleSet {
 			relation = nextRelation("projection");
 			code.append(relation + " = FOREACH " + _lastRelation + " GENERATE FLATTEN(II_Combine(");*/
 			
-			String relation = nextRelation("union");
-			code.append(relation + " = UNION ");
+			//String relation = nextRelation("union");
+			code.append("union = UNION ");
 			
 			first = true;
 			for (int i=0; i<loads.size(); i++) {
@@ -306,7 +312,7 @@ public class RuleSet {
 			
 			code.append(";\n");
 			
-			_lastRelation = relation;
+			//_lastRelation = relation;
 			
 			return;
 			
@@ -321,31 +327,31 @@ public class RuleSet {
 			
 			code.append("\n");
 			
-			String relation = nextRelation("load");
-			code.append(relation + " = LOAD '' USING org.apache.pig.piggybank.storage.JsonLoader('geometry:bytearray, data:map[], properties:map[]');\n");
-			_lastRelation = relation;
-			_lastClassRelation = rule.getLabel();
+			//String relation = nextRelation("load");
+			//code.append(relation + " = LOAD '' USING org.apache.pig.piggybank.storage.JsonLoader('geometry:bytearray, data:map[], properties:map[]');\n");
+			//_lastRelation = relation;
+			//_lastClassRelation = rule.getLabel();
 
 			/*Initialization*/
-			relation = nextRelation("filter");
-			code.append(relation + " = FILTER " + _lastRelation + " BY (NOT II_IsEmpty(geometry)) AND II_IsValid(geometry);\n");
-			_lastRelation = relation;
+			//String relation = nextRelation("selection");
+			code.append("selection = FILTER $LAST_RELATION BY (NOT II_IsEmpty(geometry)) AND II_IsValid(geometry);\n");
+			//_lastRelation = relation;
 			
-			relation = nextRelation("projection");
-			code.append(relation + " = FOREACH " + _lastRelation + " GENERATE geometry, data, II_ToProps('false','iirep',II_ToProps('false','iinrep',properties)) as properties;\n");
-			_lastRelation = relation;
+			//relation = nextRelation("projection");
+			//code.append(relation + " = FOREACH " + _lastRelation + " GENERATE geometry, data, II_ToProps('false','iirep',II_ToProps('false','iinrep',properties)) as properties;\n");
+			//_lastRelation = relation;
 			
-			relation = nextRelation("projection");
-			code.append(relation + " = FOREACH " + _lastRelation + " GENERATE II_CRSTransform(geometry, properties#'crs', 'EPSG:3857') AS geometry, data, properties;\n");			
-			_lastRelation = relation;
+			//relation = nextRelation("projection");
+			//code.append(relation + " = FOREACH " + _lastRelation + " GENERATE II_CRSTransform(geometry, properties#'crs', 'EPSG:3857') AS geometry, data, properties;\n");			
+			//_lastRelation = relation;
 			
-			relation = nextRelation("projection");
-			code.append(relation + " = FOREACH " + _lastRelation + " GENERATE geometry, data, II_ToProps(II_CalculateTiles(geometry),'tile',properties) AS properties;\n");
-			_lastRelation = relation;
+			//relation = nextRelation("projection");
+			//code.append("projection = FOREACH $LAST_RELATION GENERATE geometry, data, II_ToProps(II_CalculateTiles(geometry),'tile',properties) AS properties;\n");
+			//_lastRelation = relation;
 			
-			relation = nextRelation("projection");
-			code.append(relation + " = FOREACH " + _lastRelation + " GENERATE FLATTEN(II_Replicate(geometry, data, properties)) AS (geometry:bytearray, data:map[], properties:map[]);\n");
-			_lastRelation = relation;
+			//relation = nextRelation("projection");
+			//code.append(relation + " = FOREACH " + _lastRelation + " GENERATE FLATTEN(II_Replicate(geometry, data, properties)) AS (geometry:bytearray, data:map[], properties:map[]);\n");
+			//_lastRelation = relation;
 			
 			//if (!rule.getParent().getType().equals("Union")) {
 				loadSpectral(rule, code);
@@ -353,12 +359,12 @@ public class RuleSet {
 									
 		} else if (rule.getType().equals("And")) {
 			
-			String relation = null;
+			//String relation = null;
 						
 			if ((!rule.getParent().getType().equals("And")) && (!rule.getParent().getType().equals("Or"))) {
 				//Computing the attribute
-				relation = nextRelation("filter");
-				code.append(relation + " = FILTER " + _lastRelation + " BY (");
+				//relation = nextRelation("selection");
+				code.append("selection = FILTER $LAST_RELATION BY (");
 			}
 						
 			boolean first = true;
@@ -420,19 +426,19 @@ public class RuleSet {
 			
 			if ((!rule.getParent().getType().equals("And")) && (!rule.getParent().getType().equals("Or"))) {
 				code.append(");\n");
-				_lastRelation = relation;
+				//_lastRelation = relation;
 			}
 						
 			return;
 			
 		} else if (rule.getType().equals("Or")) {
 			
-			String relation = null;
+			//String relation = null;
 			
 			if ((!rule.getParent().getType().equals("And")) && (!rule.getParent().getType().equals("Or"))) {			
 				//Computing the attribute
-				relation = nextRelation("filter");
-				code.append(relation + " = FILTER " + _lastRelation + " BY (");			
+				//relation = nextRelation("selection");
+				code.append("selection = FILTER $LAST_RELATION BY (");			
 			}
 			
 			boolean first = true;
@@ -494,7 +500,7 @@ public class RuleSet {
 			
 			if ((!rule.getParent().getType().equals("And")) && (!rule.getParent().getType().equals("Or"))) {
 				code.append(");\n");
-				_lastRelation = relation;				
+				//_lastRelation = relation;				
 			}
 						
 			return;
@@ -505,7 +511,7 @@ public class RuleSet {
 				return;
 			else {
 				
-				String relation;
+				//String relation;
 				
 				String fullExpression = rule.getLabel();
 				
@@ -542,9 +548,9 @@ public class RuleSet {
 				expression[1] = expression[1].trim();
 				
 				//Computing the attribute
-				relation = nextRelation("filter");
-				code.append(relation + " = FILTER " + _lastRelation + " BY " + parseExpression(expression[0]) + " " + op + " " + parseExpression(expression[1]) + ";\n");
-				_lastRelation = relation;				
+				//relation = nextRelation("selection");
+				code.append("selection = FILTER $LAST_RELATION BY " + parseExpression(expression[0]) + " " + op + " " + parseExpression(expression[1]) + ";\n");
+				//_lastRelation = relation;				
 								
 			}
 			
@@ -630,8 +636,8 @@ public class RuleSet {
 				if ((rule.getType().equals("Fuzzy")) && (aggregations.contains(rule.getLabel().trim()))) {
 					
 					//Computing the attribute
-					String relation = nextRelation("projection");
-					code.append(relation + " = FOREACH " + _lastRelation + " GENERATE *,");
+					//String relation = nextRelation("projection");
+					code.append("projection = FOREACH $LAST_RELATION GENERATE *,");
 					
 					boolean first = true;
 					
@@ -691,15 +697,15 @@ public class RuleSet {
 					code.append(") AS membership;\n");
 					
 					//Creating the new property
-					relation = nextRelation("projection");
-					code.append(relation + " = FOREACH " + _lastRelation + " GENERATE geometry, data, II_ToClassification('" + _lastClassRelation + "', membership, properties) AS properties;\n");			
-					_lastRelation = relation;
+					//relation = nextRelation("projection");
+					code.append("projection = FOREACH $LAST_RELATION GENERATE geometry, data, II_ToClassification('$CLASS', membership, properties) AS properties;\n");			
+					//_lastRelation = relation;
 					
 					return;
 					
 				} else {
 				
-					String relation;
+					//String relation;
 					
 					String fullExpression = rule.getLabel();
 					
@@ -714,23 +720,23 @@ public class RuleSet {
 						expression[1] = expression[1].substring(0,expression[1].length()-1);
 					
 						//Computing the attribute
-						relation = nextRelation("projection");
-						code.append(relation + " = FOREACH " + _lastRelation + " GENERATE *, II_Membership('" + expression[0] + "'," + parseExpression(expression[1]) + ") AS membership;\n");
-						_lastRelation = relation;
+						//relation = nextRelation("projection");
+						code.append("projection = FOREACH $LAST_RELATION GENERATE *, II_Membership('" + expression[0] + "'," + parseExpression(expression[1]) + ") AS membership;\n");
+						//_lastRelation = relation;
 									
 						//Creating the new property
-						relation = nextRelation("projection");
-						code.append(relation + " = FOREACH " + _lastRelation + " GENERATE geometry, data, II_ToClassification('" + _lastClassRelation + "', membership, properties) AS properties;\n");			
-						_lastRelation = relation;	
+						//relation = nextRelation("projection");
+						code.append("projection = FOREACH $LAST_RELATION GENERATE geometry, data, II_ToClassification('$CLASS', membership, properties) AS properties;\n");			
+						//_lastRelation = relation;	
 						
 					} else {
 	
 						fullExpression = fullExpression.trim();
 						
 						//Creating the new property
-						relation = nextRelation("projection");
-						code.append(relation + " = FOREACH " + _lastRelation + " GENERATE geometry, data, II_ToClassification('" + _lastClassRelation + "', " + fullExpression + ", properties) AS properties;\n");			
-						_lastRelation = relation;
+						//relation = nextRelation("projection");
+						code.append("projection = FOREACH $LAST_RELATION GENERATE geometry, data, II_ToClassification('$CLASS', " + fullExpression + ", properties) AS properties;\n");			
+						//_lastRelation = relation;
 						
 					}
 					
@@ -740,7 +746,7 @@ public class RuleSet {
 			
 		} else if (rule.getType().equals("Expression")) {
 			
-			String relation;
+			//String relation;
 			
 			String fullExpression = rule.getLabel();
 			
@@ -761,14 +767,14 @@ public class RuleSet {
 			}
 			
 			//Computing the attribute
-			relation = nextRelation("projection");
-			code.append(relation + " = FOREACH " + _lastRelation + " GENERATE *, " + parseExpression(expression[1]) + " AS " + expression[0] + ";\n");
-			_lastRelation = relation;			
+			//relation = nextRelation("projection");
+			code.append("projection = FOREACH $LAST_RELATION GENERATE *, " + parseExpression(expression[1]) + " AS " + expression[0] + ";\n");
+			//_lastRelation = relation;			
 						
 			//Creating the new property
-			relation = nextRelation("projection");
-			code.append(relation + " = FOREACH " + _lastRelation + " GENERATE geometry, data, II_ToProps(" + expression[0] + ", '" + expression[0] + "', properties) AS properties;\n");			
-			_lastRelation = relation;
+			//relation = nextRelation("projection");
+			code.append("projection = FOREACH $LAST_RELATION GENERATE geometry, data, II_ToProps(" + expression[0] + ", '" + expression[0] + "', properties) AS properties;\n");			
+			//_lastRelation = relation;
 					
 		}
 		
@@ -816,7 +822,7 @@ public class RuleSet {
 
 		/*Pig setup*/
 		
-		try {
+		/*try {
 		
 			Properties pig = new Properties();
 			
@@ -832,30 +838,30 @@ public class RuleSet {
 			
 		} catch (Exception e) {
 			System.err.println("Could not read PIG properties file: " + e.getMessage());
-		}
+		}*/
 				
-		code.append("\n");
+		//code.append("\n");
 		
 		/*Including JARs*/
 		
-		File folder = new File("lib");
+		/*File folder = new File("lib");
 		
 		for (final File fileEntry : folder.listFiles()) {
 	        if (fileEntry.isDirectory()) {
 	        	//ignore
 	        } else {
-	        	code.append("REGISTER " + _properties.getProperty("sourceURL") + "libs/" + fileEntry.getName() + ";\n");
+	        	code.append("REGISTER " + _properties.getProperty("interimage.sourceURL") + "libs/" + fileEntry.getName() + ";\n");
 	        }
-	    }
+	    }*/
 	
 		/*Defines*/		
-		try {
+		/*try {
 		
-			/* Stream for output file */
+			// Stream for output file 
 			OutputStream out = new FileOutputStream("interimage-import.pig");
 			
 			for (Map.Entry<String, Map<String, Object>> entry : _udfSet.getUDFs().entrySet()) {
-				String name = entry.getKey();
+				//String name = entry.getKey();
 				Map<String, Object> map = entry.getValue();
 				
 				String str = null;
@@ -874,15 +880,15 @@ public class RuleSet {
 						boolean first = true;
 						for (String p : params) {
 							
-							String property = null;
+							String property = p;
 							
-							if (_properties.containsKey("interimage." + name + "." + p)) {
-								property = _properties.getProperty("interimage." + name + "." + p);
-							} else if (_properties.containsKey("interimage." + p)) {
-								property = _properties.getProperty("interimage." + p);
-							} else {
-								property = "";
-							}
+							//if (_properties.containsKey("interimage." + name + "." + p)) {
+							//	property = _properties.getProperty("interimage." + name + "." + p);
+							//} else if (_properties.containsKey("interimage." + p)) {
+							//	property = _properties.getProperty("interimage." + p);
+							//} else {
+							//	property = "";
+							//}
 							
 							if (first) {
 								str = str + "'" + property + "'";
@@ -915,23 +921,29 @@ public class RuleSet {
 			
 		} catch (Exception e) {
 			System.err.println("Could not create PIG import file: " + e.getMessage());
-		}
+		}*/
 		
-		code.append("IMPORT '" + _properties.getProperty("sourceURL") + "resources/scripts/interimage-import.pig';\n");
+		//code.append("IMPORT '" + _properties.getProperty("interimage.sourceURL") + "resources/scripts/interimage-import.pig';\n");
 		
 		code.append("\n");
 		
 		evaluateRule(_root, code);
 		
 		//TODO: Implement merging, No Merge is implemented by omission
-		if (_root.getLabel().equals("Merge All")) {
+		//Decided to by pass this configuration as it seems that the translator of the
+		//semantic network should decide whether to merge or not
+		/*if (_root.getLabel().equals("Merge All")) {
 			
 		} else if (_root.getLabel().equals("Merge Connected")) {
 			
 		} else if (_root.getLabel().equals("No Merge")) {
 			
-		}
-				
+		}*/
+			
+		code.append("BEGIN IF $OUTPUT.ROI\n");
+		code.append("INCLUDE ExportROI\n");
+		code.append("END IF $OUTPUT.ROI\n");
+		
 		return code.toString();
 	}
 	
@@ -947,9 +959,9 @@ public class RuleSet {
 		return countRules(_root) + 1;		
 	}
 	
-	public Map<String,Integer> getCounts() {
+	/*public Map<String,Integer> getCounts() {
 		return _counts;
-	}
+	}*/
 	
 	public String getURL() {
 		return _url;

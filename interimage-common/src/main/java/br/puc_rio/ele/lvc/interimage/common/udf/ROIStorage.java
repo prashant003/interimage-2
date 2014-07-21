@@ -14,9 +14,7 @@ limitations under the License.*/
 
 package br.puc_rio.ele.lvc.interimage.common.udf;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import org.apache.pig.EvalFunc;
@@ -31,6 +29,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.vividsolutions.jts.geom.Geometry;
@@ -40,7 +39,7 @@ import com.vividsolutions.jts.io.WKTWriter;
  * A UDF that stores a ROI shape.<br><br>
  * Example:<br>
  * 		A = load 'mydata';<br>
- * 		B = foreach A generate ROIStorage(geometry, classname);
+ * 		B = foreach A generate ROIStorage(geometry, classname, shapes_key);
  * @author Rodrigo Ferreira
  *
  */
@@ -62,13 +61,14 @@ public class ROIStorage extends EvalFunc<Boolean> {
      * Method invoked on every tuple during foreach evaluation.
      * @param input tuple<br>
      * first column is assumed to have the geometry<br>
-     * second column is assumed the class name
+     * second column is assumed to have the class name<br>
+     * third column is assumed to have the output path
      * @exception java.io.IOException
      * @return true if successful, false otherwise
      */
 	@Override
 	public Boolean exec(Tuple input) throws IOException {
-		if (input == null || input.size() < 2)
+		if (input == null || input.size() < 3)
             return null;
         
 		try {
@@ -76,12 +76,13 @@ public class ROIStorage extends EvalFunc<Boolean> {
 			Object objGeometry = input.get(0);
 			Geometry geometry = _geometryParser.parseGeometry(objGeometry);			
 			String className = DataType.toString(input.get(1));
+			String path = DataType.toString(input.get(2));
 			
 			AWSCredentials credentials = new BasicAWSCredentials(_accessKey, _secretKey);
 			AmazonS3 conn = new AmazonS3Client(credentials);
 			conn.setEndpoint("https://s3.amazonaws.com");
 			
-			File temp = File.createTempFile(className, ".wkt");
+			/*File temp = File.createTempFile(className, ".wkt");
 			
 		    // Delete temp file when program exits.
 		    temp.deleteOnExit();
@@ -91,6 +92,11 @@ public class ROIStorage extends EvalFunc<Boolean> {
 		    out.close();
 		    
 			PutObjectRequest putObjectRequest = new PutObjectRequest(_bucket, "resources/shapes/" + className + ".wkt", temp);
+			putObjectRequest.withCannedAcl(CannedAccessControlList.PublicRead); // public for all*/
+			
+			String geom = new WKTWriter().write(geometry);
+			
+			PutObjectRequest putObjectRequest = new PutObjectRequest(_bucket, path + className + ".wkt", new ByteArrayInputStream(geom.getBytes()), new ObjectMetadata());
 			putObjectRequest.withCannedAcl(CannedAccessControlList.PublicRead); // public for all
 			
 			TransferManager tx = new TransferManager(credentials);

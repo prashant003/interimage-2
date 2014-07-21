@@ -42,6 +42,11 @@ import com.vividsolutions.jts.geom.LinearRing;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.WKBWriter;
 
+/**
+ * UDF for chessboard segmentation.
+ * @author Rodrigo Ferreira
+ */
+
 public class ChessboardSegmentation extends EvalFunc<DataBag> {
 
 	//private final GeometryParser _geometryParser = new GeometryParser();

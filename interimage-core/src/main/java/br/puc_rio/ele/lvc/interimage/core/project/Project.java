@@ -19,7 +19,6 @@ import br.puc_rio.ele.lvc.interimage.common.URL;
 import br.puc_rio.ele.lvc.interimage.core.datamanager.DataManager;
 import br.puc_rio.ele.lvc.interimage.core.datamanager.DefaultResource;
 import br.puc_rio.ele.lvc.interimage.core.datamanager.SplittableResource;
-import br.puc_rio.ele.lvc.interimage.core.ruleset.RuleSet;
 import br.puc_rio.ele.lvc.interimage.core.semanticnetwork.SemanticNetwork;
 import br.puc_rio.ele.lvc.interimage.data.Image;
 import br.puc_rio.ele.lvc.interimage.data.ImageList;
@@ -68,7 +67,7 @@ public class Project {
 	private FuzzySetList _fuzzySetList;
 	//private String _decisionTree = null;
 	private Properties _properties;
-	private RuleSet _ruleSet;
+	//private RuleSet _ruleSet;
 	
 	public Project() {
 		_semanticNet = new SemanticNetwork();
@@ -78,7 +77,7 @@ public class Project {
 		_fuzzySetList = new FuzzySetList();
 		_minResolution = Double.MAX_VALUE;
 		_properties = new Properties();
-		_ruleSet = new RuleSet();
+		//_ruleSet = new RuleSet();		
 	}
 	
 	public String getProjectPath() {
@@ -112,7 +111,11 @@ public class Project {
 						
 			_projectPath = url;
 			
+			_properties.setProperty("interimage.projectPath", _projectPath);
+			
 			_projectName = URL.getFileNameWithoutExtension(url);
+			
+			_properties.setProperty("interimage.projectName", _projectName);
 			
 			/*Reading properties file*/
 			InputStream input = new FileInputStream("interimage.properties");
@@ -129,7 +132,8 @@ public class Project {
 			
 			_dataManager.setup(_properties);
 			
-			_properties.setProperty("sourceURL", _dataManager.getSourceURL());
+			_properties.setProperty("interimage.sourceURL", _dataManager.getSourceURL());
+			_properties.setProperty("interimage.sourceSpecificURL", _dataManager.getSourceSpecificURL());
 			
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -232,7 +236,9 @@ public class Project {
 			    		}
 			    	
 			    	}
-			    				    	
+			    			
+			    	_properties.setProperty("interimage.crs", crs);
+			    	
 			    	_properties.setProperty("interimage.tileSizeMeters", String.valueOf(_tilePixelSize * _minResolution));
 			    				    	
 			    	//System.out.println(_properties.getProperty("interimage.tileSize"));
@@ -307,7 +313,7 @@ public class Project {
 			    
 			    _properties.setProperty("interimage.fuzzyUrl", fuzzyUrl);
 			    
-			    _ruleSet.setup(_properties);
+			    //_ruleSet.setup(_properties);
 			    
 			    //Test			    
 			    //_ruleSet.readOldFile("C:\\Users\\Rodrigo\\Desktop\\test.dt");

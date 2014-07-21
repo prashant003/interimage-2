@@ -14,7 +14,6 @@ limitations under the License.*/
 
 package br.puc_rio.ele.lvc.interimage.common;
 
-import java.io.File;
 import java.net.HttpURLConnection;
 
 /**
@@ -32,7 +31,11 @@ public class URL {
 	
 	public static String getPath(String file) {
 		
-		int idx = file.lastIndexOf(File.separatorChar);
+		int idx = file.lastIndexOf("/");
+		
+		if (idx==-1)
+			idx = file.lastIndexOf("\\");
+		
         String path = file.substring(0, idx + 1);
         
         return path;
@@ -41,7 +44,11 @@ public class URL {
 	
 	public static String getFileName(String file) {
 		
-		int idx = file.lastIndexOf(File.separatorChar);
+		int idx = file.lastIndexOf("/");
+		
+		if (idx==-1)
+			idx = file.lastIndexOf("\\");
+		
         String fileName = file.substring(idx + 1);
 
         idx = fileName.lastIndexOf(".");
@@ -56,7 +63,11 @@ public class URL {
 	
 	public static String getFileNameWithoutExtension(String file) {
 		
-		int idx = file.lastIndexOf(File.separatorChar);
+		int idx = file.lastIndexOf("/");
+		
+		if (idx==-1)
+			idx = file.lastIndexOf("\\");
+		
         String fileName = file.substring(idx + 1);
 
         idx = fileName.lastIndexOf(".");

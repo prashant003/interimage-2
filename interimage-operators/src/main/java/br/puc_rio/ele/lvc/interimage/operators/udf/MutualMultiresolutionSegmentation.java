@@ -57,7 +57,12 @@ import com.vividsolutions.jts.io.WKBWriter;
 //TODO: This could be a generic UDF that receives the parameters and compute a particular segmentation process.
 //TODO: Create an interface for segmentation and then each implementation
 
-public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
+/**
+ * UDF for mutual Baatz segmentation.
+ * @author Patrick Happ, Rodrigo Ferreira
+ */
+
+public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 	//Initializing threshold with default value
 	private static double THRESHOLD=0.02;
 	
@@ -78,7 +83,7 @@ public class MutualBaatzSegmentation extends EvalFunc<DataBag> {
 	private static double [] _wBand;
 	private static HashMap<Integer, Segment> _segmentList;
 	
-	public MutualBaatzSegmentation (String imageUrl, String image, String scale, String wColor, String wCmpt, String wBands) {
+	public MutualMultiresolutionSegmentation (String imageUrl, String image, String scale, String wColor, String wCmpt, String wBands) {
 		//_segmentSize = Double.parseDouble(segmentSize);
 		_imageUrl = imageUrl;
 		_image = image;
