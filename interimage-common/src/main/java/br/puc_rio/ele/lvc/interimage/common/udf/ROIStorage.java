@@ -15,12 +15,15 @@ limitations under the License.*/
 package br.puc_rio.ele.lvc.interimage.common.udf;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 import org.apache.pig.EvalFunc;
 import org.apache.pig.data.DataType;
 import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
+import org.iq80.snappy.SnappyOutputStream;
 
 import br.puc_rio.ele.lvc.interimage.common.GeometryParser;
 
@@ -89,14 +92,26 @@ public class ROIStorage extends EvalFunc<Boolean> {
 							
 		    BufferedWriter out = new BufferedWriter(new FileWriter(temp));
 		    out.write(new WKTWriter().write(geometry));
-		    out.close();
+		    out.close();*/
 		    
-			PutObjectRequest putObjectRequest = new PutObjectRequest(_bucket, "resources/shapes/" + className + ".wkt", temp);
-			putObjectRequest.withCannedAcl(CannedAccessControlList.PublicRead); // public for all*/
+			/*
+			
+			File temp = File.createTempFile(className, ".wkt.snappy");
+				
+			temp.deleteOnExit();*/
 			
 			String geom = new WKTWriter().write(geometry);
+						
+		    ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+		    OutputStream snappyOut  = new SnappyOutputStream(out);
+		    snappyOut.write(geom.getBytes());
+		    snappyOut.close();
 			
-			PutObjectRequest putObjectRequest = new PutObjectRequest(_bucket, path + className + ".wkt", new ByteArrayInputStream(geom.getBytes()), new ObjectMetadata());
+			/*PutObjectRequest putObjectRequest = new PutObjectRequest(_bucket, path + className + ".wkt.snappy", temp);
+			putObjectRequest.withCannedAcl(CannedAccessControlList.PublicRead); // public for all*/
+						
+			PutObjectRequest putObjectRequest = new PutObjectRequest(_bucket, path + className + ".wkts", new ByteArrayInputStream(out.toByteArray()), new ObjectMetadata());
 			putObjectRequest.withCannedAcl(CannedAccessControlList.PublicRead); // public for all
 			
 			TransferManager tx = new TransferManager(credentials);

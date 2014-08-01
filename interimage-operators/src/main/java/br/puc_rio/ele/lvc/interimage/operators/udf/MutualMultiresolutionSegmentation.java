@@ -49,6 +49,7 @@ import br.puc_rio.ele.lvc.interimage.data.imageioimpl.plugins.tiff.TIFFImageRead
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LinearRing;
 import com.vividsolutions.jts.geom.Polygon;
@@ -64,7 +65,7 @@ import com.vividsolutions.jts.io.WKBWriter;
 
 public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 	//Initializing threshold with default value
-	private static double THRESHOLD=0.02;
+	//private static double THRESHOLD=0.02;
 	
 	//private final GeometryParser _geometryParser = new GeometryParser();
 	//private Double _segmentSize;
@@ -171,7 +172,7 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 			String inputURL = _imageUrl + _image + "/" + tileStr + ".tif";
 			
 			//double box[] = new double[] {geometry.getEnvelopeInternal().getMinX(), geometry.getEnvelopeInternal().getMinY(), geometry.getEnvelopeInternal().getMaxX(), geometry.getEnvelopeInternal().getMaxY()};
-	        if (br.puc_rio.ele.lvc.interimage.common.URL.exists(inputURL)) {	//if tile doesn't exist (???)
+	        //if (br.puc_rio.ele.lvc.interimage.common.URL.exists(inputURL)) {	//if tile doesn't exist (???)
 				
 	        	_segmentList = new HashMap<Integer, Segment>();
 	        	
@@ -208,20 +209,52 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 		        	}
 		        }
 		        
-		        double resX = (imageTileGeoBox[2]-imageTileGeoBox[0])/_imageW;
+		        //double resX = (imageTileGeoBox[2]-imageTileGeoBox[0])/_imageW;
 		        /*Using a threshold that represents one tenth of the resolution*/
-		        THRESHOLD = resX / 10;
+		        //THRESHOLD = resX / 10;
 		        
-			    ArrayList< ArrayList<double[]> > rings = new ArrayList< ArrayList<double[]> >();
-			    double CoordX, CoordY, CoordX2, CoordY2;
+			    //ArrayList< ArrayList<double[]> > rings = new ArrayList< ArrayList<double[]> >();
+			    //double CoordX, CoordY, CoordX2, CoordY2;
 
 			    for (Segment aux_segment : _segmentList.values()) {
-			    	 int [] outterRing = {0};
-			    	 rings.clear();
+			    	 //int [] outterRing = {0};
+			    	 //rings.clear();
  
-					 for (Pixel aux_pixel : aux_segment.getPixelList().values()) {
-			            
-						 if (aux_pixel.isBorder()){
+			    	List<Geometry> list = new ArrayList<Geometry>();
+			    	
+			    	for (Pixel aux_pixel : aux_segment.getPixelList().values()) {
+
+			    		double CoordX, CoordY;
+		      				
+			    		int x = aux_pixel.getX(_imageW);
+			    		int y = aux_pixel.getY(_imageW);
+						 
+	      				Coordinate [] linePoints = new Coordinate[5];
+						//left top corner
+	      				CoordX = Image.imgToGeoX(x - 0.5, _imageW, imageTileGeoBox);
+	      				CoordY = Image.imgToGeoY(y - 0.5 ,_imageH, imageTileGeoBox);
+	      				linePoints[0]= new Coordinate(CoordX,CoordY);
+	      				linePoints[4]= new Coordinate(CoordX,CoordY); //close the ring
+		                //right top corner
+	      				CoordX = Image.imgToGeoX(x + 0.5, _imageW,imageTileGeoBox);
+	      				CoordY = Image.imgToGeoY(y - 0.5,_imageH,imageTileGeoBox);
+	      				linePoints[1] = new Coordinate(CoordX,CoordY);
+						//right bottom corner
+						CoordX = Image.imgToGeoX(x + 0.5,_imageW,imageTileGeoBox);
+						CoordY = Image.imgToGeoY(y + 0.5,_imageH,imageTileGeoBox);
+						linePoints[2] = new Coordinate(CoordX,CoordY);
+						//right bottom corner
+						CoordX = Image.imgToGeoX(x - 0.5,_imageW,imageTileGeoBox);
+						CoordY = Image.imgToGeoY(y + 0.5,_imageH,imageTileGeoBox);
+						linePoints[3] = new Coordinate(CoordX,CoordY);
+						 
+						LinearRing shell = new GeometryFactory().createLinearRing(linePoints);
+	          			GeometryFactory fact = new GeometryFactory();
+	          			Geometry poly = new Polygon(shell, null, fact);
+						 
+	          			list.add(poly);
+	          			
+						/* if (aux_pixel.isBorder()){
 							//convert from pixel_id to x, y
 							int x = aux_pixel.getX(_imageW);
 							int y = aux_pixel.getY(_imageW);
@@ -275,11 +308,21 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 
 								checkEdge(rings,outterRing,CoordX,CoordY,CoordX2,CoordY2);
 							}
-						 }
+						 }*/
 			        }
-
+		        	
+		        	Geometry[] geoms = new Geometry[list.size()];
+		        	
+		        	int index = 0;
+		        	for (Geometry geom : list) {
+		        		geoms[index] = geom;
+		        		index++;
+		        	}
+		        	
+		        	Geometry union = new GeometryCollection(geoms, new GeometryFactory()).buffer(0);
+			    	
 					 //ADD THE POLYGON
-					 int index=0;
+					/* int index=0;
 					 ArrayList <LinearRing> LinearRings = new ArrayList <LinearRing> ();
 					 LinearRing shell =  null;
 					 
@@ -317,7 +360,7 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 						 pol = new Polygon(shell, holes, fact);
 					 }
 					 
-					 Geometry geom = pol;
+					 Geometry geom = pol;*/
 					 					 
 					 /*if (_roiIndex.size()>0) {
 							//Clipping according to the ROI
@@ -372,7 +415,7 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 								
 								Tuple t = TupleFactory.getInstance().newTuple(3);
 							
-				        		byte[] bytes = new WKBWriter().write(geom);
+				        		byte[] bytes = new WKBWriter().write(union);
 				        		
 				        		Map<String,Object> props = new HashMap<String,Object>(properties);
 				        		
@@ -392,13 +435,14 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 			    }
 		        _segmentList.clear();
 		        
-			} else {
-				throw new Exception("Could not retrieve image information.");
-			}
+			//} else {
+			//	throw new Exception("Could not retrieve image information.");
+			//}
 	        
 			return bag;
 			
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new IOException("Caught exception processing input row ", e);
 		}
 	}
@@ -890,7 +934,7 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 		obj.reset_border(_imageW, _imageH);
 	}
 	
-	private static double distance(double[] p1, double[] p2)
+	/*private static double distance(double[] p1, double[] p2)
 	{
 		double x = p1[0]-p2[0];
 		double y = p1[1]-p2[1];
@@ -988,14 +1032,14 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 		            	}
 		            }
 		            
-		            /*if (foundIndex == outterRing[0])
-	            	{
-	            		if (rings.get(foundIndex).isEmpty())
-		                        outterRing[0] = index;
-	                } else if (index == outterRing[0]) {
-		                    if (ring.isEmpty())
-		                        outterRing[0] = foundIndex;
-	                } */
+		            //if (foundIndex == outterRing[0])
+	            	//{
+	            	//	if (rings.get(foundIndex).isEmpty())
+		            //            outterRing[0] = index;
+	                //} else if (index == outterRing[0]) {
+		            //        if (ring.isEmpty())
+		            //            outterRing[0] = foundIndex;
+	                //} 
 		            index++;
 		        }
 	        }
@@ -1054,6 +1098,6 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 	        }
 	    }
 
-	}
+	}*/
 	
 }

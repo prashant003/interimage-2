@@ -285,18 +285,25 @@ public class DataManager {
 				//TODO: treat other formats
 				if ((url.endsWith(".tif")) || (url.endsWith(".tiff"))) {
 										
-					ImageConverter.ImageToJSON(img, projectPath + "images/" + key + "/", null, true, tileManager);
-					
 					File folder = new File(projectPath + "images/" + key);
+					
+					if (!folder.exists()) {
+					
+						ImageConverter.ImageToJSON(img, projectPath + "images/" + key + "/", null, true, tileManager);
+					
+					}
 					
 					for (final File fileEntry : folder.listFiles()) {
 				        if (fileEntry.isDirectory()) {
 				        	//ignore
 				        } else {
 				        	if (!fileEntry.getName().endsWith("w"))
-				        		_source.put(projectPath + "images/" + key + "/" + fileEntry.getName(), "interimage/" + projectName + "/resources/images/" + key + "/" + fileEntry.getName(), rsrc);
+				        		//_source.put(projectPath + "images/" + key + "/" + fileEntry.getName(), "interimage/" + projectName + "/resources/images/" + key + "/" + fileEntry.getName(), rsrc);
+				        		_source.makePublic("interimage/" + projectName + "/resources/images/" + key + "/" + fileEntry.getName());
 				        }
 				    }
+					
+					_source.multiplePut(folder, "interimage/" + projectName + "/resources/images/" + key + "/");
 					
 				}
 								
@@ -370,6 +377,10 @@ public class DataManager {
 	
 	public String getSourceURL() {
 		return _source.getURL();
+	}
+	
+	public void close() {
+		_source.close();
 	}
 	
 }

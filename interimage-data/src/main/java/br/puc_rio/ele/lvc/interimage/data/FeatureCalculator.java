@@ -28,7 +28,6 @@ import net.imglib2.ops.operation.iterable.unary.Mean;
 import net.imglib2.ops.operation.iterable.unary.Min;
 import net.imglib2.roi.BinaryMaskRegionOfInterest;
 import net.imglib2.type.logic.BitType;
-
 import net.imglib2.type.numeric.real.DoubleType;
 import br.puc_rio.ele.lvc.interimage.common.Common;
 
@@ -36,6 +35,8 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.prep.PreparedGeometry;
+import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 
 /**
  * A class that computes spectral features. 
@@ -55,11 +56,13 @@ public class FeatureCalculator {
 		Map<String, Object> masks = new HashMap<String, Object>();
 		
 		Map<String,Integer> bandsMap = new HashMap<String, Integer>();
-		
+				
 		//Going through the attributes
 		for (Map.Entry<String, Map<String, Object>> entry : featureMap.entrySet()) {
 			
 			String attribute = entry.getKey();
+			
+			//System.out.println(attribute);
 			
 			Map<String, Object> map = entry.getValue();
 			
@@ -73,6 +76,8 @@ public class FeatureCalculator {
 				
 			for (String param : paramList) {
 			
+				//System.out.println(param);
+				
 				//get image key and band in the form: image_layer2 or image
 				String[] tokens = param.split("_");
 				
@@ -90,12 +95,16 @@ public class FeatureCalculator {
 				
 				if (!tileMap.containsKey(imageKey)) {//does this only one time for each image
 				
+					//System.out.println(imageKey);
+					
 					Map<String, Map<Integer, Object>> tiles = new HashMap<String, Map<Integer, Object>>();
 					
 					/*computing tiles*/				
 					for (Map.Entry<String, Map<String, Object>> entry2 : imageMap.get(imageKey).entrySet()) {
 						
 						String tile = entry2.getKey();
+						
+						//System.out.println(tile);
 						
 						Map<String, Object> map2 = entry2.getValue();
 						
@@ -178,7 +187,9 @@ public class FeatureCalculator {
 							
 							if (!masks.containsKey(tile)) {
 							
-								//System.out.println("computed mask for tile: " + tile);
+								//System.out.println("Computing mask for tile: " + tile);
+										
+								//long startTime = System.nanoTime();
 								
 								/*Creates mask*/
 								mask = new ArrayImgFactory<BitType>().create(new long[] {width, height} , new BitType());
@@ -186,6 +197,10 @@ public class FeatureCalculator {
 								
 								int idx = 0;
 								int count = 0;
+								
+								geom = geom.buffer(0);
+								
+								PreparedGeometry prep = PreparedGeometryFactory.prepare(geom);
 								
 								while(c.hasNext()) {
 									BitType t = c.next();
@@ -198,11 +213,14 @@ public class FeatureCalculator {
 									Point point = new GeometryFactory().createPoint(new Coordinate(centerPixelX, centerPixelY));
 									
 									boolean b = false;
-									for (int g=0; g<geom.getNumGeometries(); g++) {
-										if (geom.getGeometryN(g).contains(point)) {
+									/*for (int g=0; g<geom.getNumGeometries(); g++) {
+										if (geom.getGeometryN(g).covers(point)) {
 											b = true;
 										}
-									}
+									}*/
+									
+									if (prep.covers(point))
+										b = true;
 									
 									if (b)
 										count++;
@@ -215,6 +233,10 @@ public class FeatureCalculator {
 								masks.put(tile, mask);
 								
 								map3.put(1000,count);	//TODO: using 1000 as a code for the area, assuming no image will have 1000 bands!
+								
+								//long endTime = System.nanoTime();
+								
+								//System.out.println("mask in nanoseconds: " + (endTime-startTime));
 								
 							} else {
 								
@@ -234,6 +256,8 @@ public class FeatureCalculator {
 							Object[] imgs = new Object[bands];
 							Object[] cursors = new Object[bands];
 							
+							//long startTime = System.nanoTime();
+							
 							for (int b=0; b<bands; b++) {
 								Img<DoubleType> img = new ArrayImgFactory<DoubleType>().create(new long[] {width, height}, new DoubleType());
 								imgs[b] = img;
@@ -249,7 +273,7 @@ public class FeatureCalculator {
 									}
 								}
 							}
-							
+														
 							for (int b=0; b<bands; b++) {
 								/*Creates masked cursor*/
 								BinaryMaskRegionOfInterest<BitType, Img<BitType>> x = new BinaryMaskRegionOfInterest<BitType, Img<BitType>>(mask);
@@ -258,6 +282,10 @@ public class FeatureCalculator {
 								
 								map3.put(b, cursor2);
 							}
+							
+							//long endTime = System.nanoTime();
+							
+							//System.out.println("copying in nanoseconds: " + (endTime-startTime));
 							
 							tiles.put(tile, map3);
 							
@@ -270,6 +298,8 @@ public class FeatureCalculator {
 				}
 							
 			}
+			
+			//long startTime = System.nanoTime();
 			
 			if (operation.equals("mean")) {
 				String[] tokens = paramList.get(0).split("_");
@@ -323,6 +353,10 @@ public class FeatureCalculator {
 				int band = Integer.parseInt(tokens[1].replace("layer",""))-1;
 				result.put(attribute, amplitudeValue(tileMap.get(tokens[0]), band));
 			}
+			
+			//long endTime = System.nanoTime();
+			
+			//System.out.println("computing in nanoseconds: " + (endTime-startTime));
 			
 			//}
 			

@@ -304,13 +304,13 @@ public class PigParser {
 	    			name = terms[2];
 	    			test = _specificParams.containsKey(terms[2]);
 	    		}
-	    		
+	    			    		
 	    		line = buff.readLine();
 	    		
 	    		if (test) {
-	    		
+	    			    			
 	        		while (!line.contains("END IF " + name)) {
-	        			
+	        				        			
 	        			/*line = replace(line);
 	        			
 	        			if (line.contains("=")) {
@@ -334,7 +334,7 @@ public class PigParser {
 	        		}
 	    		
 	    		} else {
-	    			
+	    				    			
 	    			while (!line.contains("END IF " + name)) {		        			
 	        			line = buff.readLine();
 	        		}

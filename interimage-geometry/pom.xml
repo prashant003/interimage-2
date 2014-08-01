@@ -15,6 +15,18 @@
   	</dependency>
   	
 	<dependency>
+    <groupId>org.iq80.snappy</groupId>
+    <artifactId>snappy</artifactId>
+    <version>0.3</version>
+	</dependency>
+	
+	<dependency>
+    <groupId>com.google.guava</groupId>
+    <artifactId>guava</artifactId>
+    <version>17.0</version>
+	</dependency>
+	
+	<dependency>
   		<groupId>org.apache.hadoop</groupId>
   		<artifactId>hadoop-core</artifactId>
   		<version>1.2.1</version>

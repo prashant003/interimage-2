@@ -181,6 +181,8 @@ public class SpectralFeatures extends EvalFunc<DataBag> {
 				
 				if (_newBag) {
 				
+					_newBag = false;
+					
 					String tileStr = DataType.toString(properties.get("tile"));
 					
 					long tileId = Long.parseLong(tileStr.substring(1));
@@ -390,9 +392,7 @@ public class SpectralFeatures extends EvalFunc<DataBag> {
 					//_currentTileId = tileId;
 					
 				//}
-						
-					_newBag = false;
-					
+										
 				}
 					
 				Map<String, Double> features = null;
@@ -400,7 +400,15 @@ public class SpectralFeatures extends EvalFunc<DataBag> {
 				//String iiuuid = DataType.toString(properties.get("iiuuid"));
 				
 				//if (iiuuid.equals("84c425af-3957-424b-9883-92c174ccad8d")) {
-					features = new FeatureCalculator().computeFeatures(_imageMap, _featureMap, geometry);					
+				
+				//long startTime = System.nanoTime();
+				
+				features = new FeatureCalculator().computeFeatures(_imageMap, _featureMap, geometry);
+					
+				//long endTime = System.nanoTime();
+				
+				//System.out.println("Feature Calculator in milliseconds: " + (endTime-startTime));
+				
 				//}
 								
 				for (Map.Entry<String, Double> entry : features.entrySet()) {
