@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<operators>
+
+<operator name="Limiarization" oldName="TA_Arithmetic">
+
+<input type="String">IMAGE_KEY</input>
+<input type="String">THRESHOLDS</input>
+<input type="String">CLASSES</input>
+<input type="URL">ROI</input>
+<input type="String">OPERATION</input>
+<input type="Double">RELIABILITY</input>
+
+<output type="Boolean">ROI</output>
+
+<template>
+
+DEFINE II_Limiarization br.puc_rio.ele.lvc.interimage.operators.udf.Limiarization('$IMAGES_PATH','$IMAGE_KEY','$THRESHOLDS','$CLASSES','$OPERATION');
+
+BEGIN FOR TILES
+
+load = LOAD '$TILE' USING org.apache.pig.piggybank.storage.JsonLoader('geometry:chararray, data:map[], properties:map[]');
+
+projection = FOREACH $LAST_RELATION GENERATE FLATTEN(II_Limiarization(geometry, data, properties)) AS (geometry:bytearray, data:map[], properties:map[]);
+
+END FOR TILES
+
+union = UNION $TILES_PROJECTIONS;
+
+BEGIN IF $INPUT.ROI
+
+INCLUDE ImportROI
+
+END IF $INPUT.ROI
+
+projection = FOREACH $LAST_RELATION GENERATE geometry, data, II_ToProps($RELIABILITY,'membership',properties) AS properties;
+
+BEGIN IF $OUTPUT.ROI
+
+INCLUDE ExportROI
+
+END IF $OUTPUT.ROI
+
+</template>
+
+<description>
+Operator that classifies an image according to the given classes, thresholds and limiarization operation.
+</description>
+
+<author>Patrick Happ, Rodrigo Ferreira</author>
+
+</operator>
+
+</operators>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<udfs>
+<udf name="MeanValue" oldName="mean" alias="II_MeanValue" import="br.puc_rio.ele.lvc.interimage.data.MeanValue" isSpectral="true" />
+<udf name="BrightnessValue" oldName="brightness" alias="II_BrightnessValue" import="br.puc_rio.ele.lvc.interimage.data.BrightnessValue" isSpectral="true" />
+<udf name="MaxPixelValue" oldName="maxPixelValue" alias="II_MaxPixelValue" import="br.puc_rio.ele.lvc.interimage.data.MaxPixelValue" isSpectral="true" />
+<udf name="MinPixelValue" oldName="minPixelValue" alias="II_MinPixelValue" import="br.puc_rio.ele.lvc.interimage.data.MinPixelValue" isSpectral="true" />
+<udf name="VarianceValue" alias="II_VarianceValue" import="br.puc_rio.ele.lvc.interimage.data.VarianceValue" isSpectral="true" />
+<udf name="StdDevValue" alias="II_StdDevValue" import="br.puc_rio.ele.lvc.interimage.data.StdDevValue" isSpectral="true" />
+<udf name="MedianValue" alias="II_MedianValue" import="br.puc_rio.ele.lvc.interimage.data.MedianValue" isSpectral="true" />
+<udf name="AmplitudeValue" oldName="amplitudeValue" alias="II_AmplitudeValue" import="br.puc_rio.ele.lvc.interimage.data.udf.AmplitudeValue" isSpectral="true" />
+<udf name="SumPixelValue" alias="II_SumPixelValue" import="br.puc_rio.ele.lvc.interimage.data.udf.SumPixelValue" isSpectral="true" />
+<udf name="RatioValue" oldName="ratio" alias="II_RatioValue" import="br.puc_rio.ele.lvc.interimage.data.udf.RatioValue" isSpectral="true" />
+<udf name="CovarValue" alias="II_CovarValue" import="br.puc_rio.ele.lvc.interimage.data.udf.CovarValue" isSpectral="true" />
+<udf name="CorrelValue" alias="II_CorrelValue" import="br.puc_rio.ele.lvc.interimage.data.udf.CorrelValue" isSpectral="true" />
+<udf name="ModeValue" alias="II_ModeValue" import="br.puc_rio.ele.lvc.interimage.data.udf.ModeValue" isSpectral="true" />
+<udf name="EntropyValue" alias="II_EntropyValue" import="br.puc_rio.ele.lvc.interimage.data.udf.EntropyValue" isSpectral="true" />
+<udf name="MeanGLCM" alias="II_MeanGLCM" import="br.puc_rio.ele.lvc.interimage.data.udf.MeanGLCM" isSpectral="true" />
+<udf name="ContrastGLCM" alias="II_ContrastGLCM" import="br.puc_rio.ele.lvc.interimage.data.udf.ContrastGLCM" isSpectral="true" />
+<udf name="ASMGLCM" alias="II_ASMGLCM" import="br.puc_rio.ele.lvc.interimage.data.udf.ASMGLCM" isSpectral="true" />
+<udf name="IDMGLCM" alias="II_IDMGLCM" import="br.puc_rio.ele.lvc.interimage.data.udf.IDMGLCM" isSpectral="true" />
+<udf name="EntropyGLCM" alias="II_EntropyGLCM" import="br.puc_rio.ele.lvc.interimage.data.udf.EntropyGLCM" isSpectral="true" />
+<udf name="HomogeinityGLCM" alias="II_HomogeinityGLCM" import="br.puc_rio.ele.lvc.interimage.data.udf.HomogeinityGLCM" isSpectral="true" />
+<udf name="VarianceGLCM" alias="II_VarianceGLCM" import="br.puc_rio.ele.lvc.interimage.data.udf.VarianceGLCM" isSpectral="true" />
+<udf name="StdDevGLCM" alias="II_StdDevGLCM" import="br.puc_rio.ele.lvc.interimage.data.udf.StdDevGLCM" isSpectral="true" />
+<udf name="DissimilaritytGLCM" alias="II_DissimilaritytGLCM" import="br.puc_rio.ele.lvc.interimage.data.udf.DissimilaritytGLCM" isSpectral="true" />
+<udf name="QuiSquaretGLCM" alias="II_QuiSquaretGLCM" import="br.puc_rio.ele.lvc.interimage.data.udf.QuiSquaretGLCM" isSpectral="true" />
+<udf name="BandMeanAdd" oldName="bandMeanAdd" alias="II_BandMeanAdd" import="" isSpectral="true" lazyDefinition="true" />
+<udf name="BandMeanDiv" oldName="bandMeanDiv" alias="II_BandMeanDiv" import="" isSpectral="true" lazyDefinition="true" />
+<udf name="BandMeanMul" oldName="bandMeanMul" alias="II_BandMeanMul" import="" isSpectral="true" lazyDefinition="true" />
+<udf name="BandMeanSub" oldName="bandMeanSub" alias="II_BandMeanSub" import="" isSpectral="true" lazyDefinition="true" />
+<udf name="SpectralFeatures" alias="SpectralFeatures" import="br.puc_rio.ele.lvc.interimage.data.udf.SpectralFeatures" lazyDefinition="true">
+	<param>imageUrl</param>
+	<param>spectralFeatures</param>
+	<macro>
+		DEFINE II_SpectralFeatures (A, p) RETURNS D {
+		B = GROUP $A BY properties#'tile' PARALLEL $p;
+		C = FILTER B BY NOT IsEmpty($A);
+		$D = FOREACH C GENERATE FLATTEN(SpectralFeatures($A)) AS (geometry:bytearray, data:map[], properties:map[]);
+		};
+	</macro>
+</udf>
+</udfs>

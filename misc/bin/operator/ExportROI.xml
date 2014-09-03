@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<operators>
+
+<operator name="ExportROI" oldName="">
+
+<template>
+
+group = GROUP $LAST_RELATION BY properties#'class';
+
+selection = FILTER $LAST_RELATION BY NOT IsEmpty($B_LAST_RELATION);
+
+projection = FOREACH $LAST_RELATION GENERATE II_AggregateUnion($BB_LAST_RELATION.geometry) AS geometry, II_CreateData('') AS data, II_CreateProperties(CONCAT('class=',group),'iiuuid','tile','membership=$RELIABILITY','crs=$CRS') AS properties;
+
+projection = FOREACH $LAST_RELATION GENERATE II_ROIStorage(geometry,properties#'class','$SHAPES_KEY');
+
+BEGIN IF $CLASSES
+
+BEGIN FOR CLASSES
+
+EXPORT $SHAPES_PATH$CLASS.wkts
+
+END FOR CLASSES
+
+END IF $CLASSES
+
+BEGIN IF NOT $CLASSES
+
+EXPORT $SHAPES_PATH$CLASS.wkts
+
+END IF $CLASSES
+
+STORE $LAST_RELATION INTO '$DUMP_PATH';
+
+</template>
+
+<description>
+Operator that exports the output as a ROI.
+</description>
+
+<author>Rodrigo Ferreira</author>
+
+</operator>
+
+</operators>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<udfs>
+<udf name="Classify" alias="II_Classify" import="br.puc_rio.ele.lvc.interimage.common.udf.Classify" />
+<udf name="CreateData" alias="II_CreateData" import="br.puc_rio.ele.lvc.interimage.common.udf.CreateData" />
+<udf name="CreateProperties" alias="II_CreateProperties" import="br.puc_rio.ele.lvc.interimage.common.udf.CreateProperties" />
+<udf name="Max" alias="II_Max" import="br.puc_rio.ele.lvc.interimage.common.udf.Max" />
+<udf name="Mean" alias="II_Mean" import="br.puc_rio.ele.lvc.interimage.common.udf.Mean" />
+<udf name="Min" alias="II_Min" import="br.puc_rio.ele.lvc.interimage.common.udf.Min" />
+<udf name="Mul" alias="II_Mul" import="br.puc_rio.ele.lvc.interimage.common.udf.Mul" />
+<udf name="RemoveProperty" alias="II_RemoveProperty" import="br.puc_rio.ele.lvc.interimage.common.udf.RemoveProperty" />
+<udf name="ROIStorage" alias="II_ROIStorage" import="br.puc_rio.ele.lvc.interimage.common.udf.ROIStorage">
+<param>$AWS_ACCESS_KEY</param>
+<param>$AWS_SECRET_KEY</param>
+<param>$AWS_BUCKET</param>
+</udf>
+<udf name="Sum" alias="II_Sum" import="br.puc_rio.ele.lvc.interimage.common.udf.Sum" />
+<udf name="ToClassification" alias="II_ToClassification" import="br.puc_rio.ele.lvc.interimage.common.udf.ToClassification" />
+<udf name="ToProps" alias="II_ToProps" import="br.puc_rio.ele.lvc.interimage.common.udf.ToProps" />
+</udfs>

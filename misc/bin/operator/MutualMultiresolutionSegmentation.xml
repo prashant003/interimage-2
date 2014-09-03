@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<operators>
+
+<operator name="MutualMultiresolutionSegmentation" oldName="TA_Baatz_Segmenter">
+
+<input type="String">IMAGE_KEY</input>
+<input type="Double">SCALE</input>
+<input type="Double">WCOLOR</input>
+<input type="Double">WCOMPACTNESS</input>
+<input type="String">WBANDS</input>
+<input type="URL">ROI</input>
+<input type="String">CLASSES</input>
+<input type="Double">RELIABILITY</input>
+
+<output type="Boolean">ROI</output>
+
+<template>
+
+DEFINE II_MutualMultiresolutionSegmentation br.puc_rio.ele.lvc.interimage.operators.udf.MutualMultiresolutionSegmentation('$IMAGES_PATH','$IMAGE_KEY','$SCALE','$WCOLOR','$WCOMPACTNESS','$WBANDS');
+
+BEGIN FOR TILES
+
+load = LOAD '$TILE' USING org.apache.pig.piggybank.storage.JsonLoader('geometry:chararray, data:map[chararray], properties:map[bytearray]');
+
+projection = FOREACH $LAST_RELATION GENERATE FLATTEN(II_MutualMultiresolutionSegmentation(geometry, data, properties)) AS (geometry:chararray, data:map[chararray], properties:map[bytearray]);
+
+END FOR TILES
+
+union = UNION $TILES_PROJECTIONS;
+
+BEGIN IF $INPUT.ROI
+
+INCLUDE ImportROI
+
+END IF $INPUT.ROI
+
+projection = FOREACH $LAST_RELATION GENERATE geometry, data, II_ToProps('$CLASS','class',properties) AS properties;
+
+projection = FOREACH $LAST_RELATION GENERATE geometry, data, II_ToProps($RELIABILITY,'membership',properties) AS properties;
+
+BEGIN IF $OUTPUT.ROI
+
+INCLUDE ExportROI
+
+END IF $OUTPUT.ROI
+
+</template>
+
+<description>
+Operator that segments an image using the Mutual Multiresolution Segmentation. The operator also accepts a ROI and the output class and membership values.
+</description>
+
+<author>Patrick Happ, Rodrigo Ferreira</author>
+
+</operator>
+
+</operators>
