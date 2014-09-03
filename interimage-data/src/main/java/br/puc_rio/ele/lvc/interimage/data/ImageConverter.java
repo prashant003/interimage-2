@@ -16,6 +16,7 @@ package br.puc_rio.ele.lvc.interimage.data;
 
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -29,6 +30,10 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+
+import org.iq80.snappy.SnappyOutputStream;
+
+import com.google.common.io.ByteStreams;
 
 import br.puc_rio.ele.lvc.interimage.common.TileManager;
 

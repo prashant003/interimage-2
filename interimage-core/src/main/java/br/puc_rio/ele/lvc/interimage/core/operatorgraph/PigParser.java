@@ -220,7 +220,7 @@ public class PigParser {
 	    		
 	    		int totalSize = folder.list().length;
 	    		
-	    		int blockSize = (int)Math.ceil(totalSize / _parallel);
+	    		int blockSize = (int)Math.ceil(totalSize / (float)_parallel);
 	    			    		
 	    		int count1 = 1;
 	    		int count2 = 1;	        		
@@ -269,24 +269,24 @@ public class PigParser {
 					        	} else {
 					        		tiles = tiles + "," + list.get(list.size()-1);
 					        	}
-				        		
+				        						        	
 					        	count1 = 0;
 					        	
 					        	names = "{";
 					        	
 					        	first1 = true;	
-			        			
+			        							        	
 			        		}
 			        		
 			        		count1++;
 				        	count2++;
-			        		
+				        				        		
 			        	} 
 			        	
 			        	
 			        }
 				}
-	    		
+	    						
 				_params.put("$TILES_PROJECTIONS", tiles);
 				
 				

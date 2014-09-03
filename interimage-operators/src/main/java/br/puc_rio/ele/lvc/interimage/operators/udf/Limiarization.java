@@ -47,10 +47,8 @@ import br.puc_rio.ele.lvc.interimage.data.imageioimpl.plugins.tiff.TIFFImageRead
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LinearRing;
-import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.WKBWriter;
 
 //TODO: This could be a generic UDF that receives the parameters and compute a particular segmentation process.
@@ -248,7 +246,9 @@ public class Limiarization extends EvalFunc<DataBag> {
 				} catch (Exception e) {
 					throw new Exception("Problem with segmentation");
 				}
-		        		        
+		        		       
+		        GeometryFactory fact = new GeometryFactory();
+		        
 		        for (Map.Entry<String, List<Geometry>> entry : _segmentList.entrySet()) {
 		        	
 		        	List<Geometry> list = entry.getValue();
@@ -261,7 +261,8 @@ public class Limiarization extends EvalFunc<DataBag> {
 		        		index++;
 		        	}
 		        	
-		        	Geometry union = new GeometryCollection(geoms, new GeometryFactory()).buffer(0);
+		        	//Geometry union = new GeometryCollection(geoms, new GeometryFactory()).buffer(0);
+		        	Geometry union = fact.createGeometryCollection(geoms).buffer(0);
 		        	
 		        	for (int k=0; k<union.getNumGeometries(); k++) {
 		        	
@@ -443,7 +444,7 @@ public class Limiarization extends EvalFunc<DataBag> {
 					linePoints[3] = new Coordinate(CoordX,CoordY);
 					 
 					LinearRing shell = fact.createLinearRing(linePoints);          			
-          			Geometry poly = new Polygon(shell, null, fact);
+          			Geometry poly = fact.createPolygon(shell, null);
           			
           			/*if (_roiIndex.size()>0) {
           			

@@ -14,10 +14,6 @@ limitations under the License.*/
 
 package br.puc_rio.ele.lvc.interimage.operators;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * An image object or segment<br>
  * 
@@ -26,243 +22,184 @@ import java.util.Set;
  *
  */
 
-public class Segment {
-	//TODO: make it generic? Can use a Map of attributes
-	private int segment_id;			// Segment id
-	private double  area;				// Area
-	//int []  b_box;				// standard bounding box
-	//TODO: change to private and create getter and setter
-	public double[] avg_color;			// Average color
-	public double[] std_color;			// Standard Color
-	public double[]  avg_square_color;	// Average Square Color
-	public double[]  sum_color;			// Sum Color
-	
-	private double mean_x;
-	private double mean_y;
-	private long  sum_x;
-	private long sum_y;
-	private long  square_x;
-	private long square_y;
-	private long  product_xy;
-	private double bb_length;
-	private double bb_width;
-	
-	private HashMap<Integer, Pixel> pixelList;   	// Best neighbour's id
-	private double fusion_f;			   // Fusion Factor for merge best neighbor
-	
-	//Segment next_seg=null;	//Next Segment on list
-	//Segment prev_seg=null;  //Previous Segment on list
-	
-	//Best Neighbor List
-	private HashMap<Integer, Segment> bestNeighbor;
-	private Set<Integer> neighborIds;
-	
-	public Segment(int id){
-		setSegment_id(id);
-		setPixelList(new HashMap<Integer, Pixel>());
-		Pixel px = new Pixel(id);
-		getPixelList().put(id, px);
-		resetSegment();
-	}
-	
-	public void resetSegment(){
-		//spatial attributes
-		setArea(1);
-		setBb_length(1);
-		setBb_width(1);
-		
-		//b_box = new int[4];
-		setNeighborIds(new HashSet<Integer>());
-		setBestNeighbor(new HashMap<Integer, Segment>());
-		setFusion_f(Double.MAX_VALUE);
+public final class Segment {
+	 private int  id; /* segment id */
+	  private double area=1; /* number of pixels in segment */
+	  private double perimeter=4; /*number of border pixels */
+	  private double b_box[] = {0,0,1,1}; /* bounding box of the segment, relative to rows and cols */
+	  private double avg_color[]; /* average colors of pixels, one for each band */
+	  private double std_color[]; /* std of pixel colors, one for each band */
+	  private double avg_color_square[];
+	  private double color_sum[];
+	  private boolean used = false; /* indicate if segment has been used in segmentation step */
+	  
+	  //HashMap <Long, Boolean> pixelList = new HashMap <Long, Boolean>();
+	  private Pixel pixel_list; /* list of indexes of the segment's pixels */
+	  private Pixel last_pixel; /* pointer to the last pixel in the pixel list */
+	  
+	  public int getId() {
+		  return id;
+	  }
 
-		resetBestNeighbor();
-	}
-	
-	public void resetBestNeighbor(){
-		getBestNeighbor().clear();
-		setFusion_f(Double.MAX_VALUE);
-	}
-	
-	public void Kill(){
-		getBestNeighbor().clear();
-		getPixelList().clear();
-		getNeighborIds().clear();
-		
-		setPixelList(null);
-		//b_box=null;
-		setNeighborIds(null);
-		setBestNeighbor(null);
-		setPixelList(null);
-		avg_color=null;
-		std_color=null;
-		avg_square_color=null;
-		sum_color=null;
-	}
-		
-	public void setNumBands(int nBands){
-		avg_color = new double[nBands];
-		std_color = new double[nBands];
-		avg_square_color = new double[nBands];
-		sum_color = new double[nBands];
-	}
-	
-	public void reset_border(int width, int height )
-	{
-		int [] neighbor_pixels_id;
-		// for each pixel of the new segment
-		for (Pixel aux_pixel : getPixelList().values()) {
-			if (aux_pixel.isBorder()){
-				neighbor_pixels_id = aux_pixel.getPixelIdFromNeighbors(width, height);
-				boolean isBorder=false;
-				
-				for (int i=0;i<4;i++)
-				{
-					if (neighbor_pixels_id[0]== -1) //image limit 
-					{
-						isBorder=true;
-						break;
-					}
-					else
-					{
-						if (!getPixelList().containsKey(neighbor_pixels_id[i])){
-							isBorder=true;
-							break;
-						}
-					}
-				}
-				aux_pixel.setBorder(isBorder);			
-			}
+
+		public void setId(int id) {
+			this.id = id;
 		}
-	}
+		
+		
+		public double getArea() {
+			return area;
+		}
+		
+		
+		public void setArea(double area) {
+			this.area = area;
+		}
+		
+		
+		public double getPerimeter() {
+			return perimeter;
+		}
+		
+		
+		public void setPerimeter(double perimeter) {
+			this.perimeter = perimeter;
+		}
+		
+		
+		public double[] getB_box() {
+			return b_box;
+		}
+			
+		public void setB_box(double[] b_box) {
+			this.b_box = b_box;
+		}
+		
+		public double getB_boxByIndex(int idx) {
+			return b_box[idx];
+		}
+		
+		public void setB_boxByIndex(double b_box, int idx) {
+			this.b_box[idx] = b_box;
+		}
+		
+		public double[] getAvg_color() {
+			return avg_color;
+		}
+		
+		
+		public void setAvg_color(double[] avg_color) {
+			this.avg_color = avg_color;
+		}
+		
+		
+		public double[] getStd_color() {
+			return std_color;
+		}
+		
+		
+		public void setStd_color(double[] std_color) {
+			this.std_color = std_color;
+		}
+		
+		
+		public double[] getAvg_color_square() {
+			return avg_color_square;
+		}
+		
+		
+		public void setAvg_color_square(double[] avg_color_square) {
+			this.avg_color_square = avg_color_square;
+		}
+		
+		
+		public double[] getColor_sum() {
+			return color_sum;
+		}
+		
+		
+		public void setColor_sum(double[] color_sum) {
+			this.color_sum = color_sum;
+		}
+		
+		
+		public boolean isUsed() {
+			return used;
+		}
+		
+		
+		public void setUsed(boolean used) {
+			this.used = used;
+		}
+		
+		
+		public Pixel getPixel_list() {
+			return pixel_list;
+		}
+		
+		
+		public void setPixel_list(Pixel pixel_list) {
+			this.pixel_list = pixel_list;
+		}
+		
+		
+		public Pixel getLast_pixel() {
+			return last_pixel;
+		}
+		
+		
+		public void setLast_pixel(Pixel last_pixel) {
+			this.last_pixel = last_pixel;
+		}
+		
+		public void createSpectral(int nBands) {
+			this.avg_color = new double[nBands];
+			this.std_color = new double[nBands];
+			this.avg_color_square = new double[nBands];
+			this.color_sum = new double[nBands];
+		}
+		
+		public double getAvg_colorByIndex(int idx) {
+			return avg_color[idx];
+		}
+		
+		public void setAvg_colorByIndex(double val, int idx) {
+			this.avg_color[idx] = val;
+		}
+		
+		public double getStd_colorByIndex(int idx) {
+			return std_color[idx];
+		}
+		
+		public void setStd_colorByIndex(double val, int idx) {
+			this.std_color[idx] = val;
+		}
+		
+		public double getAvg_color_squareByIndex(int idx) {
+			return avg_color_square[idx];
+		}
+		
+		public void setAvg_color_squareByIndex(double val, int idx) {
+			this.avg_color_square[idx] = val;
+		}
+		
+		public double getColor_sumByIndex(int idx) {
+			return color_sum[idx];
+		}
+		
+		public void setColor_sumByIndex(double val, int idx) {
+			this.color_sum[idx] = val;
+		}
 
-	public double getMean_x() {
-		return mean_x;
-	}
 
-	public void setMean_x(double mean_x) {
-		this.mean_x = mean_x;
-	}
-
-	public double getMean_y() {
-		return mean_y;
-	}
-
-	public void setMean_y(double mean_y) {
-		this.mean_y = mean_y;
-	}
-
-	public long getSum_x() {
-		return sum_x;
-	}
-
-	public void setSum_x(long sum_x) {
-		this.sum_x = sum_x;
-	}
-
-	public long getSum_y() {
-		return sum_y;
-	}
-
-	public void setSum_y(long sum_y) {
-		this.sum_y = sum_y;
-	}
-
-	public long getSquare_x() {
-		return square_x;
-	}
-
-	public void setSquare_x(long square_x) {
-		this.square_x = square_x;
-	}
-
-	public long getSquare_y() {
-		return square_y;
-	}
-
-	public void setSquare_y(long square_y) {
-		this.square_y = square_y;
-	}
-
-	public long getProduct_xy() {
-		return product_xy;
-	}
-
-	public void setProduct_xy(long product_xy) {
-		this.product_xy = product_xy;
-	}
-	
-	//public int getBBoxbyIndex(int idx) {
-	//	return b_box[idx];
-	//}
-	//
-	//public void setBBoxbyIndex(int idx, int val) {
-	//	this.b_box[idx] = val;
-	//}
-
-	public int getSegment_id() {
-		return segment_id;
-	}
-
-	public void setSegment_id(int segment_id) {
-		this.segment_id = segment_id;
-	}
-
-	public HashMap<Integer, Pixel> getPixelList() {
-		return pixelList;
-	}
-
-	public void setPixelList(HashMap<Integer, Pixel> pixelList) {
-		this.pixelList = pixelList;
-	}
-
-	public Set<Integer> getNeighborIds() {
-		return neighborIds;
-	}
-
-	public void setNeighborIds(Set<Integer> neighborIds) {
-		this.neighborIds = neighborIds;
-	}
-
-	public HashMap<Integer, Segment> getBestNeighbor() {
-		return bestNeighbor;
-	}
-
-	public void setBestNeighbor(HashMap<Integer, Segment> bestNeighbor) {
-		this.bestNeighbor = bestNeighbor;
-	}
-
-	public double getArea() {
-		return area;
-	}
-
-	public void setArea(double area) {
-		this.area = area;
-	}
-
-	public double getFusion_f() {
-		return fusion_f;
-	}
-
-	public void setFusion_f(double fusion_f) {
-		this.fusion_f = fusion_f;
-	}
-
-	public double getBb_width() {
-		return bb_width;
-	}
-
-	public void setBb_width(double bb_width) {
-		this.bb_width = bb_width;
-	}
-
-	public double getBb_length() {
-		return bb_length;
-	}
-
-	public void setBb_length(double bb_length) {
-		this.bb_length = bb_length;
-	}
+		private  Segment (int id) {
+		     this.id = id;
+		 }
+	  
+	  
+		public static Segment create (int id) {
+		     return new Segment (id);
+		 }
 	
 }
 

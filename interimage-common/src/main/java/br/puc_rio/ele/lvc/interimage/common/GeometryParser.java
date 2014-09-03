@@ -14,12 +14,20 @@ limitations under the License.*/
 
 package br.puc_rio.ele.lvc.interimage.common;
 
-import org.apache.pig.data.DataByteArray;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 
+import org.apache.pig.data.DataByteArray;
+import org.iq80.snappy.SnappyInputStream;
+import org.iq80.snappy.SnappyOutputStream;
+
+import com.google.common.io.ByteStreams;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ByteArrayInStream;
 import com.vividsolutions.jts.io.WKBReader;
 import com.vividsolutions.jts.io.WKTReader;
+import com.vividsolutions.jts.io.WKTWriter;
 
 /**
  * Retrieves a geometry from a pig attribute. It automatically detects its format
@@ -78,6 +86,162 @@ public class GeometryParser {
 		}
 		
 		return geometry;
+		
+	}
+	
+	/*Compression methods*/
+	
+	public static byte[] compressGeometryToBytes(Geometry geom) {
+
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		
+		try {
+		
+			WKTWriter writer = new WKTWriter();
+				
+		    OutputStream snappyOut  = new SnappyOutputStream(out);
+		    snappyOut.write(writer.write(geom).getBytes());
+		    snappyOut.close();
+		    
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("It was not possible to compress the geometry.");
+		}
+	    
+	    return out.toByteArray();
+	}
+	
+	public static byte[] compressWKTToBytes(String wkt) {
+
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		
+		try {
+			
+		    OutputStream snappyOut  = new SnappyOutputStream(out);
+		    snappyOut.write(wkt.getBytes());
+		    snappyOut.close();
+		    
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("It was not possible to compress the geometry.");
+		}
+	    
+	    return out.toByteArray();
+	}
+	
+	public static String compressGeometryToString(Geometry geom) {
+
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		
+		try {
+		
+			WKTWriter writer = new WKTWriter();
+				
+		    OutputStream snappyOut  = new SnappyOutputStream(out);
+		    snappyOut.write(writer.write(geom).getBytes());
+		    snappyOut.close();
+		    
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("It was not possible to compress the geometry.");
+		}
+	    
+	    return out.toString();
+	}
+	
+	public static String compressWKTToString(String wkt) {
+
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		
+		try {
+						
+		    OutputStream snappyOut  = new SnappyOutputStream(out);
+		    snappyOut.write(wkt.getBytes());
+		    snappyOut.close();
+		    
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("It was not possible to compress the geometry.");
+		}
+	    
+	    return out.toString();
+	}
+	
+	/*Decompression methods*/
+	
+	public static Geometry decompressBytesToGeometry(byte[] bytes) {
+
+		Geometry geometry = null;
+		
+		try {
+		
+	        byte[] decompressed = ByteStreams.toByteArray(new SnappyInputStream(new ByteArrayInputStream(bytes)));
+	        
+	        geometry = new WKTReader().read(new String(decompressed));
+	        
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("It was not possible to decompress the geometry.");
+		}
+		
+		return geometry;
+		
+	}
+	
+	public static String decompressBytesToWKT(byte[] bytes) {
+
+		String wkt = null;
+		
+		try {
+		
+	        byte[] decompressed = ByteStreams.toByteArray(new SnappyInputStream(new ByteArrayInputStream(bytes)));
+	        
+	        wkt = new String(decompressed);
+	        
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("It was not possible to decompress the geometry.");
+		}
+		
+		return wkt;
+		
+	}
+	
+	public static Geometry decompressStringToGeometry(String string) {
+
+		Geometry geometry = null;
+		
+		try {
+		
+	        byte[] decompressed = ByteStreams.toByteArray(new SnappyInputStream(new ByteArrayInputStream(string.getBytes())));
+	        
+	        geometry = new WKTReader().read(new String(decompressed));
+	        
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("It was not possible to decompress the geometry.");
+		}
+		
+		return geometry;
+		
+	}
+	
+	public static String decompressStringToWKT(String string) {
+
+		String wkt = null;
+		
+		try {
+		
+	        byte[] decompressed = ByteStreams.toByteArray(new SnappyInputStream(new ByteArrayInputStream(string.getBytes())));
+	        
+	        wkt = new String(decompressed);
+	        
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("It was not possible to decompress the geometry.");
+		}
+		
+		return wkt;
 		
 	}
 	
