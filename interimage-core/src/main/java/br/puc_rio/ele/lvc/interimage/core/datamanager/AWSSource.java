@@ -89,11 +89,11 @@ public class AWSSource implements Source {
 				}
 			}
 		
-			/*Upload upload = _manager.upload(putObjectRequest);
+			Upload upload = _manager.upload(putObjectRequest);
 			
 			upload.waitForCompletion();
 			
-			System.out.println("AWSSource: Uploaded file - " + to);*/
+			System.out.println("AWSSource: Uploaded file - " + to);
 			
 		} catch (Exception e) {
 			System.err.println("Source put failed: " + e.getMessage());			
@@ -102,9 +102,9 @@ public class AWSSource implements Source {
 	}
 	
 	public void multiplePut(File dir, String key) {
-		try {
-			/*MultipleFileUpload upload = _manager.uploadDirectory(_bucket, key, dir, false);			
-			upload.waitForCompletion();*/
+		try {			
+			MultipleFileUpload upload = _manager.uploadDirectory(_bucket, key, dir, false);			
+			upload.waitForCompletion();			
 		} catch (Exception e) {
 			e.printStackTrace();			
 		}

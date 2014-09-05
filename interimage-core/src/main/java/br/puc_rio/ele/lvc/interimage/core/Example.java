@@ -52,7 +52,7 @@ public class Example {
 		properties.setProperty("interimage.sourceURL", "https://s3.amazonaws.com/interimage2/");
 		properties.setProperty("interimage.sourceSpecificURL", "s3n://interimage2/");
 		properties.setProperty("interimage.projectName", "exercise13");
-		properties.setProperty("interimage.parallel", "50");
+		properties.setProperty("interimage.parallel", "5");
 		properties.setProperty("interimage.crs", "EPSG:32735");
 		properties.setProperty("interimage.tileSizeMeters", "640");
 						

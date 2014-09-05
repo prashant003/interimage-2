@@ -16,6 +16,8 @@ package br.puc_rio.ele.lvc.interimage.geometry;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,12 +40,15 @@ import org.geotools.dbffile.DbfFileWriter;
 import org.geotools.shapefile.ShapeHandler;
 import org.geotools.shapefile.Shapefile;
 import org.geotools.shapefile.ShapefileHeader;
+import org.iq80.snappy.SnappyInputStream;
+import org.iq80.snappy.SnappyOutputStream;
 
 import br.puc_rio.ele.lvc.interimage.common.CRS;
 import br.puc_rio.ele.lvc.interimage.common.GeometryParser;
 import br.puc_rio.ele.lvc.interimage.common.TileManager;
 import br.puc_rio.ele.lvc.interimage.common.UUID;
 
+import com.google.common.io.ByteStreams;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
@@ -73,7 +78,7 @@ public class ShapefileConverter {
 	 * tileManager - TileManager object
 	 */	
 
-	public static void shapefileToJSON(String shapefile, String json, List<String> names, boolean keep, String crsFrom, String crsTo, double[] geoBBox, TileManager tileManager) {
+	public static void shapefileToJSON(String shapefile, String json, List<String> names, boolean keep, String crsFrom, String crsTo, double[] geoBBox, TileManager tileManager, boolean compressed) {
 		
 		try {
 			
@@ -334,7 +339,27 @@ public class ShapefileConverter {
 	                	                
 	                str += "}}\n";
 	                
-	                out.write(str.getBytes());
+	                if (compressed) {
+	                
+		                ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+		        		
+		        		try {
+		        			
+		        		    OutputStream snappyOut  = new SnappyOutputStream(outStream);
+		        		    snappyOut.write(str.getBytes());
+		        		    snappyOut.close();
+		        		    
+		        		} catch (Exception e) {
+		        			e.printStackTrace();
+		        			System.out.println("It was not possible to compress the string.");
+		        		}
+		        	 
+		        		out.write(outStream.toByteArray());
+		        				                
+	                } else {
+	                	out.write(str.getBytes());
+	                }
+	                
 	                
 	            }
 	        } catch (EOFException e) {
@@ -445,7 +470,7 @@ public class ShapefileConverter {
 	 * output shapefile path
 	 */	
 	@SuppressWarnings({ "rawtypes", "unchecked"})
-	public static void JSONToShapefile(String json, String shpFileName, List<String> names, boolean keep, String crsFrom, String crsTo) {
+	public static void JSONToShapefile(String json, String shpFileName, List<String> names, boolean keep, String crsFrom, String crsTo, boolean compressed) {
 	
 		try {
 			
@@ -525,6 +550,11 @@ public class ShapefileConverter {
 	        
 	        String line1;
 	        while ((line1 = buff1.readLine()) != null) {
+	        	
+	        	if (compressed) {
+	        		byte[] decompressed = ByteStreams.toByteArray(new SnappyInputStream(new ByteArrayInputStream(line1.getBytes())));
+	        		line1 =  new String(decompressed);
+	        	}
 	        	
 	        	Geometry geometry;	        	
 	        	JsonParser jParser = jfactory.createJsonParser(line1);
@@ -693,6 +723,11 @@ public class ShapefileConverter {
 	        
 	        String line;
 	        while ((line = buff.readLine()) != null) {
+	        	
+	        	if (compressed) {
+	        		byte[] decompressed = ByteStreams.toByteArray(new SnappyInputStream(new ByteArrayInputStream(line.getBytes())));
+	        		line =  new String(decompressed);
+	        	}
 	        	
 	        	Vector DBFrow = new Vector();
 	        	DBFrow.setSize(fieldDefs.size());
