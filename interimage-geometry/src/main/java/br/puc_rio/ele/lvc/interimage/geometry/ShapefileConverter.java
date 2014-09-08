@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +42,6 @@ import org.geotools.shapefile.ShapeHandler;
 import org.geotools.shapefile.Shapefile;
 import org.geotools.shapefile.ShapefileHeader;
 import org.iq80.snappy.SnappyInputStream;
-import org.iq80.snappy.SnappyOutputStream;
 
 import br.puc_rio.ele.lvc.interimage.common.CRS;
 import br.puc_rio.ele.lvc.interimage.common.GeometryParser;
@@ -64,6 +64,8 @@ import com.vividsolutions.jump.io.EndianDataOutputStream;
  */
 public class ShapefileConverter {
 
+	static final byte[] STREAM_HEADER = new byte[] { 's', 'n', 'a', 'p', 'p', 'y', 0};
+	
 	/**
 	 * Converts from Shapefile to JSON format.<br><br>
 	 * This method also:<br>
@@ -77,7 +79,7 @@ public class ShapefileConverter {
 	 * geoBBox - the method will store in this vector the bbox of the shapefile<br>
 	 * tileManager - TileManager object
 	 */	
-
+	
 	public static void shapefileToJSON(String shapefile, String json, List<String> names, boolean keep, String crsFrom, String crsTo, double[] geoBBox, TileManager tileManager, boolean compressed) {
 		
 		try {
@@ -341,7 +343,7 @@ public class ShapefileConverter {
 	                
 	                if (compressed) {
 	                
-		                ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+		                /*ByteArrayOutputStream outStream = new ByteArrayOutputStream();
 		        		
 		        		try {
 		        			
@@ -354,7 +356,7 @@ public class ShapefileConverter {
 		        			System.out.println("It was not possible to compress the string.");
 		        		}
 		        	 
-		        		out.write(outStream.toByteArray());
+		        		out.write(outStream.toByteArray());*/
 		        				                
 	                } else {
 	                	out.write(str.getBytes());
@@ -464,6 +466,14 @@ public class ShapefileConverter {
         		
 	}
 	
+	private static byte[] blockToStream(byte[] block)
+	{
+		byte[] stream = new byte[STREAM_HEADER.length + block.length];
+		System.arraycopy(STREAM_HEADER, 0, stream, 0, STREAM_HEADER.length);
+		System.arraycopy(block, 0, stream, STREAM_HEADER.length, block.length);
+		return stream;
+	}
+		
 	/**
 	 * Converts from JSON to Shapefile.<br>
 	 * @param input JSON file path<br>
@@ -547,14 +557,101 @@ public class ShapefileConverter {
 	         * It's necessary because sometimes the fields in the JSON file are written in a different order.
 	         * */
 	        Map<String,Integer> attribNameToIndex = new HashMap<String,Integer>();
-	        
-	        String line1;
-	        while ((line1 = buff1.readLine()) != null) {
+	        	        
+	        String line1 = null;
+	        boolean first1 = true;
+	        //boolean flagContinue1 = false;
+	        boolean flagFinished1 = false;
+	        //while ((line1 = buff1.readLine()) != null) {
+	        while (true) {
 	        	
 	        	if (compressed) {
-	        		byte[] decompressed = ByteStreams.toByteArray(new SnappyInputStream(new ByteArrayInputStream(line1.getBytes())));
-	        		line1 =  new String(decompressed);
+	        	
+		        	/*Compression handling starts here*/
+		        	
+		        	if (first1) {
+			        	byte[] header = new byte[7];		        	
+			        	in1.read(header);
+			        	first1 = false;
+			        	
+			        }
+		        		        	
+		        	ByteArrayOutputStream global = new ByteArrayOutputStream();
+		        	
+		        	while (true) {
+		        		
+			        	byte[] blockheader = new byte[7];
+			        	
+			        	int size = in1.read(blockheader);
+			        			        	
+			        	if (size != 7) {
+			        		flagFinished1 = true;
+			        		break;
+			        	}
+			        
+			        			        	 
+			        	byte[] h = Arrays.copyOfRange(blockheader, 1, 7);
+			        	
+			        	if (new String(h).equals("snappy")) {
+			        		in1.read();
+			        		//flagContinue1 = true;
+			        		
+			        		break;
+			        	}
+			        	
+			        	int flagCompressed = blockheader[0];
+			        	
+			        			        	
+			        	int a = blockheader[1] & 0xFF;
+			        	int b = blockheader[2] & 0xFF;
+			        	int compressedSize = (a << 8) | b;
+			        	
+			        	
+			        	byte[] compressedData = new byte[compressedSize];
+			        	
+			        	
+			        	in1.read(compressedData);
+			        	
+			        	ByteArrayOutputStream local = new ByteArrayOutputStream( );
+			        	
+			        	local.write(blockheader);
+			        			        	
+			        	if (flagCompressed == 0) {
+			        		global.write( compressedData );
+			        		//System.out.println(new String(compressedData));
+			        	} else {
+			        		local.write(compressedData);
+			        		byte[] decompressed = ByteStreams.toByteArray(new SnappyInputStream(new ByteArrayInputStream(blockToStream(local.toByteArray()))));
+			        		global.write(decompressed);
+			        		//System.out.println(new String(decompressed));
+			        	}
+			        	
+			        	local.close();
+			        	
+		        	}
+		        		        	
+		        	/*if (flagContinue1) {
+		        		flagContinue1 = false;
+		        		continue;
+		        	}*/
+		        		        	
+	        		line1 = new String(global.toByteArray());
+		        	
+	        		global.close();
+	        		
+	        		//System.out.println(line1);
+	        		  
+	        		/*Compression handling ends here*/
+	        		
+	        	} else {
+	        		line1 = buff1.readLine();
+	        		
+	        		if (line1 == null)
+	        			break;
+	        		
 	        	}
+        		
+	        	//System.out.println(line1);
 	        	
 	        	Geometry geometry;	        	
 	        	JsonParser jParser = jfactory.createJsonParser(line1);
@@ -671,8 +768,16 @@ public class ShapefileConverter {
 	        	numRecords++;
 	        	
 	        	jParser.close();
+	        	
+	        	//data1 = in1.read();
+	        	
+	        	if (flagFinished1) {
+	        		break;
+	        	}
+	        	
 	        }
 	        
+	        //in1.close();
 	        buff1.close();
 	        
 	        bounds = new Envelope(boundsArr[0], boundsArr[2], boundsArr[1], boundsArr[3]);
@@ -721,12 +826,91 @@ public class ShapefileConverter {
 	        
 	        int count = 1;
 	        
-	        String line;
-	        while ((line = buff.readLine()) != null) {
+	        String line = null;
+	        boolean first = true;
+	        //boolean flagContinue = false;
+	        boolean flagFinished = false;
+	        	        
+	        //while ((line = buff.readLine()) != null) {
+	        while (true) {
 	        	
 	        	if (compressed) {
-	        		byte[] decompressed = ByteStreams.toByteArray(new SnappyInputStream(new ByteArrayInputStream(line.getBytes())));
-	        		line =  new String(decompressed);
+	        	
+		        	/*Compression handling starts here*/
+		        	
+		        	if (first) {
+			        	byte[] header = new byte[7];		        	
+			        	in.read(header);
+			        	first = false;
+			        }
+		        		        	
+		        	ByteArrayOutputStream global = new ByteArrayOutputStream();
+		        	
+		        	while (true) {
+		        		
+			        	byte[] blockheader = new byte[7];
+			        	
+			        	int size = in.read(blockheader);
+			        	
+			        	if (size != 7) {
+			        		flagFinished = true;
+			        		break;
+			        	}
+			        	
+			        	
+			        	byte[] h = Arrays.copyOfRange(blockheader, 1, 7);
+			        	
+			        	if (new String(h).equals("snappy")) {
+			        		in.read();
+			        		//flagContinue = true;
+			        		
+			        		break;
+			        	}
+			        	
+			        	int flagCompressed = blockheader[0];
+			        			        			        	
+			        	int a = blockheader[1] & 0xFF;
+			        	int b = blockheader[2] & 0xFF;
+			        	int compressedSize = (a << 8) | b;
+			        	
+			        	byte[] compressedData = new byte[compressedSize];
+			        			        	
+			        	in.read(compressedData);
+			        	
+			        	ByteArrayOutputStream local = new ByteArrayOutputStream( );
+			        	
+			        	local.write(blockheader);
+			        			        	
+			        	if (flagCompressed == 0) {
+			        		global.write( compressedData );
+			        		
+			        	} else {
+			        		local.write(compressedData);
+			        		byte[] decompressed = ByteStreams.toByteArray(new SnappyInputStream(new ByteArrayInputStream(blockToStream(local.toByteArray()))));
+			        		global.write(decompressed);
+			        		
+			        	}
+			        	
+			        	local.close();
+			        	
+		        	}
+		        		        	
+		        	/*if (flagContinue) {
+		        		flagContinue = false;
+		        		continue;
+		        	}*/
+		        		        	
+	        		line =  new String(global.toByteArray());
+		        	        		  
+	        		global.close();
+	        		
+	        		/*Compression handling ends here*/
+	        		
+	        	} else {
+	        		line = buff.readLine();
+	        		
+	        		if (line == null)
+	        			break;
 	        	}
 	        	
 	        	Vector DBFrow = new Vector();
@@ -835,13 +1019,19 @@ public class ShapefileConverter {
 	        	/*Writing to dbf file*/
 	        	dbf.writeRecord(DBFrow);
 	        	jParser.close();
+	        	
+	        	if (flagFinished) {
+	        		break;
+	        	}
+	        	
 	        }
 	        
 	        shapeFile.close();
 	        indexfile.close();
 	        dbf.close();
 	        buff.close();
-	        	        
+	        //in.close();
+	        
 		} catch (Exception e) {
 			System.err.println("Failed to create shapefile; error - " + e.getMessage());
 			e.printStackTrace();

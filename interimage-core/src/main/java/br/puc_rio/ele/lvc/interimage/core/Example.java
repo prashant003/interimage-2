@@ -44,7 +44,7 @@ public class Example {
 		Locale locale = new Locale("en", "US");
 		Locale.setDefault(locale);
 				
-		PigParser parser = new PigParser();
+		/*PigParser parser = new PigParser();
 		
 		Properties properties = new Properties();
 		
@@ -56,7 +56,7 @@ public class Example {
 		properties.setProperty("interimage.crs", "EPSG:32735");
 		properties.setProperty("interimage.tileSizeMeters", "640");
 						
-		Map<String, String> params = new HashMap<String,String>();
+		Map<String, String> params = new HashMap<String,String>();*/
 		
 		/*params.put("$IMAGE_KEY","nairobi");
 		params.put("$THRESHOLDS","0.33,1");
@@ -75,7 +75,7 @@ public class Example {
 		
 		params = new HashMap<String,String>();*/
 		
-		params.put("$IMAGE_KEY","nairobi");
+		/*params.put("$IMAGE_KEY","nairobi");
 		params.put("$SCALE","30");
 		params.put("$WCOLOR","0.5");
 		params.put("$WCOMPACTNESS","0.5");
@@ -95,7 +95,7 @@ public class Example {
 		file.close();
 		} catch(Exception e) {
 			
-		}
+		}*/
 		
 		//try {
 		
@@ -243,7 +243,7 @@ public class Example {
 		
 		//EPSG:32723
 		
-		//ShapefileConverter.JSONToShapefile("C:\\Users\\Rodrigo\\Desktop\\part-m-00019","C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\result1.shp", null, true, null, null);
+		ShapefileConverter.JSONToShapefile("C:\\Users\\Rodrigo\\Desktop\\part-m-00000-not-compressed","C:\\Users\\Rodrigo\\Desktop\\result-2.shp", null, true, null, null, false);
 		//ShapefileConverter.JSONToShapefile("C:\\Users\\Rodrigo\\Desktop\\part-r-00001","C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\result2.shp", null, true, null, null);
 				
 		//ShapefileConverter.WKTToShapefile("C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\tiles.wkt", "C:\\Users\\Rodrigo\\Documents\\workshop\\exercise13\\tiles.shp", null, null);
