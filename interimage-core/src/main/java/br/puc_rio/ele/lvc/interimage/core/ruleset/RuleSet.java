@@ -334,7 +334,7 @@ public class RuleSet {
 
 			/*Initialization*/
 			//String relation = nextRelation("selection");
-			code.append("selection = FILTER $LAST_RELATION BY (NOT II_IsEmpty(geometry)) AND II_IsValid(geometry);\n");
+			//code.append("selection = FILTER $LAST_RELATION BY (NOT II_IsEmpty(geometry)) AND II_IsValid(geometry);\n");
 			//_lastRelation = relation;
 			
 			//relation = nextRelation("projection");

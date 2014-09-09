@@ -22,70 +22,49 @@ package br.puc_rio.ele.lvc.interimage.operators;
  *
  */
 
-//TODO: Xpos and Ypos should be an attribute?
+public final class Pixel {
 
-public class Pixel {
+	private int  id; /* pixel id */
+	private boolean borderline; /* indicates if the pixel belongs to the border of the segment */
+	private Pixel next_pixel; /* next pixel */
+	
+	public int getId() {
+		return id;
+	}
 
-	private int _pixel_id;				// Pixel id
-	//private int _segment_id;
-	//Pixel next_pixel;
-	private boolean _pixel_borderline;	// If pixel is border of segment
-	
-	
-	public Pixel(int id){
-		_pixel_id=id;
-		this.setBorder(true);
+
+	public void setId(int id) {
+		this.id = id;
 	}
-	
-	/*public void setSegmentId(int id){
-		 _segment_id=id;
+
+
+	public boolean isBorderline() {
+		return borderline;
 	}
-	 
-	public int getSegmentId(){
-		 return _segment_id;
-	}*/
-	
-	public int getPixelId(){
-		 return _pixel_id;
+
+
+	public void setBorderline(boolean borderline) {
+		this.borderline = borderline;
 	}
-	
-	public void setBorder(boolean val){
-		 _pixel_borderline = val;
+
+
+	public Pixel getNext_pixel() {
+		return next_pixel;
 	}
-	
-	public int getX(int width){
-		 return  _pixel_id % (width);
+
+
+	public void setNext_pixel(Pixel next_pixel) {
+		this.next_pixel = next_pixel;
 	}
+
 	
-	public int getY(int width){
-		 return _pixel_id / width;
+	private Pixel (int id) {
+		this.id = id;
 	}
-	
-	public boolean isBorder(){
-		 return _pixel_borderline;
-	}
-	
-	public int [] getPixelIdFromNeighbors(int width, int height){
-		
-		int [] neighb = new int [4];
-		for (int i=0; i<4; i++){
-			neighb[i]=-1;
-		}
-		
-		int x = this.getX(width);
-		int y = this.getY(width);
-		
-		if (y>0) 
-			neighb[0]=(y-1)* width + x; //north
-		if (x>0) 
-			neighb[1]= y* width + (x-1);//west
-		if (y < height-1) 
-			neighb[2]=(y+1)* width + x; //south
-		if (x < width-1) 
-			neighb[3]= y* width + (x+1);//east
-		
-		return neighb;
+	  
+	  
+	public static Pixel create (int id) {
+		return new Pixel (id);
 	}
 	
 }
-

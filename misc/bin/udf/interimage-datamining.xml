@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<udfs>
+<udf name="Membership" alias="II_Membership" import="br.puc_rio.ele.lvc.interimage.datamining.udf.Membership">
+	<param>fuzzyUrl</param>	
+</udf>
+<udf name="BayesClassifier" alias="II_BayesClassifier" import="br.puc_rio.ele.lvc.interimage.datamining.udf.BayesClassifier">
+	<param>trainingUrl</param>	
+</udf>
+<udf name="RandomForestClassifier" alias="II_RandomForestClassifier" import="br.puc_rio.ele.lvc.interimage.datamining.udf.RandomForestClassifier">
+	<param>trainingUrl</param>	
+</udf>
+<udf name="SVMClassifier" alias="II_SVMClassifier" import="br.puc_rio.ele.lvc.interimage.datamining.udf.SVMClassifier">
+	<param>trainingUrl</param>	
+</udf>
+<udf name="DecisionTreeClassifier" alias="II_DecisionTreeClassifier" import="br.puc_rio.ele.lvc.interimage.datamining.udf.DecisionTreeClassifier">
+	<param>trainingUrl</param>	
+</udf>
+</udfs>

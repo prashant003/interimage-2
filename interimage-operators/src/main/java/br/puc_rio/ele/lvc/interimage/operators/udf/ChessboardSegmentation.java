@@ -121,7 +121,7 @@ public class ChessboardSegmentation extends EvalFunc<DataBag> {
 			
 			//double box[] = new double[] {geometry.getEnvelopeInternal().getMinX(), geometry.getEnvelopeInternal().getMinY(), geometry.getEnvelopeInternal().getMaxX(), geometry.getEnvelopeInternal().getMaxY()};
 	        
-	        if (br.puc_rio.ele.lvc.interimage.common.URL.exists(_imageUrl + _image + "/" + tileStr + ".tif")) {	//if tile doesn't exist
+	        //if (br.puc_rio.ele.lvc.interimage.common.URL.exists(_imageUrl + _image + "/" + tileStr + ".tif")) {	//if tile doesn't exist
 				
 	        	/*Getting width and height*/
 	        	URL worldFile1 = new URL(_imageUrl + _image + "/" + tileStr + ".meta");
@@ -229,13 +229,14 @@ public class ChessboardSegmentation extends EvalFunc<DataBag> {
 		        	}
 		        }
 				
-			} else {
-				throw new Exception("Could not retrieve image information.");
-			}
+			//} else {
+			//	throw new Exception("Could not retrieve image information.");
+			//}
 	        
 			return bag;
 			
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new IOException("Caught exception processing input row ", e);
 		}
 	}

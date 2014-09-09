@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<udfs>
+<udf name="AggregateCentroid" alias="II_AggregateCentroid" import="br.puc_rio.ele.lvc.interimage.geometry.udf.AggregateCentroid" />
+<udf name="AggregateConvexHull" alias="II_AggregateConvexHull" import="br.puc_rio.ele.lvc.interimage.geometry.udf.AggregateConvexHull" />
+<udf name="AggregateEnvelope" alias="II_AggregateEnvelope" import="br.puc_rio.ele.lvc.interimage.geometry.udf.AggregateEnvelope" />
+<udf name="AggregateUnion" alias="II_AggregateUnion" import="br.puc_rio.ele.lvc.interimage.geometry.udf.AggregateUnion" />
+<udf name="Area" alias="II_Area" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Area" />
+<udf name="AreaOf" alias="II_AreaOf" import="br.puc_rio.ele.lvc.interimage.geometry.udf.AreaOf" />
+<udf name="BorderTo" alias="II_BorderTo" import="br.puc_rio.ele.lvc.interimage.geometry.udf.BorderTo" />
+<udf name="Buffer" alias="II_Buffer" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Buffer" />
+<udf name="Centroid" alias="II_Centroid" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Centroid" />
+<udf name="ConvexHull" alias="II_ConvexHull" import="br.puc_rio.ele.lvc.interimage.geometry.udf.ConvexHull" />
+<udf name="CRSTransform" alias="II_CRSTransform" import="br.puc_rio.ele.lvc.interimage.geometry.udf.CRSTransform" />
+<udf name="Difference" alias="II_Difference" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Difference" />
+<udf name="Distance" alias="II_Distance" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Distance" />
+<udf name="Envelope" alias="II_Envelope" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Envelope" />
+<udf name="Intersection" alias="II_Intersection" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Intersection" />
+<udf name="Perimeter" alias="II_Perimeter" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Perimeter" />
+<udf name="NumberOf" alias="II_NumberOf" import="br.puc_rio.ele.lvc.interimage.geometry.udf.NumberOf" />
+<udf name="RelativeAreaOf" alias="II_RelativeAreaOf" import="br.puc_rio.ele.lvc.interimage.geometry.udf.RelativeAreaOf" />
+<udf name="RelativeBorderTo" alias="II_RelativeBorderTo" import="br.puc_rio.ele.lvc.interimage.geometry.udf.RelativeBorderTo" />
+<udf name="Replicate" alias="II_Replicate" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Replicate" />
+<udf name="ReplicateNeighborhood" alias="II_ReplicateNeighborhood" import="br.puc_rio.ele.lvc.interimage.geometry.udf.ReplicateNeighborhood">
+	<param>tileUrl</param>
+	<param>distance</param>
+</udf>
+<udf name="SymDifference" alias="II_SymDifference" import="br.puc_rio.ele.lvc.interimage.geometry.udf.SymDifference" />
+<udf name="CalculateTiles" alias="II_CalculateTiles" import="br.puc_rio.ele.lvc.interimage.geometry.udf.CalculateTiles">
+	<param>tileUrl</param>
+	<param>assignment</param>
+</udf>
+<udf name="ToText" alias="II_ToText" import="br.puc_rio.ele.lvc.interimage.geometry.udf.ToText" />
+<udf name="ToHex" alias="II_ToHex" import="br.puc_rio.ele.lvc.interimage.geometry.udf.ToHex" />
+<udf name="Union" alias="II_Union" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Union" />
+
+<udf name="Contains" alias="II_Contains" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Contains" />
+<udf name="CoveredBy" alias="II_CoveredBy" import="br.puc_rio.ele.lvc.interimage.geometry.udf.CoveredBy" />
+<udf name="Covers" alias="II_Covers" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Covers" />
+<udf name="Crosses" alias="II_Crosses" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Crosses" />
+<udf name="Disjoint" alias="II_Disjoint" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Disjoint" />
+<udf name="Equals" alias="II_Equals" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Equals" />
+<udf name="ExistenceOf" alias="II_ExistenceOf" import="br.puc_rio.ele.lvc.interimage.geometry.udf.ExistenceOf" />
+<udf name="Intersects" alias="II_Intersects" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Intersects" />
+<udf name="IsEmpty" alias="II_IsEmpty" import="br.puc_rio.ele.lvc.interimage.geometry.udf.IsEmpty" />
+<udf name="IsValid" alias="II_IsValid" import="br.puc_rio.ele.lvc.interimage.geometry.udf.IsValid" />
+<udf name="Overlaps" alias="II_Overlaps" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Overlaps" />
+<udf name="SpatialClip" alias="SpatialClip" import="br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialClip">
+	<param>roiUrl</param>
+	<param>tileUrl</param>	
+</udf>
+<udf name="SpatialFilter" alias="SpatialFilter" import="br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialFilter">
+	<param>roiUrl</param>
+	<param>tileUrl</param>
+	<param>filterType</param>
+</udf>
+<udf name="SpatialGroup" alias="SpatialGroup" import="br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialGroup">
+	<param>distance</param>
+	<macro>
+		DEFINE II_SpatialGroup (A, B, p) RETURNS F {
+		C = COGROUP $A BY properties#'tile', $B BY properties#'tile' PARALLEL $p;
+		D = FILTER C BY NOT IsEmpty($A);
+		E = FILTER D BY NOT IsEmpty($B);
+		$F = FOREACH E GENERATE FLATTEN(SpatialGroup($A, $B)) AS ($A::geometry:bytearray, $A::data:map[], $A::properties:map[], $A::group:{t:($B::geometry:bytearray, $B::data:map[], $B::properties:map[])});
+		};
+	</macro>
+</udf>
+<udf name="SpatialJoin" alias="SpatialJoin" import="br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialJoin">
+	<param>joinType</param>
+	<macro>
+		DEFINE II_SpatialJoin (A, B, p) RETURNS F {
+		C = COGROUP $A BY properties#'tile', $B BY properties#'tile' PARALLEL $p;
+		D = FILTER C BY NOT IsEmpty($A);
+		E = FILTER D BY NOT IsEmpty($B);
+		$F = FOREACH E GENERATE FLATTEN(SpatialJoin($A, $B)) AS ($A::geometry:bytearray, $A::data:map[], $A::properties:map[], $B::geometry:bytearray, $B::data:map[], $B::properties:map[]);
+		};
+	</macro>
+</udf>
+<udf name="Touches" alias="II_Touches" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Touches" />
+<udf name="Within" alias="II_Within" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Within" />
+<udf name="WithinDistance" alias="II_WithinDistance" import="br.puc_rio.ele.lvc.interimage.geometry.udf.WithinDistance" />
+<udf name="KMLPlacemark" alias="II_KMLPlacemark" import="br.puc_rio.ele.lvc.interimage.geometry.udf.kml.KMLPlacemark" />
+<udf name="OSMNode" alias="II_OSMNode" import="br.puc_rio.ele.lvc.interimage.geometry.udf.osm.OSMNode" />
+<udf name="OSMWay" alias="II_OSMWay" import="br.puc_rio.ele.lvc.interimage.geometry.udf.osm.OSMWay" />
+<udf name="WKTGeometry" alias="II_WKTGeometry" import="br.puc_rio.ele.lvc.interimage.geometry.udf.wkt.WKTGeometry" />
+
+<udf name="Angle" alias="II_Angle" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Angle" />
+<udf name="Compactness" alias="II_Compactness" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Compactness" />
+<udf name="Density" alias="II_Angle" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Density" />
+<udf name="EllipseFit" alias="II_EllipseFit" import="br.puc_rio.ele.lvc.interimage.geometry.udf.EllipseFit" />
+<udf name="FractalDimension" alias="II_FractalDimension" import="br.puc_rio.ele.lvc.interimage.geometry.udf.FractalDimension" />
+<udf name="GyrationRadius" alias="II_GyrationRadius" import="br.puc_rio.ele.lvc.interimage.geometry.udf.GyrationRadius" />
+<udf name="LengthWidthRatio" alias="II_LengthWidthRatio" import="br.puc_rio.ele.lvc.interimage.geometry.udf.LengthWidthRatio" />
+<udf name="Length" alias="II_Length" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Length" />
+<udf name="Width" alias="II_Width" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Width" />
+<udf name="PerimeterAreaRatio" alias="II_PerimeterAreaRatio" import="br.puc_rio.ele.lvc.interimage.geometry.udf.PerimeterAreaRatio" />
+<udf name="RectangleFit" alias="II_RectangleFit" import="br.puc_rio.ele.lvc.interimage.geometry.udf.RectangleFit" />
+<udf name="ShapeIndex" alias="II_ShapeIndex" import="br.puc_rio.ele.lvc.interimage.geometry.udf.ShapeIndex" />
+<udf name="Roundness" alias="II_Roundness" import="br.puc_rio.ele.lvc.interimage.geometry.udf.Roundness" />
+<udf name="SSRectangle" alias="II_SSRectangle" import="br.puc_rio.ele.lvc.interimage.geometry.udf.SSRectangle" />
+<udf name="SSEllipse" alias="II_SSEllipse" import="br.puc_rio.ele.lvc.interimage.geometry.udf.SSEllipse" />
+</udfs>

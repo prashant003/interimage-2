@@ -35,7 +35,6 @@ import javax.imageio.stream.ImageInputStream;
 import org.apache.pig.EvalFunc;
 import org.apache.pig.data.BagFactory;
 import org.apache.pig.data.DataBag;
-import org.apache.pig.data.DataByteArray;
 import org.apache.pig.data.DataType;
 import org.apache.pig.data.Tuple;
 import org.apache.pig.data.TupleFactory;
@@ -51,8 +50,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LinearRing;
-import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.io.WKBWriter;
+import com.vividsolutions.jts.io.WKTWriter;
 
 //TODO: This could be a generic UDF that receives the parameters and compute a particular segmentation process.
 //TODO: Create an interface for segmentation and then each implementation
@@ -64,7 +62,7 @@ import com.vividsolutions.jts.io.WKBWriter;
 
 public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 	//Initializing threshold with default value
-	private static double THRESHOLD=0.02;
+	//private static double THRESHOLD=0.02;
 	
 	//private final GeometryParser _geometryParser = new GeometryParser();
 	//private Double _segmentSize;
@@ -72,6 +70,9 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 	private String _image;
 	//private STRtree _roiIndex = null;
 	//private String _roiUrl = null;
+	
+	static ArrayList <Segment> _segmentsPtr;
+	static int [] _visitingOrder;
 	
 	private static int _nbands;
 	private static int _imageH;
@@ -81,7 +82,6 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 	private static double _wColor;
 	private static double _wCmpt;
 	private static double [] _wBand;
-	private static HashMap<Integer, Segment> _segmentList;
 	
 	public MutualMultiresolutionSegmentation (String imageUrl, String image, String scale, String wColor, String wCmpt, String wBands) {
 		//_segmentSize = Double.parseDouble(segmentSize);
@@ -93,7 +93,7 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 		_wColor = Double.parseDouble(wColor);
 		_wCmpt = Double.parseDouble(wCmpt);
 		
-		_segmentList = null;
+		_segmentsPtr = null;
 		
 		_nbands=0;
 		_imageH=0;
@@ -159,7 +159,6 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 		}*/
 		
 		try {
-						
 			
 			//Object objGeometry = input.get(0);
 			Map<String,String> data = (Map<String,String>)input.get(1);
@@ -171,16 +170,18 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 			String inputURL = _imageUrl + _image + "/" + tileStr + ".tif";
 			
 			//double box[] = new double[] {geometry.getEnvelopeInternal().getMinX(), geometry.getEnvelopeInternal().getMinY(), geometry.getEnvelopeInternal().getMaxX(), geometry.getEnvelopeInternal().getMaxY()};
-	        if (br.puc_rio.ele.lvc.interimage.common.URL.exists(inputURL)) {	//if tile doesn't exist (???)
+	        //if (br.puc_rio.ele.lvc.interimage.common.URL.exists(inputURL)) {	//if tile doesn't exist (???)
 				
-	        	_segmentList = new HashMap<Integer, Segment>();
+				_segmentsPtr = new ArrayList <Segment>();
 	        	
-	        	//read image and create seeds
+				//read image and create seeds
 	        	initializeSegments(inputURL);
-	        	
+				
+				randomOrder();
+								
 	        	//iterates over the segments and do the region growing
 	        	computeSegmentation();	        	
-	        	
+	        		        	
 	        	//Write Results
 	        	
 	        	//Get Geocoordinates
@@ -208,197 +209,107 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 		        	}
 		        }
 		        
-		        double resX = (imageTileGeoBox[2]-imageTileGeoBox[0])/_imageW;
+		        //double resX = (imageTileGeoBox[2]-imageTileGeoBox[0])/_imageW;
 		        /*Using a threshold that represents one tenth of the resolution*/
-		        THRESHOLD = resX / 10;
+		        //THRESHOLD = resX / 10;
 		        
-			    ArrayList< ArrayList<double[]> > rings = new ArrayList< ArrayList<double[]> >();
-			    double CoordX, CoordY, CoordX2, CoordY2;
-
-			    for (Segment aux_segment : _segmentList.values()) {
-			    	 int [] outterRing = {0};
-			    	 rings.clear();
+			    //ArrayList< ArrayList<double[]> > rings = new ArrayList< ArrayList<double[]> >();
+			    //double CoordX, CoordY, CoordX2, CoordY2;
+		        
+		        int idPix;
+		        GeometryFactory fact = new GeometryFactory();
+		        WKTWriter writer = new WKTWriter();
+		        UUID uuid = new UUID(null);
+		        		
+		        List<Geometry> list = new ArrayList<Geometry>();
+		        
+			    for (Segment aux_segment : _segmentsPtr) {
+			    	 //int [] outterRing = {0};
+			    	 //rings.clear();
  
-					 for (Pixel aux_pixel : aux_segment.getPixelList().values()) {
-			            
-						 if (aux_pixel.isBorder()){
-							//convert from pixel_id to x, y
-							int x = aux_pixel.getX(_imageW);
-							int y = aux_pixel.getY(_imageW);
-							
-							int [] pixelNeighborhood = aux_pixel.getPixelIdFromNeighbors(_imageW, _imageH);
-							
-							//North
-							if (!aux_segment.getPixelList().containsKey(pixelNeighborhood[0])){
-								//left top corner
-								CoordX = Image.imgToGeoX(x - 0.5, _imageW, imageTileGeoBox);
-								CoordY = Image.imgToGeoY(y - 0.5 ,_imageH, imageTileGeoBox);
-				                //right top corner
-								CoordX2 = Image.imgToGeoX(x + 0.5, _imageW,imageTileGeoBox);
-								CoordY2 = CoordY;
-								
-								checkEdge(rings,outterRing,CoordX,CoordY,CoordX2,CoordY2);
-							}
-							
-							//West
-							if (!aux_segment.getPixelList().containsKey(pixelNeighborhood[1])){
-								//bottom left corner
-								CoordX = Image.imgToGeoX(x - 0.5,_imageW,imageTileGeoBox);
-								CoordY = Image.imgToGeoY(y + 0.5,_imageH,imageTileGeoBox);
-				                //top left corner
-								CoordX2 = CoordX;
-				                CoordY2 = Image.imgToGeoY(y - 0.5,_imageH,imageTileGeoBox);
-				                
-				                checkEdge(rings,outterRing,CoordX,CoordY,CoordX2,CoordY2);
-							}
-							
-							//South
-							if (!aux_segment.getPixelList().containsKey(pixelNeighborhood[2])){
-								//bottom right corner
-								CoordX = Image.imgToGeoX(x + 0.5,_imageW,imageTileGeoBox);
-								CoordY = Image.imgToGeoY(y + 0.5,_imageH,imageTileGeoBox);
-				                //bottom left corner
-								CoordX2 = Image.imgToGeoX(x - 0.5,_imageW,imageTileGeoBox);
-				                CoordY2 = CoordY;
-				                
-				                checkEdge(rings,outterRing,CoordX,CoordY,CoordX2,CoordY2);
-							}
-							
-							//East
-							if (!aux_segment.getPixelList().containsKey(pixelNeighborhood[3])){					
-								//right top corner
-								CoordX = Image.imgToGeoX(x + 0.5,_imageW,imageTileGeoBox);
-								CoordY = Image.imgToGeoY(y - 0.5,_imageH,imageTileGeoBox);
-				                //right bottom corner
-								CoordX2 = CoordX;
-								CoordY2 = Image.imgToGeoY(y + 0.5,_imageH,imageTileGeoBox);
-
-								checkEdge(rings,outterRing,CoordX,CoordY,CoordX2,CoordY2);
-							}
-						 }
-			        }
-
-					 //ADD THE POLYGON
-					 int index=0;
-					 ArrayList <LinearRing> LinearRings = new ArrayList <LinearRing> ();
-					 LinearRing shell =  null;
-					 
-					 for (ArrayList<double[]> ring : rings) {
-						 if (ring.isEmpty()){
-							 index++;
-							 continue;
-						 }
-						 
-						 Coordinate [] linePoints = new Coordinate[ring.size()];
-						 for (int i=0; i<ring.size(); i++)
-						 {   
-							 double [] point  = ring.get(i);
-							 Coordinate c = new Coordinate(point[0],point[1]);
-							 linePoints[i] = c;
-						 }
-						 
-						 LinearRing linearRing = new GeometryFactory().createLinearRing(linePoints);
-						 if (index == outterRing[0]) {
-							shell = linearRing;
-					     } else {
-					    	 LinearRings.add(linearRing);
-					     }
-						 index++;
-					 }
-					 
-					 Polygon pol;
-					 GeometryFactory fact = new GeometryFactory();
-					 if (LinearRings.size()<1){
-						 pol = new Polygon(shell, null, fact);
-					 } else{
-						 LinearRing[] holes = new LinearRing[LinearRings.size()];
-						 for (int i=0; i< LinearRings.size(); i++)
-							 holes[i]=LinearRings.get(i);
-						 pol = new Polygon(shell, holes, fact);
-					 }
-					 
-					 Geometry geom = pol;
-					 					 
-					 /*if (_roiIndex.size()>0) {
-							//Clipping according to the ROI
-							List<Geometry> list = _roiIndex.query(geom.getEnvelopeInternal());
-							
-							for (Geometry g : list) {
-								if (g.intersects(geom)) {
-									
-									Geometry geometry = g.intersection(geom);
-									
-									if (geometry.getNumGeometries()>1) {// if it's a geometry collection
-										geometry = FilterGeometryCollection.filter(geometry);	//keeping only polygons
-										
-										if (geometry.isEmpty())
-											continue;
-																				
-										//geometry = geometry.buffer(0);
-									} else if (geometry.getNumGeometries()==1) {
-										if (!(geometry instanceof Polygon))
-											continue;										
-									} //else if (geometry.isEmpty()) {
-										//continue;
-									//}
-									
-									for (int k=0; k<geometry.getNumGeometries(); k++) {//separating polygons in different records
-										
-										Tuple t = TupleFactory.getInstance().newTuple(3);
-										
-										byte[] bytes = new WKBWriter().write(geometry.getGeometryN(k));
-						        		
-						        		Map<String,Object> props = new HashMap<String,Object>(properties);
-						        		
-						        		String id = new UUID(null).random();
-						        		props.put("iiuuid", id);
-						        		
-						        		t.set(0,new DataByteArray(bytes));
-						        		t.set(1,new HashMap<String,String>(data));
-						        		t.set(2,props);
-						        		bag.add(t);
-						        		
-									}
-									
-								}
-							}
-							
-						} else {*/
-						
-							//Clipping according to the input geometry
-							//if (inputGeometry.intersects(geom)) {
-								
-								//geom = inputGeometry.intersection(geom);
-								
-								Tuple t = TupleFactory.getInstance().newTuple(3);
-							
-				        		byte[] bytes = new WKBWriter().write(geom);
-				        		
-				        		Map<String,Object> props = new HashMap<String,Object>(properties);
-				        		
-				        		String id = new UUID(null).random();
-				        		
-				        		props.put("iiuuid", id);
-				        		
-				        		t.set(0,new DataByteArray(bytes));
-				        		t.set(1,new HashMap<String,String>(data));
-				        		t.set(2,props);
-				        		bag.add(t);
-								
-							//}
-			        		
-						//}
+			    	Pixel auxPixel = aux_segment.getPixel_list();
+			    	
+			    	if (auxPixel != null){
+			    					    	
+				    	while (auxPixel != null) {
+	
+				    		double CoordX, CoordY;
+			      				
+				    		idPix=auxPixel.getId();
+							int x = idPix % _imageW;
+							int y = idPix / _imageW;
+							 
+		      				Coordinate [] linePoints = new Coordinate[5];
+							//left top corner
+		      				CoordX = Image.imgToGeoX(x - 0.5, _imageW, imageTileGeoBox);
+		      				CoordY = Image.imgToGeoY(y - 0.5 ,_imageH, imageTileGeoBox);
+		      				linePoints[0]= new Coordinate(CoordX,CoordY);
+		      				linePoints[4]= new Coordinate(CoordX,CoordY); //close the ring
+			                //right top corner
+		      				CoordX = Image.imgToGeoX(x + 0.5, _imageW,imageTileGeoBox);
+		      				CoordY = Image.imgToGeoY(y - 0.5,_imageH,imageTileGeoBox);
+		      				linePoints[1] = new Coordinate(CoordX,CoordY);
+							//right bottom corner
+							CoordX = Image.imgToGeoX(x + 0.5,_imageW,imageTileGeoBox);
+							CoordY = Image.imgToGeoY(y + 0.5,_imageH,imageTileGeoBox);
+							linePoints[2] = new Coordinate(CoordX,CoordY);
+							//right bottom corner
+							CoordX = Image.imgToGeoX(x - 0.5,_imageW,imageTileGeoBox);
+							CoordY = Image.imgToGeoY(y + 0.5,_imageH,imageTileGeoBox);
+							linePoints[3] = new Coordinate(CoordX,CoordY);
+							 
+							LinearRing shell = fact.createLinearRing(linePoints);		          			
+		          			//Geometry poly = new Polygon(shell, null, fact);
+							Geometry poly = fact.createPolygon(shell, null);
+							 
+		          			list.add(poly);
+		          			
+		          			auxPixel = auxPixel.getNext_pixel();
+		          			
+				        }
+		        		
+			        	Geometry[] geoms = new Geometry[list.size()];
+			        	
+			        	int index = 0;
+			        	for (Geometry geom : list) {
+			        		geoms[index] = geom;
+			        		index++;
+			        	}
+			        	
+			        	//TODO: union seems slightly faster than buffer(0)
+			        	//TODO: Passing the factory as a parameter here created a huge performance issue
+			        	//For now, calling the method from the factory, much faster
+			        	//Geometry union = new GeometryCollection(geoms, fact).buffer(0);
+			        	Geometry union = fact.createGeometryCollection(geoms).buffer(0);
+			        	
+						Tuple t = TupleFactory.getInstance().newTuple(3);
+					
+		        		//byte[] bytes = writer.write(union);
+		        								
+		        		//String compressed = GeometryParser.compressGeometryToString(union);
+		        		
+		        		Map<String,Object> props = new HashMap<String,Object>(properties);
+		        		
+		        		String id = uuid.random();
+		        		
+		        		props.put("iiuuid", id);
+		        		
+		        		t.set(0,writer.write(union));
+		        		t.set(1,new HashMap<String,String>(data));
+		        		t.set(2,props);
+		        		bag.add(t);
+		        	
+		        		list.clear();
+		        		
+			    	}
 					 
 			    }
-		        _segmentList.clear();
+			    _segmentsPtr.clear();
 		        
-			} else {
-				throw new Exception("Could not retrieve image information.");
-			}
-	        
 			return bag;
 			
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new IOException("Caught exception processing input row ", e);
 		}
 	}
@@ -409,7 +320,7 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 		try {
 
 			List<Schema.FieldSchema> list = new ArrayList<Schema.FieldSchema>();
-			list.add(new Schema.FieldSchema(null, DataType.BYTEARRAY));
+			list.add(new Schema.FieldSchema(null, DataType.CHARARRAY));
 			list.add(new Schema.FieldSchema(null, DataType.MAP));
 			list.add(new Schema.FieldSchema(null, DataType.MAP));
 			
@@ -460,56 +371,44 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
         if (_nbands != _wBand.length){
         	throw new Exception("Image bands are incompatible with band weights parameter");
         }
-                
-        int id_pixel=0;
+        
+        Segment auxSegment;
+		Pixel bodyPixel;
+        int idPixel=0;
         //for each line
         for (int row = 0; row < _imageH; row++) {          	          	
           	//for each pixel
           	for (int col=0; col<_imageW; col++){
           		
 	          	//Create a segment for the pixel
-	      		Segment aux_seg = new Segment(id_pixel);
-	      		aux_seg.setNumBands(_nbands);
-		  
-	      		aux_seg.setMean_x(col);
-	      		aux_seg.setMean_y(row);
-	      		aux_seg.setSum_x(col);
-	      		aux_seg.setSum_y(row);;
-	      		aux_seg.setSquare_x(col*col);
-	      		aux_seg.setSquare_y(row*row);
-	      		aux_seg.setProduct_xy(col*row);
+          		auxSegment = Segment.create(idPixel);
+          		_segmentsPtr.add(auxSegment);
+          		
+          		
+          	//auxSegment.id = idPixel;
+				auxSegment.setB_boxByIndex((double)row, 0);
+				auxSegment.setB_boxByIndex((double)col, 1);
 
-	      		//aux_seg.setBBoxbyIndex(0,row);
-	      		//aux_seg.setBBoxbyIndex(1,col);
-	      		//aux_seg.setBBoxbyIndex(2,1);
-	      		//aux_seg.setBBoxbyIndex(3,1);
-				
-				//spectral attributes	
-				//for each band
-	        	for(int b = 0; b < _nbands; b++) {
-	        		//TODO: optimize this
-	        		double val = raster.getSampleDouble(col, row, b);
-	        		            		
-	        		aux_seg.avg_color[b] = val;
-	        		aux_seg.std_color[b] = 0;
-	        		aux_seg.avg_square_color[b] = val*val;
-	        		aux_seg.sum_color[b]= val;
-		        }
-		
-				//segment
-				aux_seg.setSegment_id(id_pixel);				
-				_segmentList.put(id_pixel, aux_seg);
-				
-				//saving neighborhood
-				int[] ids = new int[4];
-				ids = aux_seg.getPixelList().get(id_pixel).getPixelIdFromNeighbors(_imageW, _imageH);
-				for (int i=0; i<4; i++){
-					if (ids[i] > -1){
-						aux_seg.getNeighborIds().add(ids[i]);
-					}
+				auxSegment.createSpectral(_nbands);
+				double val;
+				for(int b = 0; b < _nbands; b++)
+				{
+					val = raster.getSampleDouble(col, row, b);
+					auxSegment.setAvg_colorByIndex(val, b);
+					auxSegment.setStd_colorByIndex(0, b);
+					auxSegment.setAvg_color_squareByIndex(val*val, b);
+					auxSegment.setColor_sumByIndex(val, b);
 				}
-																		
-				id_pixel++;
+								
+				//auxSegment.pixelList.put(idPixel, true);
+				
+				bodyPixel = Pixel.create(idPixel);
+				auxSegment.setPixel_list(bodyPixel);
+				auxSegment.setLast_pixel(bodyPixel);
+				bodyPixel.setBorderline(true);
+				bodyPixel.setNext_pixel(null);
+
+				idPixel++;
           	}
       }
         
@@ -517,150 +416,142 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 	}
 
 	private static void computeSegmentation(){
-		int curr_step=1;
-		boolean has_merge=true;
+		Segment currSegment = null;
+		Segment currNeighbor = null;
+		Pixel auxPixel = null;
 		
-		//TODO: Optimize the deletion of segments
-		ArrayList <Integer> deleteList =  new ArrayList<Integer>();
+		ArrayList <Integer> nbSeg= new ArrayList <Integer>();
 		
-		//Until there is no merge (can't do it forever)
-		while ((curr_step< 500) && (has_merge==true))
-		{
-			// flag that indicates if there were merges in the step
-			//has_merge = false;
+		boolean hasMerged=true;
+		//int step=0;
+		while (hasMerged){
+			hasMerged=false;
 			
-			//for each segment
-			for (Segment aux_segment : _segmentList.values()) {
-				//reset best neighbors and fusion factor
-				aux_segment.resetBestNeighbor();
-				
-				//find best neighbors
-				find_best_neighbor(aux_segment);
-			}
-			
-			//if any best neighbor was found
-			//if (has_merge == true)
-			{
-				has_merge = false;
+			for (int i=0; i<_visitingOrder.length; i++){
+				currSegment = _segmentsPtr.get( _visitingOrder[i]);
+								
+				if (!currSegment.isUsed()){
+					currSegment.setUsed(true);
+					auxPixel = currSegment.getPixel_list();
 
-				//for entire list
-				//Iterator<Entry<Integer, Segment>> it = _segmentList.entrySet().iterator();
-			    //while (it.hasNext()) {
-				for (Segment aux_segment : _segmentList.values()) {
-			    	//Segment aux_segment = it.next().getValue();
-					int id = aux_segment.getSegment_id();
-					
-					//Test mutuality condition
-					//Iterator<Entry<Integer, Segment>> it_nb = aux_segment.bestNeighbor.entrySet().iterator();
-					for (Segment best : aux_segment.getBestNeighbor().values()) {
-					//while (it_nb.hasNext()) {
-						//Segment best = it_nb.next().getValue();
-						if (best.getBestNeighbor().containsKey(id)){
-							
-							//prepare to remove segment with smaller area
-							Segment stay, dead;
-							//boolean canDelete=true;
-							if (aux_segment.getArea() <= best.getArea()){
-								stay = best;
-								dead = aux_segment;
-								//canDelete=false;
-
-							}else{
-								stay = aux_segment;
-								dead = best;
+					/* for each outline pixel */
+					double minFusion;
+					while (auxPixel!=null)
+					{
+						 int id=auxPixel.getId();
+						 if (auxPixel.isBorderline()){
+							int [] nb = getPixelIdFromNeighbors(id);
+							  
+							for (int n=0;n<4;n++)
+							{
+								if (nb[n] != -1)
+								{
+									nb[n] = _segmentsPtr.get(nb[n]).getId();
+									//if neighbor is not from same segment
+									if (nb[n]!= i){
+										if (!nbSeg.contains(nb[n])){
+											nbSeg.add(nb[n]);
+										}
+									}
+									
+								}
+								
 							}
-
-							//merge segments
-							mergeBestNeighbors(stay, dead);
-							has_merge = true;
-							
-							//guarantee that will not grow again - one merge for step
-							stay.resetBestNeighbor();
-							dead.resetBestNeighbor();
-							
-							//remove segment with smaller area
-							
-							/*if(canDelete == false)
-								it.remove();
-							else{
-								_segmentList.remove(dead.segment_id);
-							}*/
-							deleteList.add(dead.getSegment_id());
-							
-							break;
-						}
+						 }
+						//next pixel
+						 auxPixel = auxPixel.getNext_pixel();
 					}
+					
+					/* calculate heterogeinity factors for each neighbor */
+					minFusion =  Double.MAX_VALUE;
+					double spectral, spatial;
+					double fusion;
+					int bestNbId = -1;
+					
+					for (int n: nbSeg){
+						currNeighbor = _segmentsPtr.get(n);
+						
+						spectral=0; spatial=0;
+						if (_wColor > 0){
+							spectral = calcColorStats(currSegment, currNeighbor) * _wColor;	
+						}
+									
+						if (spectral < _scale){ //already the square
+							//only if spatial is wanted
+							if ((1- _wColor) > 0)
+							{
+								// calculates spatial heterogeneity
+								spatial = CalcSpatialStats(currSegment, currNeighbor) * (1-(_wColor));
+							}
+							
+							//fusion factor
+							fusion = spectral + spatial;			
+							if (fusion < _scale){ //already the square
+								if (fusion < minFusion){
+									minFusion = fusion;
+									bestNbId = n;
+								}
+								//always merge with lower ID (when it is a draw)
+								else if (fusion == minFusion && bestNbId < n){
+									bestNbId = n;
+								}
+							}
+						}					 
+					}
+					if (bestNbId != -1){
+						currNeighbor = _segmentsPtr.get(bestNbId);
+						mergeSegment(currSegment, currNeighbor);
+						hasMerged=true;
+					}
+					nbSeg.clear();
 				}
 			}
-			//remove from list
-			for (int i : deleteList)
-				_segmentList.remove(i);
-			
-			//next step
-			curr_step++;
-	    }
+			resetSegments();
+			//step++;
+			//System.out.println(step);
+		}
+		
 	}
 
-	
-	private static void find_best_neighbor(Segment obj){  
-
-		//TODO: Optimize finding segment neighbors (graph version??)
-		obj.resetBestNeighbor();
-		
-		//TODO: Not optimal, calculating for every segment means double the workload!
-		 
-		double fusion_f;
-		double spectral_h;
-		double spectral_f;
-		double spatial_h;
-		double spatial_f;
-		
-		//get every segment neighbor
-		for (int id : obj.getNeighborIds()){
-			Segment neighb = _segmentList.get(id);
-			
-			spectral_h = calc_color_stats(obj, neighb);
-			spectral_f = _wColor * spectral_h;
-			
-			if (spectral_f < _scale){ //already the square
-				spatial_f =0;
-				//only if spatial is wanted
-				if ((1- _wColor) > 0)
-				{
-					// calculates spatial heterogeneity
-					spatial_h = calc_spatial_stats(obj, neighb);
-					spatial_f = (1-(_wColor)) * spatial_h;
-				}
-				
-				//fusion factor
-				fusion_f = spectral_f + spatial_f;			
-				if (fusion_f < _scale){ //already the square
-					if (fusion_f < obj.getFusion_f()){
-						obj.resetBestNeighbor();
-						obj.getBestNeighbor().put(neighb.getSegment_id(), neighb);
-						obj.setFusion_f(fusion_f);
-					}
-					else if (fusion_f == obj.getFusion_f()){
-						obj.getBestNeighbor().put(neighb.getSegment_id(), neighb);
-					}
-				}
-				
-			}
+	public static void randomOrder() throws Exception
+	{
+		//TODO: Put it on random order
+		_visitingOrder= new int[_imageW * _imageH];
+		for (int i=0; i< _visitingOrder.length; i++){
+			_visitingOrder[i]=i;
 		}
 	}
 	
+	public static int[] getPixelIdFromNeighbors (int pixelId){    
+	    int x = pixelId % _imageW;
+		int y = pixelId / _imageW;
+		
+		int [] neighb =new int[4];
+		for (int i=0; i<4; i++){
+			neighb[i]=-1;
+		}
+		
+		if (y>0) 
+			neighb[0]=(y-1)* _imageW + x; //north
+		if (x>0) 
+			neighb[1]= y * _imageW + (x-1);//west
+		if (y < _imageH-1) 
+			neighb[2]=(y+1)* _imageW + x; //south
+		if (x < _imageW-1) 
+			neighb[3]= y* _imageW + (x+1);//east
+		
+		return neighb;
+	}
 	
-	private static double calc_color_stats (Segment obj, Segment neighb)
+	public static double calcColorStats (Segment obj, Segment neighb)
 	{
 		double[] mean = new double[_nbands];
 		double[] colorSum = new double[_nbands];
 		double[] squarePixels = new double[_nbands];
 		double[] stddev = new double[_nbands];
-		double[] stddevNew = new double[_nbands];
 		
-		double[] wband_norm = new double[_nbands];
 		double[] color_f = new double [_nbands];
-		double color_h;
+		double color_h=0;
 		
 		double areaObj, areaNb, areaRes;
 		
@@ -672,388 +563,271 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 		color_h = 0;
 		for (int b = 0; b < _nbands; b++)
 		{
-			mean[b] = ((obj.avg_color[b] *areaObj)+(neighb.avg_color[b]*areaNb))/areaRes;
-			squarePixels[b] = (obj.avg_square_color[b])+(neighb.avg_square_color[b]);	
-			colorSum[b] = obj.sum_color[b] + neighb.sum_color[b];	
-			stddevNew[b] = squarePixels[b] - 2*mean[b]*colorSum[b] + areaRes*mean[b]*mean[b];
-			
-			stddev[b] = Math.sqrt(Math.abs(stddevNew[b])/areaRes);
-			wband_norm[b] = _wBand[b]; // TODO: bands must be normalized here or before
-			
-			color_f[b] = (areaObj* obj.std_color[b]) + (areaNb * neighb.std_color[b]);	
-			color_f[b] = wband_norm[b] * ((areaRes*stddev[b])-color_f[b]);
+			mean[b] = ((obj.getAvg_colorByIndex(b) *areaObj)+(neighb.getAvg_colorByIndex(b)*areaNb))/areaRes;
+			squarePixels[b] = (obj.getAvg_color_squareByIndex(b))+(neighb.getAvg_color_squareByIndex(b));	
+			colorSum[b] = obj.getColor_sumByIndex(b) + neighb.getColor_sumByIndex(b);	
+			stddev[b] = Math.sqrt(Math.abs(squarePixels[b] - 2*mean[b]*colorSum[b] + areaRes*mean[b]*mean[b])/areaRes);
+						
+			color_f[b] = _wBand[b] * ((areaRes*stddev[b]) - ((areaObj* obj.getStd_colorByIndex(b)) + (areaNb * neighb.getStd_colorByIndex(b))));
 			color_h += color_f[b];
 		}
 		
 		return color_h;
 	}
 	
-	
-
-	private static double calc_spatial_stats(Segment obj, Segment neighb)
-	{
-		//int [] aux_bbox = new int[4];
-		
-		double meanX,meanY;
-		long squaredPixelsX, squaredPixelsY;
-		long pixelSumX, pixelSumY;
-		long productPixels;
-		double 	polWidth , polLength;
-		
-		
-		double spatial_h, smooth_f, compact_f;
-		
+	public static double CalcSpatialStats (Segment obj, Segment neighb){
 		double areaObj, areaNb, areaRes;
+		double spatial_h =0, smooth_f=0, compact_f =0;
+		double perimObj, perimNb, perimRes;
+		double bboxObjLen, bboxNbLen, bboxResLen;
+		double [] bboxRes;
+		
 		areaObj = obj.getArea();
 		areaNb =  neighb.getArea();
 		areaRes = areaObj+areaNb;
-														
-		meanX = ((obj.getMean_x()*areaObj)+(neighb.getMean_x()*areaNb))/areaRes;
-		meanY = ((obj.getMean_y()*areaObj)+(neighb.getMean_y()*areaNb))/areaRes;
-		squaredPixelsX = obj.getSquare_x() + neighb.getSquare_x();
-		squaredPixelsY = obj.getSquare_y() + neighb.getSquare_y();
-		pixelSumX = obj.getSum_x() + neighb.getSum_x();
-		pixelSumY = obj.getSum_y() + neighb.getSum_y();
-		productPixels = obj.getProduct_xy() + neighb.getProduct_xy();
 		
-		// bounding box length
-		//aux_bbox = calc_bounding_box(obj, neighb);
+		perimObj = obj.getPerimeter();
+		perimNb = neighb.getPerimeter();
 		
-		double varX=0, varY=0, covarXY=0;
-		varX = (squaredPixelsX - 2*meanX*pixelSumX + areaRes*meanX*meanX)/areaRes;
-		varY = (squaredPixelsY - 2*meanY*pixelSumY + areaRes*meanY*meanY)/areaRes;
-		covarXY=(productPixels/areaRes)-meanX*meanY;
+		if (areaRes<4){ /* valid only if pixel neighborhood==4 */
+			if (areaRes ==2){
+				perimRes=6;
+			}
+			else {
+				perimRes=8;
+			}
+		}
+		else{
+			perimRes = calcPerimeter(obj, neighb);
+		}
+		
+		bboxObjLen = obj.getB_boxByIndex(2)*2 +  obj.getB_boxByIndex(3)*2;
+		bboxNbLen =  neighb.getB_boxByIndex(2)*2 +  neighb.getB_boxByIndex(3)*2;
+		bboxRes = calcBbox(obj, neighb);		
+		bboxResLen = bboxRes[2]*2 + bboxRes[3]*2;
+		
+		/* smoothness factor */
+		smooth_f = (areaRes*perimRes/bboxResLen - 
+		 (areaObj*perimObj/bboxObjLen + areaNb*perimNb/bboxNbLen));
 
-		polLength = Math.sqrt(8.0* (varX+varY + Math.sqrt(Math.pow(varX-varY,2) +4.0 *Math.pow(covarXY,2))));
-		polWidth =  Math.sqrt(8.0* Math.abs(varX+varY - Math.sqrt(Math.pow(varX-varY,2) +4.0 *Math.pow(covarXY,2))));
-		
-		//corrects errors
-		if (polLength == 0)
-			polLength = 1.0;
+		/* compactness factor */
+		compact_f = (Math.sqrt(areaRes)*perimRes - 
+		 (Math.sqrt(areaObj)*perimObj + Math.sqrt(areaNb)*perimNb));
 
-		if (polWidth == 0)
-			polWidth = 1.0;
-		
-		// smoothness factor - alternative SQRT(BB_Area/Area) --> here we multiply Area for pounds pourposes 
-		smooth_f = ( Math.sqrt(polWidth*polLength) - 
-		  ( Math.sqrt(neighb.getBb_width()*neighb.getBb_length()) + Math.sqrt(obj.getBb_width()*obj.getBb_length())));
-		
-		// compactness factor - alternative (Fmax/sqrt(Area)) --> here we multiply Area for pounds pourposes 
-		compact_f = ( (Math.sqrt(areaRes)*polLength) - 
-		  ( (Math.sqrt(areaNb)*neighb.getBb_length()) + (Math.sqrt(areaObj)*obj.getBb_length())));
-		// spatial heterogeneity
-		spatial_h = (_wCmpt)*compact_f + (1-(_wCmpt))*smooth_f;
-	
-	  return spatial_h;
+		/* spatial heterogeneity */
+		spatial_h = _wCmpt*compact_f + (1-_wCmpt)*smooth_f;
+
+
+		return spatial_h;
 	}
 	
-	/*private static int[] calc_bounding_box(Segment obj, Segment anex){
-		int [] aux_bbox = new int [4];
+	public static double calcPerimeter (Segment obj, Segment neighb){
+		double perimTotal;
+		int idNb;
+		Pixel auxPixel;
 		
-		int [] min_row = new int [3];
-		int [] max_row = new int [3];
-		int [] min_col = new int [3];
-		int [] max_col = new int [3];
+		perimTotal = obj.getPerimeter() + neighb.getPerimeter();
+		//choose segment with smaller perimeter
+		if ( obj.getPerimeter() <= neighb.getPerimeter() )
+		{
+			auxPixel = obj.getPixel_list();
+			idNb = neighb.getId();
+		}
+		else
+		{
+			auxPixel = neighb.getPixel_list();
+			idNb = obj.getId();
+		}
+		
+		// for each pixel from the smaller perimeter segment
+		while ( auxPixel != null){
+			// just for borderline
+			if ( auxPixel.isBorderline() )
+			{
+				int [] nb = getPixelIdFromNeighbors(auxPixel.getId());
+
+				 //verify the neighbor pixels
+				 for (int i = 0; i < 4; i++ )
+				 {
+					   if ( nb[i] != -1 ) // if it is not image limit 
+					   {
+						   nb[i] = _segmentsPtr.get(nb[i]).getId();
+						   if (idNb == nb[i]){ //if it is part of the bigger
+							   perimTotal =-2;  
+						   }
+					   }
+				 }
+			}
+			auxPixel = auxPixel.getNext_pixel();
+		}
+		return perimTotal;
+	}
+	
+	public static double[] calcBbox (Segment obj, Segment neighb){
+			double [] bbox=new double[4];
+			double minRowObj, maxRowObj, minColObj, maxColObj;
+			double minRowNb, maxRowNb, minColNb, maxColNb;
+			double minRowRes, maxRowRes, minColRes, maxColRes;
+		 		   
+			minRowObj = obj.getB_boxByIndex(0);
+			maxRowObj = obj.getB_boxByIndex(0)+obj.getB_boxByIndex(2);
+			minColObj = obj.getB_boxByIndex(1);
+			maxColObj = obj.getB_boxByIndex(1)+obj.getB_boxByIndex(3);
 			
-		min_row[0] = obj.getBBoxbyIndex(0);
-		max_row[0] = obj.getBBoxbyIndex(0)+obj.getBBoxbyIndex(2);
-		min_col[0] = obj.getBBoxbyIndex(1);
-		max_col[0] = obj.getBBoxbyIndex(1)+obj.getBBoxbyIndex(3);
+			minRowNb = neighb.getB_boxByIndex(0);
+			maxRowNb = neighb.getB_boxByIndex(0)+neighb.getB_boxByIndex(2);
+			minColNb = neighb.getB_boxByIndex(1);
+			maxColNb = neighb.getB_boxByIndex(1)+neighb.getB_boxByIndex(3);
+		 
+		   if (minRowObj < minRowNb) minRowRes=minRowObj; else minRowRes=minRowNb;
+		   if (minColObj < minColNb) minColRes=minColObj; else minColRes=minColNb;
+		   if (maxRowObj > maxRowNb) maxRowRes=maxRowObj; else maxRowRes=maxRowNb;
+		   if (maxColObj > maxColNb) maxColRes=maxColObj; else maxColRes=maxColNb;
+		 
+		   bbox[0] = minRowRes;
+		   bbox[1] = minColRes;
+		   bbox[2] = maxRowRes-minRowRes;
+		   bbox[3] = maxColRes-minColRes;
+		   
+		   return bbox;
+	 }
+	
+	private static void mergeSegment(Segment obj, Segment neighb){	
+		double areaObj, areaNb, areaRes;
 		
-		min_row[1] = anex.getBBoxbyIndex(0);
-		max_row[1] = anex.getBBoxbyIndex(0) + anex.getBBoxbyIndex(2);
-		min_col[1] = anex.getBBoxbyIndex(1);
-		max_col[1] = anex.getBBoxbyIndex(1)  +anex.getBBoxbyIndex(3);
-		
-		if (min_row[0]<min_row[1]) min_row[2]=min_row[0]; else min_row[2]=min_row[1];
-		if (min_col[0]<min_col[1]) min_col[2]=min_col[0]; else min_col[2]=min_col[1];
-		if (max_row[0]>max_row[1]) max_row[2]=max_row[0]; else max_row[2]=max_row[1];
-		if (max_col[0]>max_col[1]) max_col[2]=max_col[0]; else max_col[2]=max_col[1];
-		
-		aux_bbox[0] = min_row[2];
-		aux_bbox[1] = min_col[2];
-		aux_bbox[2] = max_row[2]-min_row[2];
-		aux_bbox[3] = max_col[2]-min_col[2];
-		
-		return aux_bbox;
-	}*/
-
-
-	private static void mergeBestNeighbors(Segment obj, Segment anex){
-		//TODO: Encapsulate operations? 
-		//TODO: Some computation is similar to the one existing in calcSpatial and calcSpectral 
-		double[] mean = new double[_nbands];
-		double[] colorSum = new double[_nbands];
-		double[] squarePixels = new double[_nbands];
-		double[] stddev = new double[_nbands];
-		double[] stddevNew = new double[_nbands];
-		
-		double areaObj, areaAnex, areaRes;
-		//int [] aux_bbox = new int[4];
-		
-		double meanX,meanY;
-		long squaredPixelsX, squaredPixelsY;
-		long pixelSumX, pixelSumY;
-		long productPixels;
-		double 	polWidth , polLength;
-
+		neighb.setUsed(true);
 		
 		areaObj = obj.getArea();
-		areaAnex = anex.getArea();
-		areaRes = areaObj + areaAnex;
+		areaNb =  neighb.getArea();
+		areaRes = areaObj+areaNb;
 		
-		//saves merged area 
-		obj.setArea(areaRes);  
-		
-		//saves spectral values
-		for (int b = 0; b <_nbands; b++)
+		// calculates color factor per band and total
+		for (int b = 0; b < _nbands; b++)
 		{
-			mean[b] = ((obj.avg_color[b] *areaObj)+(anex.avg_color[b]*areaAnex))/areaRes;
-			squarePixels[b] = (obj.avg_square_color[b])+(anex.avg_square_color[b]);	
-			colorSum[b] = obj.sum_color[b] + anex.sum_color[b];	
-			
-			stddevNew[b] = squarePixels[b] - 2*mean[b]*colorSum[b] + areaRes*mean[b]*mean[b];
-			stddev[b] = Math.sqrt(Math.abs(stddevNew[b])/areaRes);
-			
-			//saves merged spectral values
-			obj.avg_color[b] = mean[b];
-			obj.std_color[b] = stddev[b];
-			obj.avg_square_color[b] = squarePixels[b];
-			obj.sum_color[b] = colorSum[b];		
+			obj.setAvg_colorByIndex(((obj.getAvg_colorByIndex(b) *areaObj)+(neighb.getAvg_colorByIndex(b)*areaNb))/areaRes,b);
+			obj.setAvg_color_squareByIndex((obj.getAvg_color_squareByIndex(b))+(neighb.getAvg_color_squareByIndex(b)),b);	
+			obj.setColor_sumByIndex((obj.getColor_sumByIndex(b))+(neighb.getColor_sumByIndex(b)),b);	
+			obj.setStd_colorByIndex(Math.sqrt(Math.abs(obj.getAvg_color_squareByIndex(b) 
+					- 2*obj.getAvg_colorByIndex(b)*obj.getColor_sumByIndex(b) 
+					+ areaRes*obj.getAvg_colorByIndex(b)*obj.getAvg_colorByIndex(b))/areaRes),b);
 		}
+	
+
+		obj.setPerimeter(calcPerimeter(obj, neighb));
+		obj.setB_box(calcBbox(obj, neighb));
 		
-		//spatial
-		if ((1- _wColor) > 0)
+		obj.setArea(areaRes);
+		
+		resetPixels(obj, neighb);
+	}
+	
+	
+	private static void resetPixels(Segment obj, Segment neighb){	
+		int  neighborId, segmentId;
+		Pixel auxPixel;
+	
+		neighborId = neighb.getId();
+		segmentId = obj.getId();
+	
+		/* for each pixel of the neighbor segment to be merged */
+		auxPixel = neighb.getPixel_list();
+		while (auxPixel !=null)
 		{
-	        meanX = ((obj.getMean_x()*areaObj)+(anex.getMean_x()*areaAnex))/areaRes;
-	        meanY = ((obj.getMean_y()*areaObj)+(anex.getMean_y()*areaAnex))/areaRes;
-	        squaredPixelsX = obj.getSquare_x() + anex.getSquare_x();
-	        squaredPixelsY = obj.getSquare_y() + anex.getSquare_y();
-	        pixelSumX = obj.getSum_x() + anex.getSum_x();
-	        pixelSumY = obj.getSum_y() + anex.getSum_y();
-	        productPixels = obj.getProduct_xy() + anex.getProduct_xy();
-			
-			double varX=0, varY=0, covarXY=0;
-			varX = (squaredPixelsX - 2*meanX*pixelSumX + areaRes*meanX*meanX)/areaRes;
-			varY = (squaredPixelsY - 2*meanY*pixelSumY + areaRes*meanY*meanY)/areaRes;
-			covarXY=(productPixels/areaRes)-meanX*meanY;
-
-			polLength = Math.sqrt(8.0* (varX+varY + Math.sqrt(Math.pow(varX-varY,2) +4.0 *Math.pow(covarXY,2))));
-			polWidth =  Math.sqrt(8.0* Math.abs(varX+varY - Math.sqrt(Math.pow(varX-varY,2) +4.0 *Math.pow(covarXY,2))));
-			
-			//corrects errors
-			if (polLength == 0)
-				polLength = 1.0;
-
-			if (polWidth == 0)
-				polWidth = 1.0;		
-			
-			//saves merged spatial values
-			obj.setMean_x(meanX);
-			obj.setMean_y(meanY);
-			obj.setSquare_x(squaredPixelsX);
-			obj.setSquare_y(squaredPixelsY);
-			obj.setSum_x(pixelSumX);
-			obj.setSum_y(pixelSumY);
-			obj.setProduct_xy(productPixels);
-			obj.setBb_length(polLength);
-			obj.setBb_width(polWidth);
-			
-			//aux_bbox = calc_bounding_box(obj, anex );
-			//for (int b=0;b<4;b++)
-			//{
-			//	obj.setBBoxbyIndex(b, aux_bbox[b]);   
-			//}
+			/* changes the value of the pixel in the segment matrix (assign it to the current segment) */
+			_segmentsPtr.get( auxPixel.getId()).setId(segmentId);
+	
+			 /* if it is outline pixel, check if that must be changed */
+			 if (auxPixel.isBorderline()==true) /* curr_segment->area>6, only valid for pixel neighborhood==4 */
+			 {
+				 int [] nb = getPixelIdFromNeighbors(auxPixel.getId());
+				 /* if pixel is surrounded by pixels of the same segment or of the merged neighbor, 
+					it's no inter a border pixel */
+				 int i=0;
+				 while ((i<4)&&(i>-1)){
+					 if (nb[i] == -1){ /* image limit */
+						 i=-1; 
+					 } else {
+						 nb[i] = _segmentsPtr.get(nb[i]).getId();
+						 if ((nb[i] != segmentId)&&(nb[i] != neighborId))
+					     {
+					    	 i=-1;
+					     }
+					     else
+					     {
+					    	 i++;
+					     }
+					 }
+				 }
+				 if (i!=-1) /* no inter outline pixel */
+				 {
+					 auxPixel.setBorderline(false);
+				 }
+			 }
+			 auxPixel = auxPixel.getNext_pixel();
 		}
+	
+		if (obj.getArea()>6) /* curr_segment->area>6, only valid for pixel neighborhood==4 */
+		{
+			 /* for each outline pixel of the current segment */
+			auxPixel = obj.getPixel_list();
+			 while (auxPixel != null)
+			 {
+			   if (auxPixel.isBorderline()==true)
+			   {
+				   int [] nb = getPixelIdFromNeighbors(auxPixel.getId());
+					 /* if pixel is surrounded by pixels of the same segment or of the merged neighbor, 
+						it's no longer a border pixel */
+					 int i=0;
+					 while ((i<4)&&(i>-1)){
+						 if (nb[i] == -1){ /* image limit */
+							 i=-1; 
+						 } else {
+							 nb[i] = _segmentsPtr.get(nb[i]).getId();
+							 if ((nb[i] != segmentId)&&(nb[i] != neighborId))
+						     {
+						    	 i=-1;
+						     }
+						     else
+						     {
+						    	 i++;
+						     }
+						 }
+					     
+					 }
+					 if (i!=-1) /* no longer outline pixel */
+					 {
+						 auxPixel.setBorderline(false);
+					 }
+				 }
+				 auxPixel = auxPixel.getNext_pixel();
+			 }
+		}
+	
+		/* include pixel list of neighbor in the list of curr_segment */
+		obj.getLast_pixel().setNext_pixel(neighb.getPixel_list());
+		obj.setLast_pixel(neighb.getLast_pixel());
+		neighb.setPixel_list(null);
 		
-		//sets pixels from neighbor as belonging to current segment
-		obj.getPixelList().putAll(anex.getPixelList());
+	}
 
-		obj.getNeighborIds().remove(anex.getSegment_id());
-		anex.getNeighborIds().remove(obj.getSegment_id());		
-		
-		//update neighborhood
-		//TODO: This is not optimized
-		for (int id : anex.getNeighborIds()){
-			Segment s = _segmentList.get(id);
-			
-			s.getNeighborIds().remove(anex.getSegment_id());
-			//s.neighborIds.remove(s.neighborIds.indexOf(anex.segment_id));
-			if (!s.getNeighborIds().contains(obj.getSegment_id())){
-				s.getNeighborIds().add(obj.getSegment_id());
+	private static void resetSegments(){	
+		int  id;
+		Segment aux_segment;
+
+		/* mark all segments as unused */
+		for (int i=0; i< _visitingOrder.length; i++)
+		{
+			id = _visitingOrder[i];
+			aux_segment = _segmentsPtr.get(id);
+			if (aux_segment.getId() != id){
+				//TODO: Remove segment from VisitngOrder
+				//i--;
+			} else {
+				aux_segment.setUsed(false);
 			}
 			
+			
 		}
-		obj.getNeighborIds().addAll(anex.getNeighborIds());
-		
-		//TODO:Do I need to know if it is a border now or just in the end?
-		obj.reset_border(_imageW, _imageH);
-	}
-	
-	private static double distance(double[] p1, double[] p2)
-	{
-		double x = p1[0]-p2[0];
-		double y = p1[1]-p2[1];
-		return (x*x + y*y);
-	}
-	
-	static private void checkEdge(ArrayList< ArrayList<double[]> > rings, int [] outterRing, double CoordX, double CoordY, double CoordX2, double CoordY2){
-		double [] point = {CoordX, CoordY};
-		double [] point2 = {CoordX2, CoordY2};
-		
-		if (rings.isEmpty()) {
-			ArrayList<double[]> ring = new ArrayList<double[]>();			
-			ring.add(point);
-			ring.add(point2);			
-	        rings.add(ring);
-		} 
-		else {
-	        int foundIndex = -1;
-	        int index = 0;
-	        for (ArrayList<double[]> ring : rings) {
-	        	if (ring.isEmpty()){
-	        		index++;
-	        		continue;
-	        	}
-	        	double []  last = ring.get(ring.size()-1);
-	        	double []  first = ring.get(0);
-	        	
-	        	//TODO: Verify this threshold
-	            if (distance(last,point)<THRESHOLD) {
-	            	//Did not find yet
-	                if (foundIndex == -1){
-	                    ring.add(point2);
-	                	foundIndex=index;
-	                	break;
-	                }
-	            } else if (distance(first,point2)<THRESHOLD) {
-	            	//Did not find yet
-	            	if (foundIndex == -1){
-	            		ring.add(0, point);
-		                foundIndex = index;
-		                break;
-	            	}
-	            }
-	            index++;
-	        }
-	        
-	        if (foundIndex == -1)
-	        {
-	        	ArrayList<double[]> ring = new ArrayList<double[]>();	
-				ring.add(point);
-				ring.add(point2);
-		        rings.add(ring);
-	        }  else{
-	        	index = 0;
-		        for (ArrayList<double[]> ring : rings) {
-		        	if (ring.isEmpty()){
-		        		index++;
-		        		continue;
-		        	}
-		        	
-		        	if (index == foundIndex){
-		        		index++;
-		        		continue;
-		        	}
-		                
-		        	boolean hasOther = false;
-		        	
-		        	double []  last = ring.get(ring.size()-1);
-		        	double []  first = ring.get(0);
-		        	
-		        	//TODO: Verify this threshold -> THRESHOLD
-		            if (distance(last,point)<THRESHOLD) {
-		            	hasOther= true;
-		            } else if (distance(first,point2)<THRESHOLD) {
-		            	hasOther= true;
-		            }
-		            
-		            if (hasOther== true){
-	            	    //Has other
-	                	joinRings(rings.get(foundIndex),ring);
-		            }
-		            
-		            if (rings.get(foundIndex).isEmpty()){
-		            	if (foundIndex == outterRing[0])
-		            	{
-		            		 outterRing[0] = index;
-		            	}
-		            	foundIndex = index;
-		            }
-		            
-		            if (ring.isEmpty()){
-		            	if (index == outterRing[0])
-		            	{
-		            		 outterRing[0] = foundIndex;
-		            	}
-		            }
-		            
-		            /*if (foundIndex == outterRing[0])
-	            	{
-	            		if (rings.get(foundIndex).isEmpty())
-		                        outterRing[0] = index;
-	                } else if (index == outterRing[0]) {
-		                    if (ring.isEmpty())
-		                        outterRing[0] = foundIndex;
-	                } */
-		            index++;
-		        }
-	        }
-		}		
-	}
-	
-	private static void joinRings(ArrayList<double[]> r1, ArrayList<double[]> r2)
-	{
-		double []  lastR1 = r1.get(r1.size()-1);
-    	double []  firstR1 = r1.get(0);
-    	
-    	double []  lastR2 = r2.get(r2.size()-1);
-    	double []  firstR2 = r2.get(0);
-    	
-	    if (distance(lastR1,firstR2)<THRESHOLD) {
-	        if (r1.size() >= r2.size()) {
-	            r2.remove(0);
-	            r1.addAll(r2);
-	            r2.clear();
-	        } else {
-	            r1.remove(r1.size()-1);
-	            r2.addAll(0, r1);
-	            r1.clear();
-	        }
-	    } else if (distance(firstR1,lastR2)<THRESHOLD) {
-	        if (r2.size() >= r1.size()) {
-	        	 r1.remove(0);
-		         r2.addAll(r1);
-		         r1.clear();
-	        } else {
-	        	r2.remove(r2.size()-1);
-	            r1.addAll(0, r2);
-	            r2.clear();
-	        }
-	    } else if (distance(lastR1,lastR2)<THRESHOLD) {
-
-	        if (r1.size() > r2.size()) {
-	        	r2.remove(r2.size()-1);
-	            r1.addAll(0, r2);
-	            r2.clear();
-	        } else {
-	        	r1.remove(r1.size()-1);
-	            r2.addAll(0, r1);
-	            r1.clear();
-	        }
-
-	    } else if (distance(firstR1,firstR2)<THRESHOLD) {
-	        if (r1.size() > r2.size()) {
-	        	r2.remove(0);
-	            r1.addAll(0,r2);
-	            r2.clear();
-	        } else {
-	        	r1.remove(0);
-	            r2.addAll(0,r1);
-	            r1.clear();
-	        }
-	    }
-
 	}
 	
 }

@@ -15,8 +15,6 @@ limitations under the License.*/
 package br.puc_rio.ele.lvc.interimage.geometry.udf;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.pig.Accumulator;
 import org.apache.pig.Algebraic;
@@ -89,7 +87,7 @@ public class AggregateUnion extends EvalFunc<DataByteArray> implements Algebraic
 		if (values.size() == 0)
 			return null;
 	    	    
-		List<Geometry> list = new ArrayList<Geometry>();
+		/*List<Geometry> list = new ArrayList<Geometry>();
 
 		for (Tuple one_geom : values) {
 			Geometry parsedGeom = _geometryParser.parseGeometry(one_geom.get(0));
@@ -106,7 +104,50 @@ public class AggregateUnion extends EvalFunc<DataByteArray> implements Algebraic
 		
 		//Do a union of all_geometries in the recommended way (using buffer(0))
 	    GeometryCollection geom_collection = new GeometryCollection(all_geoms, new GeometryFactory());
-	    return geom_collection.buffer(0);
+	    return geom_collection.buffer(0);*/
+		
+		int chunk = 100;
+		Geometry union = null;
+		int count = 0;
+		Geometry[] geoms = new Geometry[chunk];
+		GeometryFactory factory = new GeometryFactory();
+		
+		for (Tuple one_geom : values) {
+			Geometry parsedGeom = _geometryParser.parseGeometry(one_geom.get(0));
+			if (count<=(chunk-1)) {
+			    //union = union.union(parsedGeom);
+				geoms[count] = parsedGeom;
+				
+				if (count == (chunk-1)) {
+					GeometryCollection geom_collection = new GeometryCollection(geoms, factory);
+				    Geometry aux = geom_collection.buffer(0);
+				    if (union == null) {
+				    	union = aux;
+				    } else {
+				    	union = union.union(aux);
+				    }
+				    count = -1;
+				}
+				count++;	
+			}
+			
+	    }
+		
+		if (count!=0) {
+			for (int k=count; k<chunk; k++) {
+				geoms[k] = factory.createMultiPolygon(null);
+			}
+			GeometryCollection geom_collection = new GeometryCollection(geoms, factory);
+		    Geometry aux = geom_collection.buffer(0);
+		    if (union == null) {
+		    	union = aux;
+		    } else {
+		    	union = union.union(aux);
+		    }
+		}
+		
+		return union;
+		
 	}
 	
 	Geometry _partialUnion;	

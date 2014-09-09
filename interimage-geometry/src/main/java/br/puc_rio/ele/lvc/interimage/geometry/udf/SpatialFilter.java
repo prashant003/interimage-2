@@ -16,6 +16,7 @@ package br.puc_rio.ele.lvc.interimage.geometry.udf;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -29,6 +30,7 @@ import org.apache.pig.EvalFunc;
 import org.apache.pig.data.DataType;
 import org.apache.pig.data.Tuple;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
+import org.iq80.snappy.SnappyInputStream;
 
 import br.puc_rio.ele.lvc.interimage.common.GeometryParser;
 import br.puc_rio.ele.lvc.interimage.common.Tile;
@@ -36,6 +38,7 @@ import br.puc_rio.ele.lvc.interimage.common.Tile;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.index.strtree.STRtree;
 import com.vividsolutions.jts.io.WKTReader;
+import com.google.common.io.ByteStreams;
 
 /**
  * A UDF that filters geometries with respect to a list of ROIs.<br><br>
@@ -107,6 +110,7 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 			        			        
 	        	}
 	        } catch (Exception e) {
+	        	e.printStackTrace();
 				throw new IOException("Caught exception reading grid file ", e);
 			}
 	        
@@ -116,18 +120,42 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 	        	
 	        	if (!_roiUrl.isEmpty()) {
 	        		
-	        		URL url  = new URL(_roiUrl);	        		
-	                URLConnection urlConn = url.openConnection();
-	                urlConn.connect();
-	                InputStreamReader inStream = new InputStreamReader(urlConn.getInputStream());
-			        BufferedReader buff = new BufferedReader(inStream);
-			        
-			        String line;
-			        while ((line = buff.readLine()) != null) {
-			        	Geometry geometry = new WKTReader().read(line);
+	        		if (_roiUrl.endsWith(".wkts")) {
+	        			
+	        			URL url  = new URL(_roiUrl);	        		
+		                URLConnection urlConn = url.openConnection();
+		                urlConn.connect();
+		                InputStream inStream = urlConn.getInputStream();
+	        			
+		                //File temp = File.createTempFile(br.puc_rio.ele.lvc.interimage.common.URL.getFileNameWithoutExtension(_roiUrl), ".wkt");
+		                
+		                //temp.deleteOnExit();
+		                
+		                byte[] compressed = ByteStreams.toByteArray(inStream);
+		                
+		                byte[] decompressed = ByteStreams.toByteArray(new SnappyInputStream(new ByteArrayInputStream(compressed)));
+		                
+		                Geometry geometry = new WKTReader().read(new String(decompressed));
+		                		                
 			        	_roiIndex.insert(geometry.getEnvelopeInternal(),geometry);
 			        	_gridIds.addAll(_gridIndex.query(geometry.getEnvelopeInternal()));
-			        }
+	        		    
+	        		} else {
+	        		
+		        		URL url  = new URL(_roiUrl);	        		
+		                URLConnection urlConn = url.openConnection();
+		                urlConn.connect();
+		                InputStreamReader inStream = new InputStreamReader(urlConn.getInputStream());
+				        BufferedReader buff = new BufferedReader(inStream);
+				        
+				        String line;
+				        while ((line = buff.readLine()) != null) {
+				        	Geometry geometry = new WKTReader().read(line);
+				        	_roiIndex.insert(geometry.getEnvelopeInternal(),geometry);
+				        	_gridIds.addAll(_gridIndex.query(geometry.getEnvelopeInternal()));
+				        }
+				        
+	        		}
 
 	        	}
 	        } catch (Exception e) {
@@ -175,6 +203,7 @@ public class SpatialFilter extends EvalFunc<Boolean> {
 	    	}
 			
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new IOException("Caught exception processing input row ", e);
 		}
 	}

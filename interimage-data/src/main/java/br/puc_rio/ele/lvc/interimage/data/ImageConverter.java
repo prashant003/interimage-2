@@ -16,6 +16,7 @@ package br.puc_rio.ele.lvc.interimage.data;
 
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -29,6 +30,10 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+
+import org.iq80.snappy.SnappyOutputStream;
+
+import com.google.common.io.ByteStreams;
 
 import br.puc_rio.ele.lvc.interimage.common.TileManager;
 
@@ -238,12 +243,12 @@ public class ImageConverter {
 	                ImageIO.write(img, formatName, outputfile);
 	                	                
 	                /*tfw file just for test purposes*/
-	                OutputStream out = new FileOutputStream(imagePath + "T" + id + extension + "w");
+	                //OutputStream out = new FileOutputStream(imagePath + "T" + id + extension + "w");
 	                
 	                double[] newGeo = Image.geoBBox(imgBBox, geoBBox, new int[] {imgW, imgH});
 	                
-	                double resX = (geoBBox[2]-geoBBox[0])/imgW;
-	                double resY = (geoBBox[1]-geoBBox[3])/imgH;
+	                //double resX = (geoBBox[2]-geoBBox[0])/imgW;
+	                //double resY = (geoBBox[1]-geoBBox[3])/imgH;
 	                
 	                /*System.out.println();
 	                
@@ -251,8 +256,8 @@ public class ImageConverter {
 	        		System.out.println(newGeo[1]);
 	        		System.out.println(newGeo[2]);
 	        		System.out.println(newGeo[3]);*/
-	        		
-	                String str = resX + "\n";
+	        			                
+	                /*String str = resX + "\n";
 	                str = str + 0.0 + "\n";
 	                str = str + 0.0 + "\n";
 	                str = str + resY + "\n";
@@ -261,11 +266,11 @@ public class ImageConverter {
 	                
 	                out.write(str.getBytes());
 	                
-	                out.close();
+	                out.close();*/
 	                
 	                OutputStream out3 = new FileOutputStream(imagePath + "T" + id + ".meta");
 	                
-	                str = imageObj.getBands() + "\n";
+	                String str = imageObj.getBands() + "\n";
 	                str = str + (imgBBox[2]-imgBBox[0]+1) + "\n";
 	                str = str + (imgBBox[1]-imgBBox[3]+1) + "\n";
 	                str = str + newGeo[0] + "\n";
