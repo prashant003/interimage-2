@@ -334,7 +334,7 @@ public class RuleSet {
 
 			/*Initialization*/
 			//String relation = nextRelation("selection");
-			code.append("selection = FILTER $LAST_RELATION BY (NOT II_IsEmpty(geometry)) AND II_IsValid(geometry);\n");
+			//code.append("selection = FILTER $LAST_RELATION BY (NOT II_IsEmpty(geometry)) AND II_IsValid(geometry);\n");
 			//_lastRelation = relation;
 			
 			//relation = nextRelation("projection");
@@ -388,15 +388,15 @@ public class RuleSet {
 					} else if (fullExpression.contains(">")) {
 						op = ">";
 						origOp = ">";
-					} else if (fullExpression.contains("≤")) {
+					} else if (fullExpression.contains("???")) {
 						op = "<=";
-						origOp = "≤";
-					} else if (fullExpression.contains("≥")) {
+						origOp = "???";
+					} else if (fullExpression.contains("???")) {
 						op = ">=";
-						origOp = "≥";
-					} else if (fullExpression.contains("≠")) {
+						origOp = "???";
+					} else if (fullExpression.contains("???")) {
 						op = "!=";
-						origOp = "≠";
+						origOp = "???";
 					}
 										
 					if (origOp == null)
@@ -462,15 +462,15 @@ public class RuleSet {
 					} else if (fullExpression.contains(">")) {
 						op = ">";
 						origOp = ">";
-					} else if (fullExpression.contains("≤")) {
+					} else if (fullExpression.contains("???")) {
 						op = "<=";
-						origOp = "≤";
-					} else if (fullExpression.contains("≥")) {
+						origOp = "???";
+					} else if (fullExpression.contains("???")) {
 						op = ">=";
-						origOp = "≥";
-					} else if (fullExpression.contains("≠")) {
+						origOp = "???";
+					} else if (fullExpression.contains("???")) {
 						op = "!=";
-						origOp = "≠";
+						origOp = "???";
 					}
 										
 					if (origOp == null)
@@ -528,15 +528,15 @@ public class RuleSet {
 				} else if (fullExpression.contains(">")) {
 					op = ">";
 					origOp = ">";
-				} else if (fullExpression.contains("≤")) {
+				} else if (fullExpression.contains("???")) {
 					op = "<=";
-					origOp = "≤";
-				} else if (fullExpression.contains("≥")) {
+					origOp = "???";
+				} else if (fullExpression.contains("???")) {
 					op = ">=";
-					origOp = "≥";
-				} else if (fullExpression.contains("≠")) {
+					origOp = "???";
+				} else if (fullExpression.contains("???")) {
 					op = "!=";
-					origOp = "≠";
+					origOp = "???";
 				}
 								
 				expression = fullExpression.split(origOp);

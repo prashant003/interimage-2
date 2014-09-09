@@ -333,11 +333,12 @@ public class Project {
 			    
 			    /*Sending import file to the cluster*/
 			    _dataManager.setupResource(new DefaultResource(new String("interimage-import.pig"), DefaultResource.FILE), null, _projectName, null);
-			    
-			    
+			    			    
 		    } else {
 		    	throw new Exception("No geoproject tag defined");
 		    }
+		    
+		    _dataManager.close();
 		    
 		} catch (Exception e) {
 			System.err.println("Failed to read project file; error - " + e.getMessage());

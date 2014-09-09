@@ -47,10 +47,8 @@ import br.puc_rio.ele.lvc.interimage.data.imageioimpl.plugins.tiff.TIFFImageRead
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LinearRing;
-import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.WKBWriter;
 
 //TODO: This could be a generic UDF that receives the parameters and compute a particular segmentation process.
@@ -72,19 +70,19 @@ public class Limiarization extends EvalFunc<DataBag> {
 	//private static STRtree _roiIndex = null;
 	//private String _roiUrl = null;
 	
-	private static int _nbands;
-	private static int _imageH;
-	private static int _imageW;
+	private int _nbands;
+	private int _imageH;
+	private int _imageW;
 		
-	private static double []  _threshold;
-	private static String [] _class; 
-	private static Operation _operation;
-	private static int []  _bandsOperation;
+	private double[] _threshold;
+	private String[] _class; 
+	private Operation _operation;
+	private int[] _bandsOperation;
 
-	private static Map<String,List<Geometry>> _segmentList;
+	private Map<String,List<Geometry>> _segmentList;
 	public enum Operation {EXPRESSION, BRIGHTNESS, INDEX, BAND}
 	
-	private static double [] _imageTileGeoBox;
+	private double [] _imageTileGeoBox;
 	
 	public Limiarization (String imageUrl, String image, String thresholds, String classes, String operation) throws Exception {
 		//_segmentSize = Double.parseDouble(segmentSize);
@@ -97,7 +95,7 @@ public class Limiarization extends EvalFunc<DataBag> {
 		_threshold = new double [tr.length];
 		for (int i=0; i< tr.length; i++) {
 			if (tr[i].equals("-inf") ){
-				_threshold[i]=Double.MIN_VALUE;
+				_threshold[i]=-Double.MAX_VALUE;
 			} else if (tr[i].equals("inf")){
 				_threshold[i]=Double.MAX_VALUE;
 			} else{
@@ -107,13 +105,19 @@ public class Limiarization extends EvalFunc<DataBag> {
 		//TODO: verify if threshold is in order. It will a problem if it is not! 
 		
 		//classes
-		String[] cl = classes.split(",");
+		/*String[] cl = classes.split(",");
 		_class= new String[cl.length];
 		if (cl.length == (tr.length-1)){
 			for (int i=0; i< cl.length; i++) {
 				_class[i]= cl[i];
 			}
 		} else{
+			throw new Exception("Problem with input thresholds and classes");
+		}*/
+		
+		_class = classes.split(",");
+		
+		if (_class.length != (tr.length-1)){
 			throw new Exception("Problem with input thresholds and classes");
 		}
 		
@@ -198,7 +202,6 @@ public class Limiarization extends EvalFunc<DataBag> {
 		
 		try {
 						
-			
 			//Object objGeometry = input.get(0);
 			Map<String,String> data = (Map<String,String>)input.get(1);
 			Map<String,Object> properties = DataType.toMap(input.get(2));
@@ -209,7 +212,7 @@ public class Limiarization extends EvalFunc<DataBag> {
 			String inputURL = _imageUrl + _image + "/" + tileStr + ".tif";
 			
 			//double box[] = new double[] {geometry.getEnvelopeInternal().getMinX(), geometry.getEnvelopeInternal().getMinY(), geometry.getEnvelopeInternal().getMaxX(), geometry.getEnvelopeInternal().getMaxY()};
-	        if (br.puc_rio.ele.lvc.interimage.common.URL.exists(inputURL)) {	//if tile doesn't exist (???)
+	        //if (br.puc_rio.ele.lvc.interimage.common.URL.exists(inputURL)) {	//if tile doesn't exist (???)
 				        	
 	        	//Get Geocoordinates
 	        	URL worldFile1 = new URL(_imageUrl + _image + "/" + tileStr + ".meta");
@@ -243,7 +246,9 @@ public class Limiarization extends EvalFunc<DataBag> {
 				} catch (Exception e) {
 					throw new Exception("Problem with segmentation");
 				}
-		        		        
+		        		       
+		        GeometryFactory fact = new GeometryFactory();
+		        
 		        for (Map.Entry<String, List<Geometry>> entry : _segmentList.entrySet()) {
 		        	
 		        	List<Geometry> list = entry.getValue();
@@ -256,33 +261,46 @@ public class Limiarization extends EvalFunc<DataBag> {
 		        		index++;
 		        	}
 		        	
-		        	Geometry union = new GeometryCollection(geoms, new GeometryFactory()).buffer(0);
+		        	//Geometry union = new GeometryCollection(geoms, new GeometryFactory()).buffer(0);
+		        	Geometry union = fact.createGeometryCollection(geoms).buffer(0);
 		        	
-		        	Tuple t = TupleFactory.getInstance().newTuple(3);
-						
-	        		byte[] bytes = new WKBWriter().write(union);
-	        		
-	        		Map<String,Object> props = new HashMap<String,Object>(properties);
-	        		
-	        		String id = new UUID(null).random();
-	        		
-	        		props.put("iiuuid", id);
-	        		props.put("class", entry.getKey());
-	        		
-	        		t.set(0,new DataByteArray(bytes));
-	        		t.set(1,new HashMap<String,String>(data));
-	        		t.set(2,props);
-	        		bag.add(t);
+		        	for (int k=0; k<union.getNumGeometries(); k++) {
+		        	
+		        		Geometry aux = union.getGeometryN(k);
+		        		
+		        		//TODO: Should be a parameter
+		        		
+		        		if (aux.getArea() < 31.25)
+		        			continue;
+		        		
+			        	Tuple t = TupleFactory.getInstance().newTuple(3);
+							
+		        		byte[] bytes = new WKBWriter().write(aux);
+		        		
+		        		Map<String,Object> props = new HashMap<String,Object>(properties);
+		        		
+		        		String id = new UUID(null).random();
+		        		
+		        		props.put("iiuuid", id);
+		        		props.put("class", entry.getKey());
+		        		
+		        		t.set(0,new DataByteArray(bytes));
+		        		t.set(1,new HashMap<String,String>(data));
+		        		t.set(2,props);
+		        		bag.add(t);
+		        		
+		        	}
 	        		
 		        }
 		        
-			} else {
-				throw new Exception("Could not retrieve image information.");
-			}
-	        
+			//} else {
+			//	throw new Exception("Could not retrieve image information.");
+			//}
+		    
 			return bag;
 			
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new IOException("Caught exception processing input row ", e);
 		}
 	}
@@ -313,7 +331,8 @@ public class Limiarization extends EvalFunc<DataBag> {
 		
     }
 	
-	private static void thresholding(String imageFile) throws Exception{	
+	private void thresholding(String imageFile) throws Exception{
+		
 		//Read Image
 		URL worldFile1 = new URL(imageFile);
 		URLConnection urlConn = worldFile1.openConnection();
@@ -347,6 +366,8 @@ public class Limiarization extends EvalFunc<DataBag> {
         		throw new Exception("Image bands are incompatible with input bands operation");
         	}
         }
+        
+        GeometryFactory fact = new GeometryFactory();
         
         //int id=0;
         //for each line
@@ -422,9 +443,8 @@ public class Limiarization extends EvalFunc<DataBag> {
 					CoordY = Image.imgToGeoY(y + 0.5,_imageH,_imageTileGeoBox);
 					linePoints[3] = new Coordinate(CoordX,CoordY);
 					 
-					LinearRing shell = new GeometryFactory().createLinearRing(linePoints);
-          			GeometryFactory fact = new GeometryFactory();
-          			Geometry poly = new Polygon(shell, null, fact);
+					LinearRing shell = fact.createLinearRing(linePoints);          			
+          			Geometry poly = fact.createPolygon(shell, null);
           			
           			/*if (_roiIndex.size()>0) {
           			
@@ -476,9 +496,7 @@ public class Limiarization extends EvalFunc<DataBag> {
           		//id++;
           	}
       }
-        
-                
-      stream.close(); 
+       
 	}
 	
 }

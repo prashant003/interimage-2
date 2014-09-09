@@ -264,7 +264,7 @@ public class DataManager {
 					
 				} else if (url.contains(".jar")) {
 					
-					_source.put(path + name, "interimage/libs/" + name, rsrc);
+					_source.put(path + name, "interimage/lib/" + name, rsrc);
 					
 				}
 				
@@ -285,9 +285,13 @@ public class DataManager {
 				//TODO: treat other formats
 				if ((url.endsWith(".tif")) || (url.endsWith(".tiff"))) {
 										
-					ImageConverter.ImageToJSON(img, projectPath + "images/" + key + "/", null, true, tileManager);
-					
 					File folder = new File(projectPath + "images/" + key);
+					
+					if (!folder.exists()) {
+					
+						ImageConverter.ImageToJSON(img, projectPath + "images/" + key + "/", null, true, tileManager);
+					
+					}
 					
 					for (final File fileEntry : folder.listFiles()) {
 				        if (fileEntry.isDirectory()) {
@@ -295,8 +299,11 @@ public class DataManager {
 				        } else {
 				        	if (!fileEntry.getName().endsWith("w"))
 				        		_source.put(projectPath + "images/" + key + "/" + fileEntry.getName(), "interimage/" + projectName + "/resources/images/" + key + "/" + fileEntry.getName(), rsrc);
+				        		//_source.makePublic("interimage/" + projectName + "/resources/images/" + key + "/" + fileEntry.getName());
 				        }
 				    }
+					
+					//_source.multiplePut(folder, "interimage/" + projectName + "/resources/images/" + key + "/");
 					
 				}
 								
@@ -326,7 +333,7 @@ public class DataManager {
 					list.add("ury");
 					
 					String json = URL.getPath(url) + URL.getFileNameWithoutExtension(url) + ".json";
-					ShapefileConverter.shapefileToJSON(url, json, list, false, shp.getCRS(), shp.getCRS(), gbox, tileManager);
+					ShapefileConverter.shapefileToJSON(url, json, list, false, shp.getCRS(), shp.getCRS(), gbox, tileManager,true);
 					//ShapefileConverter.JSONToShapefile(json, "C:\\Users\\Rodrigo\\Desktop\\test.shp", list, false, shp.getCRS(), shp.getCRS());
 					String to = "interimage/" + projectName + "/resources/shapes/" + shp.getKey() + ".json";
 					
@@ -370,6 +377,10 @@ public class DataManager {
 	
 	public String getSourceURL() {
 		return _source.getURL();
+	}
+	
+	public void close() {
+		_source.close();
 	}
 	
 }

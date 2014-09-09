@@ -14,6 +14,8 @@ limitations under the License.*/
 
 package br.puc_rio.ele.lvc.interimage.core.datamanager;
 
+import java.io.File;
+
 /**
  * An interface for sources. 
  * @author Rodrigo Ferreira
@@ -21,6 +23,12 @@ package br.puc_rio.ele.lvc.interimage.core.datamanager;
 public interface Source {
 
 	public void put(String from, String to, Resource resource);
+	
+	public void multiplePut(File dir, String key);
+	
+	public void makePublic(String key);
+	
+	public void close();
 	
 	public String getURL();
 	

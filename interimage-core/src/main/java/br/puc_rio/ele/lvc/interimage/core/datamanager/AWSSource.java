@@ -20,6 +20,7 @@ import java.io.FileInputStream;
 
 import br.puc_rio.ele.lvc.interimage.data.Image;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
@@ -27,7 +28,10 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.transfer.MultipleFileUpload;
+import com.amazonaws.services.s3.transfer.ObjectMetadataProvider;
 import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.TransferManagerConfiguration;
 import com.amazonaws.services.s3.transfer.Upload;
 
 /**
@@ -40,21 +44,31 @@ public class AWSSource implements Source {
 	private String _accessKey;	
 	private String _secretKey;
 	private String _bucket;
+	private TransferManager _manager;
 	
 	public AWSSource(String accessKey, String secretKey, String bucket) {
 		_accessKey = accessKey;
 		_secretKey = secretKey;
 		_bucket = bucket;
+		
+		AWSCredentials credentials = new BasicAWSCredentials(_accessKey, _secretKey);
+		
+		ClientConfiguration conf = new ClientConfiguration();
+		
+		conf.setConnectionTimeout(0);
+		conf.setSocketTimeout(0);
+		
+		AmazonS3 conn = new AmazonS3Client(credentials);
+		conn.setEndpoint("https://s3.amazonaws.com");
+		
+		_manager = new TransferManager(conn);
+				
 	}
 	
 	public void put(String from, String to, Resource resource) {
 
 		try {
-		
-			AWSCredentials credentials = new BasicAWSCredentials(_accessKey, _secretKey);
-			AmazonS3 conn = new AmazonS3Client(credentials);
-			conn.setEndpoint("https://s3.amazonaws.com");
-			
+					
 			File file = new File(from);
 							
 			PutObjectRequest putObjectRequest = new PutObjectRequest(_bucket, to, file);
@@ -74,9 +88,10 @@ public class AWSSource implements Source {
 					putObjectRequest.withCannedAcl(CannedAccessControlList.PublicRead); // public for all
 				}
 			}
+		
+			Upload upload = _manager.upload(putObjectRequest);
 			
-			TransferManager tx = new TransferManager(credentials);
-			Upload myUpload = tx.upload(putObjectRequest);
+			upload.waitForCompletion();
 			
 			System.out.println("AWSSource: Uploaded file - " + to);
 			
@@ -86,12 +101,33 @@ public class AWSSource implements Source {
 		
 	}
 	
+	public void multiplePut(File dir, String key) {
+		try {			
+			MultipleFileUpload upload = _manager.uploadDirectory(_bucket, key, dir, false);			
+			upload.waitForCompletion();			
+		} catch (Exception e) {
+			e.printStackTrace();			
+		}
+		
+		System.out.println("AWSSource: Uploaded directory - " + dir.toString());
+		
+	}
+	
+	public void makePublic(String key) {
+		//_manager.getAmazonS3Client().setObjectAcl(_bucket, key, CannedAccessControlList.PublicRead);
+		System.out.println("AWSSource: Made public - " + key);
+	}
+	
 	public String getSpecificURL() {
 		return "s3n://" + _bucket + "/";
 	}
 	
 	public String getURL() {
 		return "https://s3.amazonaws.com/" + _bucket + "/";
+	}
+		
+	public void close() {
+		_manager.shutdownNow();
 	}
 	
 }
