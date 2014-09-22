@@ -21,6 +21,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ import org.apache.pig.data.Tuple;
 import org.apache.pig.data.TupleFactory;
 import org.apache.pig.impl.logicalLayer.schema.Schema;
 
+import br.puc_rio.ele.lvc.interimage.common.Tile;
 import br.puc_rio.ele.lvc.interimage.common.UUID;
 import br.puc_rio.ele.lvc.interimage.operators.Pixel;
 import br.puc_rio.ele.lvc.interimage.operators.Segment;
@@ -50,13 +52,15 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LinearRing;
+import com.vividsolutions.jts.index.strtree.STRtree;
+import com.vividsolutions.jts.io.WKTReader;
 import com.vividsolutions.jts.io.WKTWriter;
 
 //TODO: This could be a generic UDF that receives the parameters and compute a particular segmentation process.
 //TODO: Create an interface for segmentation and then each implementation
 
 /**
- * UDF for mutual Baatz segmentation.
+ * UDF for mutual Multi Resolution Segmentation.
  * @author Patrick Happ, Rodrigo Ferreira
  */
 
@@ -83,7 +87,11 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 	private static double _wCmpt;
 	private static double [] _wBand;
 	
-	public MutualMultiresolutionSegmentation (String imageUrl, String image, String scale, String wColor, String wCmpt, String wBands) {
+	private static String _gridUrl = null;
+	private STRtree _gridIndex = null;
+	private final double BufDist = 1.1; //Constant for spatial buffer distance
+	
+	public MutualMultiresolutionSegmentation (String imageUrl, String image, String scale, String wColor, String wCmpt, String wBands, String gridUrl) {
 		//_segmentSize = Double.parseDouble(segmentSize);
 		_imageUrl = imageUrl;
 		_image = image;
@@ -113,6 +121,9 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 			_wBand[i] = Double.parseDouble(bands[i]) / sum;
 		}
 		
+		//Check if postprocessing is active
+		if (!gridUrl.isEmpty())
+			_gridUrl = gridUrl;
 	}
 	
 	/**
@@ -158,8 +169,40 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 	        
 		}*/
 		
-		try {
-			
+		//Get Index of tiles
+		if (_gridUrl != null){
+			if (_gridIndex == null) {
+				_gridIndex = new STRtree();
+				
+				//Creates an index for the grid
+		        try {
+		        	
+		        	if (!_gridUrl.isEmpty()) {
+		        		
+		        		URL url  = new URL(_gridUrl);	        		
+		                URLConnection urlConn = url.openConnection();
+		                urlConn.connect();
+				        InputStream buff = new BufferedInputStream(urlConn.getInputStream());				    	    	        
+				        ObjectInputStream in = new ObjectInputStream(buff);
+		    			
+		    		    List<Tile> tiles = (List<Tile>)in.readObject();
+		    		    
+		    		    in.close();
+					    
+					    for (Tile t : tiles) {
+					    	Geometry geometry = new WKTReader().read(t.getGeometry());
+	    					_gridIndex.insert(geometry.getEnvelopeInternal(),t);
+					    }
+				        			        
+		        	}
+		        } catch (Exception e) {
+					throw new IOException("Caught exception reading grid file ", e);
+				}
+		       	        
+			}
+		}
+		
+		try {		
 			//Object objGeometry = input.get(0);
 			Map<String,String> data = (Map<String,String>)input.get(1);
 			Map<String,Object> properties = DataType.toMap(input.get(2));
@@ -223,6 +266,7 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 		        		
 		        List<Geometry> list = new ArrayList<Geometry>();
 		        
+		        String tileName="T";
 			    for (Segment aux_segment : _segmentsPtr) {
 			    	 //int [] outterRing = {0};
 			    	 //rings.clear();
@@ -287,12 +331,29 @@ public class MutualMultiresolutionSegmentation extends EvalFunc<DataBag> {
 		        		//byte[] bytes = writer.write(union);
 		        								
 		        		//String compressed = GeometryParser.compressGeometryToString(union);
-		        		
-		        		Map<String,Object> props = new HashMap<String,Object>(properties);
-		        		
-		        		String id = uuid.random();
-		        		
+						
+						Map<String,Object> props = new HashMap<String,Object>(properties);
+		        		String id = uuid.random();	
 		        		props.put("iiuuid", id);
+						
+						//IF post-processing is active then store the MEAN
+						if (_gridUrl!=null){
+							String name="Mean_";
+							for (int i=0; i<_wBand.length;i++){
+								props.put(name.concat(String.valueOf(i)),aux_segment.getAvg_colorByIndex(i));
+							}
+
+							long groupId=Long.MAX_VALUE; //TODO: May verify the largest intersection in order to choose the GroupId
+							//Computing Tiles
+							List<Tile> tiles = _gridIndex.query(union.buffer(BufDist).getEnvelopeInternal());
+							for (Tile itTile : tiles) {
+								long tileId = Long.parseLong(itTile.getCode().substring(1));
+								if (tileId < groupId )
+									groupId=tileId;
+							}
+							props.put("GroupID", tileName.concat(String.valueOf(groupId)));
+						}
+								        		
 		        		
 		        		t.set(0,writer.write(union));
 		        		t.set(1,new HashMap<String,String>(data));
