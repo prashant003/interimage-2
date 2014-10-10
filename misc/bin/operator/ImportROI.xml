@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<operators>
+
+<operator name="ImportROI" oldName="">
+
+<template>
+
+DEFINE II_SpatialFilter br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialFilter('$ROI','$TILES_FILE','intersection');
+
+selection = FILTER $LAST_RELATION BY II_SpatialFilter(geometry, properties#'tile');
+
+DEFINE II_SpatialClip br.puc_rio.ele.lvc.interimage.geometry.udf.SpatialClip('$ROI','$TILES_FILE');
+
+projection = FOREACH $LAST_RELATION GENERATE FLATTEN(II_SpatialClip(geometry, data, properties)) AS (geometry:bytearray, data:map[], properties:map[]);
+
+</template>
+
+<description>
+Operator that filters the input considering a ROI.
+</description>
+
+<author>Rodrigo Ferreira</author>
+
+</operator>
+
+</operators>
