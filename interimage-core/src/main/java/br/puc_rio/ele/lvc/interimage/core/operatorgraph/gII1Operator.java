@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 public class gII1Operator extends gOperator {
 
 	private String II1Executable_;
@@ -107,10 +110,66 @@ public class gII1Operator extends gOperator {
 	public void setII1Executable(String II1Executable) {
 		this.II1Executable_ = II1Executable;
 	}
+
+	@Override
+	public JSONObject exportToJSON() {
+		JSONObject my_obj = new JSONObject();
+		
+		my_obj.put("type", "gII1Operator");
+				
+		my_obj.put("II1Executable", II1Executable_);
+		my_obj.put("projectFile", projectFile_);
+		my_obj.put("resourceImage", resourceImage_);
+		my_obj.put("resourceShape", resourceShape_);
+		my_obj.put("outputDecisionRule", outputDecisionRule_);
+		my_obj.put("outputShapeFile", outputShapeFile_);
+		
+		JSONArray my_obj2 = new JSONArray();
+		
+		for (Map.Entry<String, String> entry : this.parameterList_.entrySet()) {
+			JSONObject my_obj3 = new JSONObject();
+			my_obj3.put(entry.getKey(), entry.getValue());
+			my_obj2.put(my_obj3);
+			my_obj3=null;
+		}
+		
+		my_obj.put("parametersOperator", my_obj2);
+				
+		return my_obj;
+	}
+
+	@Override
+	public Boolean importFromJSON(JSONObject obj) {
+		
+		if (obj.getString("II1Executable")=="")
+			return false;
+		else {
+			this.setII1Executable(obj.getString("II1Executable"));
+		}
+		if (obj.getString("projectFile")=="")
+			return false;
+		else {
+			this.setProjectFile(obj.getString("projectFile"));
+		}
+		this.setResourceImage(obj.getString("resourceImage"));
+		this.setResourceShape(obj.getString("resourceShape"));
+		this.setOutputDecisionRule(obj.getString("outputDecisionRule"));
+		this.setOutputShapeFile(obj.getString("outputShapeFile"));
+		
+		JSONArray my_obj2 = new JSONArray(obj.getString("parametersOperator"));
+		
+		for (int i = 0; i < my_obj2.length(); i++) {
+			JSONObject my_param = new JSONObject(my_obj2.get(i));
+			String key = my_param.keys().next().toString();
+			this.addParamater(key, my_param.getString(key));
+		}
+		
+		return true;
+	}
 	
 }
 
-//1) Segmentação
+//1) Segmenta����o
 
 //interimage 
 //"projectFile=C:\Users\Rodrigo\Documents\interimage-2\interimage1_projects\segmentation\segmentation.gap" 
@@ -125,7 +184,7 @@ public class gII1Operator extends gOperator {
 //"parameterOperator=@color@#0.5" 
 //"parameterOperator=@scale@#50"
 
-//2) Limiarização
+//2) Limiariza����o
 
 //interimage 
 //"projectFile=C:\Users\Rodrigo\Documents\interimage-2\interimage1_projects\thresholding\thresholding.gap" 

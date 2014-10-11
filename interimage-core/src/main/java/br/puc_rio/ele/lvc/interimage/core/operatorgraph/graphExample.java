@@ -38,15 +38,14 @@ public class graphExample {
 		Jobs jobs = new Jobs(new API(email, apiKey));
 			
 		gController g = new gController(null);
+		g.setMortarJobs_(jobs);
 		
 		gMortarOperator n1 = g.addMortarOperator("teste1");
-		n1.setJobs_(jobs);
 		n1.setClusterSize(cluster_size);
 		n1.setProjectName(project_name);
 		n1.setCodeVersion(gitHash);
 		
 		gMortarOperator n2 = g.addMortarOperator("teste2");
-		n2.setJobs_(jobs);
 		n2.setClusterSize(cluster_size);
 		n2.setProjectName(project_name);
 		n2.setCodeVersion(gitHash);
@@ -80,7 +79,7 @@ public class graphExample {
 		lim2.addParamater("max", "0.33");
 		lim2.addParamater("expression", "(R0:3 - R0:0) / (R0:3 + R0:0)");
 		
-		//1) Segmentação
+		//1) Segmenta����o
 
 		//interimage 
 		//"projectFile=C:\Users\Rodrigo\Documents\interimage-2\interimage1_projects\segmentation\segmentation.gap" 
@@ -95,7 +94,7 @@ public class graphExample {
 		//"parameterOperator=@color@#0.5" 
 		//"parameterOperator=@scale@#50"
 
-		//2) Limiarização
+		//2) Limiariza����o
 
 		//interimage 
 		//"projectFile=C:\Users\Rodrigo\Documents\interimage-2\interimage1_projects\thresholding\thresholding.gap" 

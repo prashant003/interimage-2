@@ -1,12 +1,18 @@
 package br.puc_rio.ele.lvc.interimage.core.operatorgraph;
 
+import java.util.concurrent.atomic.AtomicLong;
+
+import org.json.JSONObject;
+
 public abstract class gNode {
 
 	private boolean running_=false;
 	private boolean available_=true;
 	private boolean executed_=false;
 	private int requests_=0;
-	
+    static final AtomicLong NEXT_ID = new AtomicLong(0);
+    final long id_ = NEXT_ID.getAndIncrement();    
+ 	
 	public void run(){
 		this.setRunning(true);
 		//exec something	
@@ -53,5 +59,13 @@ public abstract class gNode {
 	public void setRequests(int requests) {
 		this.requests_ = requests;
 	}
+
+	public long getNodeId() {
+		return id_;
+	}
+
+	public abstract JSONObject exportToJSON();
+	
+	public abstract Boolean importFromJSON(JSONObject path);
 				
 }
